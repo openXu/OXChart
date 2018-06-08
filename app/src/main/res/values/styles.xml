@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="OXViewAppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:clipToPadding">true</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+    </style>
+
+    <style name="OXViewAppTheme" parent="@style/OXViewAppBaseTheme">
+        <!--不能在此配置fitsSystemWindows，会导致toast或者系统弹窗上移挪位-->
+        <!--   <item name="android:fitsSystemWindows">true</item>-->
+    </style>
+
+    <!--自定义标题栏样式-->
+    <style name="TitleDefStyle">
+        <item name="titleHeight">50dip</item>
+        <item name="textSize">16</item>
+        <item name="textColor">#ffffff</item>
+        <item name="textIconSpace">5dip</item>
+        <item name="leftSpace">20dip</item>
+        <item name="rightSpace">15dip</item>
+        <item name="centerRowSpace">3dip</item>
+        <item name="android:background">#d94630</item>
+    </style>
+</resources>

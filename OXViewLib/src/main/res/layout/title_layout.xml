@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!--状态栏预留占位-->
+    <View
+        android:id="@+id/view_tran_bar"
+        android:layout_width="match_parent"
+        android:layout_height="20dip"/>
+
+    <RelativeLayout
+        android:id="@+id/titleLayout"
+        android:layout_width="match_parent"
+        android:layout_height="80dip">
+        <!--
+            android:background="@color/title_bar_color"-->
+
+        <!--标题左侧部分-->
+        <LinearLayout
+            android:id="@+id/ll_left"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!--返回键-->
+            <LinearLayout
+                android:id="@+id/ll_back"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/iv_left_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/btn_back"/>
+            </LinearLayout>
+
+
+            <!--左侧图标-->
+            <ImageView
+                android:id="@+id/iv_left_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_menu_camera"/>
+
+            <!--左侧文字-->
+            <TextView
+                android:id="@+id/tv_left_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:lines="1"
+                android:text="左sdsdsdds"/>
+
+        </LinearLayout>
+
+        <!--标题中间部分-->
+        <RelativeLayout
+            android:id="@+id/rl_center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:orientation="horizontal">
+            <!--中间文字-->
+            <TextView
+                android:id="@+id/tv_center_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:gravity="center"
+                android:maxEms="13"
+                android:ellipsize="end"
+                android:lines="1"
+                android:text="中间"/>
+        </RelativeLayout>
+
+        <!--标题右侧部分-->
+        <LinearLayout
+            android:id="@+id/ll_right"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:gravity="center_vertical">
+
+            <!--右侧文字-->
+            <TextView
+                android:id="@+id/tv_right_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:lines="1"
+                android:text="右"/>
+
+            <RelativeLayout
+                android:id="@+id/rl_right_icon"
+                android:layout_width="50dip"
+                android:layout_height="50dip">
+
+                <!--右侧图标-->
+                <ImageView
+                    android:id="@+id/iv_right_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:src="@android:drawable/ic_menu_camera"/>
+                <!---->
+                <TextView
+                    android:id="@+id/tv_right_pop"
+                    android:layout_width="18dip"
+                    android:layout_height="18dip"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentTop="true"
+                    android:background="#ff0000"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:lines="1"
+                    android:text="11"
+                    android:textSize="10sp"/>
+            </RelativeLayout>
+
+            <!--图标容器-->
+            <LinearLayout
+                android:id="@+id/ll_right_icon_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"/>
+        </LinearLayout>
+
+    </RelativeLayout>
+</LinearLayout>

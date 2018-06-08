@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.openxu.cview.TitleLayout
+        android:id="@+id/title_layout"
+        style="@style/TitleDefStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:iconBack="@mipmap/btn_back"
+        app:textcenter="纵向柱状图"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <com.openxu.cview.chart.barchart.BarVerticalChart
+                android:id="@+id/chart1"
+                android:layout_width="match_parent"
+                android:layout_height="250dip"
+                android:background="#ffffff"
+                android:padding="10dp"/>
+            <com.openxu.cview.chart.barchart.BarVerticalChart
+                android:id="@+id/chart2"
+                android:layout_width="match_parent"
+                android:layout_height="250dip"
+                android:layout_marginTop="7dp"
+                android:background="#ffffff"
+                android:padding="10dp"/>
+            <com.openxu.cview.chart.barchart.BarVerticalChart
+                android:id="@+id/chart3"
+                android:layout_width="match_parent"
+                android:layout_height="250dip"
+                android:layout_marginTop="7dp"
+                android:background="#ffffff"
+                android:padding="10dp"/>
+            <com.openxu.cview.chart.barchart.BarVerticalChart
+                android:id="@+id/chart4"
+                android:layout_width="match_parent"
+                android:layout_height="250dip"
+                android:layout_marginTop="7dp"
+                android:background="#ffffff"
+                android:padding="10dp"/>
+
+</LinearLayout>
+</ScrollView>
+
+</LinearLayout>

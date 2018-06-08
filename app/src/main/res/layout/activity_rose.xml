@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.openxu.cview.TitleLayout
+        android:id="@+id/title_layout"
+        style="@style/TitleDefStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:iconBack="@mipmap/btn_back"
+        app:textcenter="南丁格尔玫瑰图"/>
+
+    <ScrollView
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:orientation="horizontal">
+        <com.openxu.cview.chart.rosechart.NightingaleRoseChart
+            android:id="@+id/roseChartEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"/>
+        <com.openxu.cview.chart.rosechart.NightingaleRoseChart
+            android:id="@+id/roseChartOne"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginLeft="2dp"
+            android:paddingRight="10dp"
+            android:layout_weight="1"/>
+    </LinearLayout>
+    
+    <com.openxu.cview.chart.rosechart.NightingaleRoseChart
+        android:id="@+id/roseChartSmall"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"/>
+    <com.openxu.cview.chart.rosechart.NightingaleRoseChart
+        android:id="@+id/roseChartMany"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"/>
+
+
+</LinearLayout>
+</ScrollView>
+
+</LinearLayout>

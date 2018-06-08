@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.openxu.cview.TitleLayout
+        android:id="@+id/title_layout"
+        style="@style/TitleDefStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:iconBack="@mipmap/btn_back"
+        app:textcenter="横向柱状图"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <com.openxu.cview.chart.barchart.BarHorizontalChart
+                android:id="@+id/chart1"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginTop="20dp"
+                android:background="#ffffff"
+                android:padding="10dip"/>
+            <com.openxu.cview.chart.barchart.BarHorizontalChart
+                android:id="@+id/chart2"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginTop="30dp"
+                android:background="#ffffff"
+                android:padding="10dip"/>
+</LinearLayout>
+</ScrollView>
+
+</LinearLayout>

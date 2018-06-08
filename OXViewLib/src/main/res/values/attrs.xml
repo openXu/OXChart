@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="TitleView">
+        <!--下面属性在layout中配置-->
+        <attr name="textLeft" format="string" />          <!--左边文字-->
+        <attr name="textcenter" format="string" />        <!--中间文字-->
+        <attr name="textRight" format="string" />         <!--右边文字-->
+        <attr name="iconBack" format="reference" />       <!--左边返回键-->
+        <attr name="iconLeft" format="reference" />       <!--左边icon-->
+        <attr name="iconCenterRow" format="reference" />  <!--中间箭头-->
+        <attr name="iconRight" format="reference" />      <!--右边icon-->
+        <attr name="android:background" />
+        <!--下面属性在style中配置-->
+        <attr name="titleHeight" format="dimension" />    <!--标题高度-->
+        <attr name="textSize" format="integer" />         <!--文字大小sp值-->
+        <attr name="textColor" format="color" />          <!--文字颜色-->
+        <attr name="textIconSpace" format="dimension" />
+        <attr name="leftSpace" format="dimension" />      <!--标题左侧的空隙-->
+        <attr name="rightSpace" format="dimension" />     <!--标题右侧的空隙-->
+        <attr name="centerRowSpace" format="dimension" /> <!--中间箭头和文字的距离-->
+    </declare-styleable>
+    <!--定义theme可配置style-->
+    <attr name="TitleViewStyle" format="reference"></attr>
+
+
+    <!-- "自定义标题视图"属性 -->
+    <declare-styleable name="CustomTitleView">
+        <attr name="titleText" format="string" />
+        <attr name="titleTextColor" format="color" />
+        <attr name="titleTextSize" format="dimension" />
+    </declare-styleable>
+
+</resources>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <!--白色内容区域按下时的背景色-->
+    <color name="white_press_bg">#16000000</color>
+    <!--线条色-->
+    <color name="line_bg_color">#f3f3f3</color>
+
+    <!--字体颜色-->
+    <color name="text_color_def">#5E5E5E</color>
+    <color name="text_color_light_gray">#939393</color>
+    <!--辅助色-->
+    <color name="color_red">#db4527</color>
+    <color name="color_yellow">#fda33c</color>
+    <color name="color_green">#61d007</color>
+    <color name="color_blue">#5f93e7</color>
+    <color name="color_bg_grey">#F2F2F2</color>>
+    <color name="color_main_orange">#DB4528</color>
+
+
+    <color name="chart_line_color">#e6e6e6</color>
+
+
+</resources>

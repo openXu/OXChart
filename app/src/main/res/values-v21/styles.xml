@@ -1,0 +1,9 @@
+<resources>
+    <style name="OXViewAppTheme" parent="@style/OXViewAppBaseTheme">
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
+    </style>
+
+</resources>
+
+

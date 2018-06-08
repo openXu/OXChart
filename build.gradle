@@ -1,0 +1,21 @@
+buildscript {
+    dependencies {
+        repositories {
+            google()
+            jcenter()
+        }
+        classpath 'com.android.tools.build:gradle:3.0.1'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url 'file://E://ASWorkSpace//openxu//OXChart//repository' }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

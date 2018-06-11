@@ -3,7 +3,7 @@
 
 ### 1、南丁格尔玫瑰图 NightingaleRoseChart
 
-![](pic/chart_simple_rose.png "南丁格尔玫瑰图")
+![](readmePic/pic1.gif "南丁格尔玫瑰图")
 ```xml
 <com.openxu.cview.chart.rosechart.NightingaleRoseChart
     android:id="@+id/roseChartSmall"
@@ -29,7 +29,7 @@ roseChartSmall.setLoading(false);//是否正在加载，数据加载完毕后置
 
 ### 2、占比饼状图表 PieChartLayout
 
-![](pic/chart_simple_pie.png "占比饼状图表")
+![](readmePic/pic2.gif "占比饼状图表")
 
 ```xml
 <com.openxu.cview.chart.piechart.PieChartLayout
@@ -78,6 +78,8 @@ pieChart1.setChartData(PieChartBean.class, "Numner", "Name",datalist ,tableList)
 
 ### 3、进度环形图 ProgressPieChart
 
+![](readmePic/pic3.gif "进度环形图")
+
 ```xml
 <com.openxu.cview.chart.ProgressPieChart
     android:id="@+id/chart1"
@@ -103,7 +105,7 @@ chart1.setData(100, 60, lables);
 
 ### 4、纵向柱状图 BarVerticalChart
 
-![](pic/chart_simple_barvertical.png "纵向柱状图")
+![](readmePic/pic4.gif "纵向柱状图")
 
 ```xml
 <com.openxu.cview.chart.barchart.BarVerticalChart
@@ -139,7 +141,7 @@ chart1.setData(dataList, strXList);
 
 ### 5、横向柱状图 BarHorizontalChart
 
-![](readmePic/chart_simple_barvertical.png "纵向柱状图")
+![](readmePic/pic5.gif "横向柱状图")
 
 ```xml
 <com.openxu.cview.chart.barchart.BarHorizontalChart

@@ -28,37 +28,7 @@ import com.openxu.utils.DensityUtil;
  * className: TitleLayout
  * version:
  * description: 通用的titlebar
- *
  * Sample：(属性详情参照attrs.xml-TitleView)
- <com.fzy.vcm.view.TitleLayout
- android:layout_width="match_parent"
- android:layout_height="wrap_content"
- style="@style/TitleDefStyle"
- openxu:textLeft="本月任务"
- openxu:textcenter="center"
- openxu:textRight="right"
- openxu:iconLeft="@mipmap/home_nav_icon_task"
- openxu:iconCenterRow="@android:drawable/arrow_down_float"
- openxu:iconRight="@mipmap/home_nav_icon_task"/>
-
- title_Layout.setBackgroundColor1(Color.RED)
- .setTextLeft("本月任务")
- .setIconLeft(R.mipmap.home_nav_icon_task)
- .setIconRight(R.mipmap.home_nav_icon_dot)
- .show();
- //事件处理
- title_Layout.setOnMenuClickListener(menu->{
- switch (menu){
- case MENU_BACK:       //返回按钮
- break;
- case MENU_LEFT_ICON:  //左侧图标（一般不做处理）
- break;
- case MENU_CENTER:     //中间标题点击
- break;
- case MENU_RIGHT_ICON: //右侧菜单图标
- break;
- }
- });
  */
 public class TitleLayout extends RelativeLayout {
 

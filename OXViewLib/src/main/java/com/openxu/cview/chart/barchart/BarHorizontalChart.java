@@ -31,18 +31,6 @@ import static com.openxu.cview.chart.BaseChart.TOUCH_EVENT_TYPE.EVENT_Y;
  * className : BarHorizontalChart
  * version : 1.0
  * description : 横向(柱子水平) 柱状图，支持多柱
- *
- *
-     <com.fzy.view.chart.barchart.BarHorizontalChart
-     android:id="@+id/chart_num"
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:background="@color/white"
-     android:paddingBottom="@dimen/common_right_left_margin"
-     android:paddingLeft="@dimen/common_right_left_margin"
-     android:paddingRight="@dimen/common_right_left_margin" />
- *
- *
  */
 public class BarHorizontalChart extends BaseChart {
 

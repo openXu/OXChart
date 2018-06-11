@@ -5,6 +5,20 @@ buildscript {
             jcenter()
         }
         classpath 'com.android.tools.build:gradle:3.0.1'
+
+        //发布到jcenter
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
+    }
+
+   //注释中有汉字，需要这里处理
+    tasks.withType(Javadoc) {
+        options {
+            encoding "UTF-8"
+            charSet 'UTF-8'
+            links "http://docs.oracle.com/javase/7/docs/api"
+            failOnError false
+        }
     }
 }
 
@@ -12,7 +26,10 @@ allprojects {
     repositories {
         google()
         jcenter()
-        maven { url 'file://E://ASWorkSpace//openxu//OXChart//repository' }
+        //本地仓库地址
+//        maven { url 'file://E://ASWorkSpace//openxu//OXChart//repository' }
+        //私有服务器仓库地址
+        maven { url 'http://localhost:8081/nexus/content/repositories/releases/' }
     }
 }
 

@@ -1,0 +1,13 @@
+/**①.发布到本地maven仓库*/
+apply plugin: 'maven'
+//添加下面配置后，在Gradle projects窗口中:OXViewLib->Tasks中会多出一个upload目录，里面就有一个名为uploadArchives的task
+//uploadArchives就是用于发布到仓库的task
+uploadArchives{
+    repositories.mavenDeployer{
+        // 配置本地仓库路径，项目根目录下的repository目录中
+        repository(url: uri('../repository'))
+        pom.groupId = "com.openxu.viewlib"// 唯一标识（通常为模块包名，也可以任意）
+        pom.artifactId = "OXViewLib"      // 项目名称（通常为类库模块名称，也可以任意）
+        pom.version = "1.0.0" // 版本号
+    }
+}

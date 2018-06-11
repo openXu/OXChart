@@ -1,4 +1,4 @@
-package com.openxu.adapter;
+package com.openxu.chart.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -32,9 +32,9 @@ public class ViewHolder  extends RecyclerView.ViewHolder {
         mViews = new SparseArray<>();
     }
 
-    public static ViewHolder get(Context context, ViewGroup parent, int layoutId) {
+    public static com.openxu.adapter.ViewHolder get(Context context, ViewGroup parent, int layoutId) {
         View itemView = LayoutInflater.from(context).inflate(layoutId, parent, false);
-        ViewHolder holder = new ViewHolder(context, itemView, parent);
+        com.openxu.adapter.ViewHolder holder = new com.openxu.adapter.ViewHolder(context, itemView, parent);
         return holder;
     }
 
@@ -51,41 +51,41 @@ public class ViewHolder  extends RecyclerView.ViewHolder {
         }
         return (T) view;
     }
-    public ViewHolder setVisible(int viewId, int visible) {
+    public com.openxu.adapter.ViewHolder setVisible(int viewId, int visible) {
         getView(viewId).setVisibility(visible);
         return this;
     }
-    public ViewHolder setTextColor(int viewId, int color) {
+    public com.openxu.adapter.ViewHolder setTextColor(int viewId, int color) {
         TextView tv = getView(viewId);
         tv.setTextColor(color);
         return this;
     }
-    public ViewHolder setText(int viewId, CharSequence text) {
+    public com.openxu.adapter.ViewHolder setText(int viewId, CharSequence text) {
         TextView tv = getView(viewId);
         tv.setText(TextUtils.isEmpty(text)?"":text);
         return this;
     }
-    public ViewHolder setBackgroundResource(int viewId, int id) {
+    public com.openxu.adapter.ViewHolder setBackgroundResource(int viewId, int id) {
         View view = getView(viewId);
         view.setBackgroundResource(id);
         return this;
     }
-    public ViewHolder setImageResource(int viewId, int resId) {
+    public com.openxu.adapter.ViewHolder setImageResource(int viewId, int resId) {
         ImageView view = getView(viewId);
         view.setImageResource(resId);
         return this;
     }
-    public ViewHolder setCheckBoxChecked(int viewId, boolean check) {
+    public com.openxu.adapter.ViewHolder setCheckBoxChecked(int viewId, boolean check) {
         CheckBox cb = getView(viewId);
         cb.setChecked(check);
         return this;
     }
-    public ViewHolder setLinearLayoutBgIcon(int viewId, int  iconResourse) {
+    public com.openxu.adapter.ViewHolder setLinearLayoutBgIcon(int viewId, int  iconResourse) {
         LinearLayout ll = getView(viewId);
         ll.setBackgroundResource(iconResourse);
         return this;
     }
-    public ViewHolder setOnClickListener(int viewId,  View.OnClickListener listener) {
+    public com.openxu.adapter.ViewHolder setOnClickListener(int viewId, View.OnClickListener listener) {
         if(viewId==-1){
             mConvertView.setOnClickListener(listener);
         }else{

@@ -22,11 +22,20 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
     implementation 'com.android.support:appcompat-v7:25.3.1'
 }
 
-apply from: 'mavenJcenter.gradle'
+// must be applied after your artifact generating plugin (eg. java / com.android.library)
+apply plugin: 'com.novoda.bintray-release'
+
+publish {
+    userOrg = 'oxo1'   //bintray.com 账户下某个组织id
+    groupId = 'com.openxu.viewlib'  //jcenter上的路径，一般为包名
+    artifactId = 'OXViewLib'  //项目名称
+    publishVersion = '1.0.2'  //版本号
+    desc = 'custom chart for android'   //项目介绍，可以不写
+    website = ''  //项目主页，可以不写
+}

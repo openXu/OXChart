@@ -6,8 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
-import com.openxu.adapter.CommandRecyclerAdapter;
-import com.openxu.adapter.ViewHolder;
+import com.openxu.chart.adapter.CommandRecyclerAdapter;
+import com.openxu.chart.adapter.ViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;

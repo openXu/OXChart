@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.openxu.adapter.ViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +16,9 @@ import java.util.List;
  * date : 2017/9/7 19:05
  * className : CommandRecyclerAdapter
  * version : 1.0
- * description : Í¨ÓÃµÄCommandRecyclerAdapter
+ * description : é€šç”¨çš„CommandRecyclerAdapter
  */
-public abstract class CommandRecyclerAdapter<T> extends RecyclerView.Adapter<com.openxu.adapter.ViewHolder> {
+public abstract class CommandRecyclerAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
     protected Context mContext;
     protected int mLayoutId;
     protected List<T> mDatas;
@@ -42,13 +41,13 @@ public abstract class CommandRecyclerAdapter<T> extends RecyclerView.Adapter<com
     }
 
     @Override
-    public com.openxu.adapter.ViewHolder onCreateViewHolder(final ViewGroup parent, int viewType){
-        com.openxu.adapter.ViewHolder viewHolder = com.openxu.adapter.ViewHolder.get(mContext, parent, mLayoutId);
+    public ViewHolder onCreateViewHolder(final ViewGroup parent, int viewType){
+        ViewHolder viewHolder = ViewHolder.get(mContext, parent, mLayoutId);
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(com.openxu.adapter.ViewHolder holder, final int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         convert(holder, mDatas.get(position));
         setItemViewLayout(holder, position);
         holder.setOnClickListener(-1, new View.OnClickListener() {
@@ -68,20 +67,20 @@ public abstract class CommandRecyclerAdapter<T> extends RecyclerView.Adapter<com
         return mDatas;
     }
     /**
-     * ÖØÐ´´Ë·½·¨£¬½«Êý¾Ý°ó¶¨µ½¿Ø¼þÉÏ
+     * é‡å†™æ­¤æ–¹æ³•ï¼Œå°†æ•°æ®ç»‘å®šåˆ°æŽ§ä»¶ä¸Š
      * @param holder
      * @param t
      */
-    public abstract void convert(com.openxu.adapter.ViewHolder holder, T t);
+    public abstract void convert(ViewHolder holder, T t);
 
     /**
-     * ´Ë·½·¨ºóÃæÌí¼Ó£¬ÓÃÓÚ¸ù¾ÝÌõÄ¿Î»ÖÃpositionÉèÖÃitem²¼¾ÖÑùÊ½
+     * æ­¤æ–¹æ³•åŽé¢æ·»åŠ ï¼Œç”¨äºŽæ ¹æ®æ¡ç›®ä½ç½®positionè®¾ç½®itemå¸ƒå±€æ ·å¼
      * @param holder
      * @param position
      */
     public void setItemViewLayout(ViewHolder holder, int position){}
     /***
-     * itemµã»÷
+     * itemç‚¹å‡»
      * @param data
      */
     public abstract void onItemClick(T data, int position);

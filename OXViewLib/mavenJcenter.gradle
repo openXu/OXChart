@@ -27,9 +27,9 @@ install {
                 //开发者信息
                 developers {
                     developer {
-                        id 'openXu'          //yourId
-                        name 'openXu'    //yourName
-                        email 'openXu@yeah.net' //yourEmail
+                        id 'OPEN-XU'          //yourId
+                        name 'OPEN-XU'    //yourName
+                        email '17373613414@yeah.net' //yourEmail
                     }
                 }
 
@@ -80,6 +80,7 @@ bintray {
     pkg {
         repo = 'maven'
         name = 'OXViewLib'   //发布到JCenter上项目名
+        userOrg = 'oxo1'
         websiteUrl = siteUrl
         vcsUrl = gitUrl
         licenses = ['Apache-2.0']

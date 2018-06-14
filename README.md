@@ -1,3 +1,13 @@
+
+## 类库接入
+
+build.gradle中添加依赖：
+
+```xml
+    implementation 'com.openxu.viewlib:OXViewLib:1.0.0'
+```
+
+
 ## 图表使用
 
 

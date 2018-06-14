@@ -1,7 +1,7 @@
 
 ## OXChart
 
-[![](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)&emsp;&emsp;![](https://img.shields.io/badge/version-1.0.2-yellow.svg
 
 > 自定义图标库，使用方便，扩展性强，后续会添加更多开发中使用到的图表
 

@@ -22,4 +22,11 @@
     <color name="chart_line_color">#e6e6e6</color>
 
 
+    <!--微财讯折线图-->
+    <color name="tc_chart_lable">#939393</color><!--指标文字颜色-->
+    <color name="tc_chart_xy">#939393</color>   <!--xy轴刻度文字颜色-->
+    <color name="tc_chart_time">#5E5E5E</color> <!--时间文字颜色-->
+    <color name="tc_chart_focus_line">#FF4081</color> <!--焦点线颜色-->
+
+
 </resources>

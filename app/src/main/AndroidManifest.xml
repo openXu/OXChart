@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.openxu.chart">
-
+    <!--震动-->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -21,6 +22,7 @@
         <activity android:name=".VerticalBarActivity"/>
         <activity android:name=".HorizontalBarActivity"/>
         <activity android:name=".ProgressPieActivity"/>
+        <activity android:name=".XmStockChartActivity"/>
     </application>
 
 </manifest>

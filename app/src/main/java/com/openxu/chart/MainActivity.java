@@ -2,6 +2,8 @@ package com.openxu.chart;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +20,14 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private List<String> datas;
 
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+        }
+    };
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
         datas.add("进度环形图");
         datas.add("纵向柱状图");
         datas.add("横向柱状图");
+        datas.add("折线图");
 
         recyclerView.setAdapter(new CommandRecyclerAdapter<String>(this, R.layout.list_item, datas) {
             @Override
@@ -54,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case 4:
                         startActivity(new Intent(MainActivity.this, HorizontalBarActivity.class));
+                        break;
+                    case 5:
+                        startActivity(new Intent(MainActivity.this, XmStockChartActivity.class));
                         break;
                 }
             }

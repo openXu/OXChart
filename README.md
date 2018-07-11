@@ -16,6 +16,15 @@ build.gradle中添加依赖：
     implementation 'com.openxu.viewlib:OXViewLib:<new version>'
 ```
 
+指定java版本，否则会报错：
+android {
+    ...
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    ...
+}
 
 ## 图表使用
 

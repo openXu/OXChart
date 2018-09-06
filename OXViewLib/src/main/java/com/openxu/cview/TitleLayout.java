@@ -5,11 +5,11 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,7 +73,6 @@ public class TitleLayout extends RelativeLayout {
 
     private float leftUsed;
     private float rightUsed;
-    private Paint textPaint;
 
     public TitleLayout(Context context) {
         this(context, null);
@@ -127,9 +126,9 @@ public class TitleLayout extends RelativeLayout {
             iconCenterRow = ta.getResourceId(R.styleable.TitleView_iconCenterRow, 0);
             iconRight = ta.getResourceId(R.styleable.TitleView_iconRight, 0);
 
-            textSize = ta.getInteger(R.styleable.TitleView_textSize, 1);
+            textSize = ta.getDimension(R.styleable.TitleView_android_textSize, 1);
             titleHeight = ta.getDimension(R.styleable.TitleView_titleHeight, 0);
-            textColor = ta.getColor(R.styleable.TitleView_textColor, Color.WHITE);
+            textColor = ta.getColor(R.styleable.TitleView_android_textColor, Color.WHITE);
             textIconSpace = ta.getDimension(R.styleable.TitleView_textIconSpace, 0);
             leftSpace = ta.getDimension(R.styleable.TitleView_leftSpace, 0);
             rightSpace = ta.getDimension(R.styleable.TitleView_rightSpace, 0);
@@ -184,14 +183,12 @@ public class TitleLayout extends RelativeLayout {
 
     private void setParams() {
         tv_left_text.setTextColor(textColor);
-        tv_left_text.setTextSize(textSize);
+        tv_left_text.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
         tv_center_text.setTextColor(textColor);
-        tv_center_text.setTextSize(textSize);
+        tv_center_text.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
         tv_right_text.setTextColor(textColor);
-        tv_right_text.setTextSize(textSize);
+        tv_right_text.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
         tv_right_pop.setTextColor(textColor);
-        textPaint = new Paint();
-        textPaint.setTextSize(textSize);
 //        LogUtil.d(TAG, "设置字体");
 
         //设置标题高度

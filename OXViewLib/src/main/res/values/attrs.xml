@@ -13,8 +13,8 @@
         <attr name="android:background" />
         <!--下面属性在style中配置-->
         <attr name="titleHeight" format="dimension" />    <!--标题高度-->
-        <attr name="textSize" format="integer" />         <!--文字大小sp值-->
-        <attr name="textColor" format="color" />          <!--文字颜色-->
+        <attr name="android:textSize" format="integer" />         <!--文字大小sp值-->
+        <attr name="android:textColor" format="color" />          <!--文字颜色-->
         <attr name="textIconSpace" format="dimension" />
         <attr name="leftSpace" format="dimension" />      <!--标题左侧的空隙-->
         <attr name="rightSpace" format="dimension" />     <!--标题右侧的空隙-->
@@ -25,10 +25,10 @@
 
 
     <!-- "自定义标题视图"属性 -->
-    <declare-styleable name="CustomTitleView">
+<!--    <declare-styleable name="CustomTitleView">
         <attr name="titleText" format="string" />
         <attr name="titleTextColor" format="color" />
         <attr name="titleTextSize" format="dimension" />
-    </declare-styleable>
+    </declare-styleable>-->
 
 </resources>

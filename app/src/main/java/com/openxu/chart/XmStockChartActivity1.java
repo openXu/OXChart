@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.openxu.chart.bean.PieBean;
 import com.openxu.cview.chart.bean.ChartLable;
+import com.openxu.cview.stocknew.BarLineChart;
 import com.openxu.cview.stocknew.BranchChart;
 import com.openxu.cview.stocknew.DongxiangChart;
 import com.openxu.cview.stocknew.HorizontalChart;
@@ -14,6 +15,7 @@ import com.openxu.cview.stocknew.RadarChart;
 import com.openxu.cview.stocknew.ShadowLineChart;
 import com.openxu.cview.stocknew.bean.BaseChartData;
 import com.openxu.cview.stocknew.bean.BranchChartData;
+import com.openxu.cview.stocknew.bean.GsyjChartData;
 import com.openxu.utils.DensityUtil;
 
 import java.text.DecimalFormat;
@@ -122,6 +124,32 @@ public class XmStockChartActivity1 extends AppCompatActivity {
         dxlist.add(new BaseChartData("07-18", 536));
         dongxiangChart.setLoading(false);
         dongxiangChart.setData(dxlist);
+
+        /**5、公司业绩*/
+        /*营业收入*/
+        BarLineChart barLineChart = (BarLineChart)findViewById(R.id.barLineChart);
+        barLineChart.setLoading(true);
+        barLineChart.setyMarkType(BarLineChart.YMARK_TYPE.INTEGER);  //左侧刻度显示整数
+        List<GsyjChartData> yysrlist = new ArrayList<>();
+        yysrlist.add(new GsyjChartData("2011", 1500, 0.01f));
+        yysrlist.add(new GsyjChartData("2012", 1100, 0.02f));
+        yysrlist.add(new GsyjChartData("2013", 600, 0.03f));
+        yysrlist.add(new GsyjChartData("2014", 2000, 0.04f));
+        yysrlist.add(new GsyjChartData("2015", 1789, 0.05f));
+        barLineChart.setLoading(false);
+        barLineChart.setData(yysrlist);
+        /*基本每股收益*/
+        BarLineChart barLineChart1 = (BarLineChart)findViewById(R.id.barLineChart1);
+        barLineChart1.setLoading(true);
+        barLineChart1.setyMarkType(BarLineChart.YMARK_TYPE.DECIMAL); //左侧刻度显示小数
+        List<GsyjChartData> sylist = new ArrayList<>();
+        sylist.add(new GsyjChartData("2011", 6.57f, 0.156f));
+        sylist.add(new GsyjChartData("2012", 2.65f, 0.06f));
+        sylist.add(new GsyjChartData("2013", 5.27f, -0.036f));
+        sylist.add(new GsyjChartData("2014", 8.14f, -0.01f));
+        sylist.add(new GsyjChartData("2015", 4.25f, 0.05f));
+        barLineChart1.setLoading(false);
+        barLineChart1.setData(sylist);
 
         //3、 相关产业
         BranchChart  branchChart = (BranchChart)findViewById(R.id.branchChart);

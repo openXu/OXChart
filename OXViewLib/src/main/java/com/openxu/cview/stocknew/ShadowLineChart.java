@@ -275,11 +275,16 @@ public class ShadowLineChart extends BaseChart {
         if(null != point && null!=dataList && dataList.size()>0) {
             if(point.x>drawRect.right || point.x<drawRect.left)
                 return;
-            //获取焦点对应的数据的索引
-            int index =  (int)(((point.x - drawRect.left) / oneWidth) + (((point.x - drawRect.left)%oneWidth)>0?1:0));
-            BaseChartData focous = dataList.get(index);
-            LogUtil.w(TAG, "焦点坐标："+point.x+","+point.y+"   索引："+index);
-            LogUtil.w(TAG, "焦点："+focous);
+            try {
+                //获取焦点对应的数据的索引
+                int index = (int) (((point.x - drawRect.left) / oneWidth) + (((point.x - drawRect.left) % oneWidth) > 0 ? 1 : 0));
+                index -= 1;
+                BaseChartData focous = dataList.get(index);
+                LogUtil.w(TAG, "焦点坐标：" + point.x + "," + point.y + "   索引：" + index);
+                LogUtil.w(TAG, "焦点：" + focous);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
         invalidate();
     }

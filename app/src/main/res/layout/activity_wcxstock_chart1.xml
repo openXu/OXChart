@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+    android:background="#292933"
+    android:orientation="vertical">
+    <com.openxu.cview.TitleLayout
+        android:id="@+id/title_layout"
+        style="@style/TitleDefStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:iconBack="@mipmap/btn_back"
+        app:textcenter="折线图"/>
+
+
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dip"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#ffffff"
+            android:gravity="center"
+            android:text="中国平安"/>
+
+        <com.openxu.cview.stocknew.RadarChart
+            android:id="@+id/radarChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dip"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:background="#1f1f27"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dip"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#0099ff"
+            android:text="资金流向"/>
+
+        <com.openxu.cview.stocknew.IOPieChart
+            android:id="@+id/ioPieChart"
+            android:layout_width="match_parent"
+            android:layout_height="187dp" />
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:background="#1f1f27"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dip"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#0099ff"
+            android:text="市场环境"/>
+
+        <com.openxu.cview.stocknew.HorizontalChart
+            android:id="@+id/horizontalChart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"/>
+
+        <com.openxu.cview.stocknew.ShadowLineChart
+            android:id="@+id/gjzsChart"
+            android:layout_width="match_parent"
+            android:layout_marginTop="15dp"
+            android:layout_height="150dp"
+            android:paddingRight="15dp"
+            android:paddingLeft="15dp"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:background="#1f1f27"/>
+
+
+        <!--主力动向-->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="15dip"
+                android:paddingTop="15dp"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#0099ff"
+                android:text="主力动向"/>
+
+            <!--此处自己写布局（资金净流入 & 资金净流出）-->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#05bafd"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:text="资金净流出"/>
+
+        </RelativeLayout>
+        <com.openxu.cview.stocknew.DongxiangChart
+            android:id="@+id/dongxiangChart"
+            android:layout_width="match_parent"
+            android:layout_marginTop="15dp"
+            android:layout_height="150dp"
+            android:paddingRight="15dp"
+            android:paddingLeft="15dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:background="#1f1f27"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dip"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#0099ff"
+            android:text="相关产业"/>
+        <com.openxu.cview.stocknew.BranchChart
+            android:id="@+id/branchChart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+</ScrollView>
+</LinearLayout>

@@ -53,6 +53,7 @@ public abstract class BaseChart extends View {
 
 
     protected Paint paint;
+    protected Paint paintEffect;
     protected Paint paintLabel;
 
     /**动画相关统一属性，也可以设置，需要写set方法*/
@@ -115,6 +116,12 @@ public abstract class BaseChart extends View {
 
         paintLabel = new Paint();
         paintLabel.setAntiAlias(true);
+
+        paintEffect = new Paint();
+        paintEffect.setAntiAlias(true);
+        paintEffect.setStyle(Paint.Style.FILL);
+        paintEffect.setStrokeWidth(lineWidth);
+        paintEffect.setColor(Color.RED);
 
         mGestureDetector = new GestureDetector(getContext(), new MyOnGestureListener());
 

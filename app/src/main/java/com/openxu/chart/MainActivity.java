@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         datas.add("纵向柱状图");
         datas.add("横向柱状图");
         datas.add("折线图");
+        datas.add("股票信息");
 
         recyclerView.setAdapter(new CommandRecyclerAdapter<String>(this, R.layout.list_item, datas) {
             @Override
@@ -68,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case 5:
                         startActivity(new Intent(MainActivity.this, XmStockChartActivity.class));
+                        break;
+                    case 6:
+                        startActivity(new Intent(MainActivity.this, XmStockChartActivity1.class));
                         break;
                 }
             }

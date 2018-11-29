@@ -44,7 +44,8 @@ public abstract class BaseChart extends View {
 
     /**可设置属性*/
     protected int backColor = Color.WHITE;
-    protected int lineWidth = DensityUtil.dip2px(getContext(), 0.7f);     //辅助线宽度
+    //辅助线宽度
+    protected int lineWidth = DensityUtil.dip2px(getContext(), 0.7f);
     //正在加载
     protected boolean isLoading = true;
     protected String loadingStr = "loading...";
@@ -122,6 +123,10 @@ public abstract class BaseChart extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        onMeasureAfter();
+    }
+
+    protected void onMeasureAfter(){
         centerPoint = new PointF(getMeasuredWidth()/2, getMeasuredHeight()/2);
         rectChart = new RectF(getPaddingLeft(),getPaddingTop(),getMeasuredWidth()-getPaddingRight(),
                 getMeasuredHeight()-getPaddingBottom());

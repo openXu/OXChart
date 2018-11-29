@@ -4,7 +4,7 @@ buildscript {
             google()
             jcenter()
         }
-        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.android.tools.build:gradle:3.2.1'
 
         //发布到jcenter
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.+'
@@ -28,7 +28,7 @@ buildscript {
         }
     }*/
 }
-tasks.getByPath(":OXViewLib:releaseAndroidJavadocs").enabled = false
+//tasks.getByPath(":OXViewLib:releaseAndroidJavadocs").enabled = false
 
 allprojects {
     repositories {

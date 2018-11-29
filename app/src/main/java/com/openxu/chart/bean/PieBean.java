@@ -4,18 +4,18 @@ package com.openxu.chart.bean;
 /**
  * autour : openXu
  * date : 2018/6/8 9:40
- * className : PieChartBean
+ * className : PieBean
  * version : 1.0
  * description : 请添加类说明
  */
-public class PieChartBean {
+public class PieBean {
     private float Numner;
     private String Name;
 
-    public PieChartBean() {
+    public PieBean() {
     }
 
-    public PieChartBean(float Numner, String Name) {
+    public PieBean(float Numner, String Name) {
         this.Numner = Numner;
         this.Name = Name;
     }

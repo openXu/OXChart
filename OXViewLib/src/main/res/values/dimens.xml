@@ -5,7 +5,6 @@
     <dimen name="text_size_level_mid">12sp</dimen>
     <dimen name="text_size_level_small">10sp</dimen>
 
-    <!--微财讯折线图-->
     <!--柱状图-->
     <dimen name="ts_barchart_x">10sp</dimen>   <!--x轴文字大小-->
     <dimen name="ts_barchart_y">12sp</dimen>   <!--y轴文字大小-->

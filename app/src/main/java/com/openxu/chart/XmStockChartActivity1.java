@@ -13,10 +13,12 @@ import com.openxu.cview.stocknew.HorizontalChart;
 import com.openxu.cview.stocknew.IOPieChart;
 import com.openxu.cview.stocknew.RadarChart;
 import com.openxu.cview.stocknew.ShadowLineChart;
+import com.openxu.cview.stocknew.SpeekButton;
 import com.openxu.cview.stocknew.bean.BaseChartData;
 import com.openxu.cview.stocknew.bean.BranchChartData;
 import com.openxu.cview.stocknew.bean.GsyjChartData;
 import com.openxu.utils.DensityUtil;
+import com.openxu.utils.LogUtil;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -24,10 +26,31 @@ import java.util.List;
 
 public class XmStockChartActivity1 extends AppCompatActivity {
 
+    private String TAG = "XmStockChartActivity1";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wcxstock_chart1);
+
+        SpeekButton speekBtn = (SpeekButton)findViewById(R.id.speekBtn);
+        speekBtn.setListener(new SpeekButton.Listener() {
+            @Override
+            public void start() {
+                LogUtil.i(TAG, "开始录音");
+            }
+            @Override
+            public void stop() {
+                LogUtil.i(TAG, "结束录音");
+            }
+            @Override
+            public void progress(int time) {
+                LogUtil.i(TAG, "录音时长"+time+"ms");
+                if(time > 5000){  //最长录制5s
+                    speekBtn.stop();
+                }
+            }
+        });
+
 
         //1、雷达图
         RadarChart radarChart = (RadarChart)findViewById(R.id.radarChart);

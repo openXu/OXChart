@@ -5,7 +5,7 @@ android {
     defaultConfig {
         applicationId "com.openxu.chart"
         minSdkVersion 16
-        targetSdkVersion 25
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }

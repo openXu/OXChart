@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(new Intent(MainActivity.this, XmStockChartActivity.class));
                         break;
                     case 6:
-                        startActivity(new Intent(MainActivity.this, XmStockChartActivity1.class));
+                        startActivity(new Intent(MainActivity.this, XmStockChartActivity191205.class));
                         break;
                 }
             }

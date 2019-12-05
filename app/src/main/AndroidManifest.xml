@@ -23,6 +23,7 @@
         <activity android:name=".HorizontalBarActivity"/>
         <activity android:name=".ProgressPieActivity"/>
         <activity android:name=".XmStockChartActivity"/>
+        <activity android:name=".XmStockChartActivity191205"/>
     </application>
 
 </manifest>

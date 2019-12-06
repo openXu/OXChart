@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathEffect;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -27,34 +28,45 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * autour : xiami
- * date : 2018/3/13 14:26
- * className : LinesChart
- * version : 1.0
- * description : 折线图表
- */
 public class NorthSouthChart extends BaseChart {
 
     //设置数据
     private List<List<String>> dataList;
     // = new String[]{"09:30", "10:30", "11:30/13:00", "14:00", "15:00"};
-    private String[] lableXList;
-    private int dataNumCount;
+    private String[] lableXArray;
+    private String[] lableArray;   //指标文字
     //计算后的数据
     private List<DataPoint> lableXPointList = new ArrayList<>();
     private List<DataPoint> lableYLPointList = new ArrayList<>();
     private List<DataPoint> lableYRPointList = new ArrayList<>();
     private List<ArrayList<DataPoint>> linePointList;
+    private float YMARK_L =  1;    //Y轴刻度间隔
+    private float YMARK_MAX_L =  Float.MIN_VALUE;    //Y轴刻度最大值
+    private float YMARK_MIN_L =  Float.MAX_VALUE;    //Y轴刻度最小值
+    private float YMARK_R =  1;    //Y轴刻度间隔
+    private float YMARK_MAX_R =  Float.MIN_VALUE;    //Y轴刻度最大值
+    private float YMARK_MIN_R =  Float.MAX_VALUE;    //Y轴刻度最小值
+    private float lableLead, lableHeight;
 
+    public enum ChartType{
+        TYPE_T,   //今日流向
+        TYPE_DW,   //历史每日/周流向
+    }
     /**可以设置的属性*/
+    private ChartType chartType;
+    //设置XY轴刻度数量
     private int XMARK_NUM =  5;
-    //设置Y轴刻度数量
     private int YMARK_NUM =  5;
     //设置线条颜色
     private int[] lineColor = new int[]{Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW};
     //设置曲线粗细
     private int lineSize = DensityUtil.dip2px(getContext(), 1.5f);
+    //设置柱子宽度
+    private int barSize = DensityUtil.dip2px(getContext(), 7);
+    private float ONE_BAR_WEDTH;   //(计算)单个柱状占的宽度（包含space)
+    //指标文字大小
+    private int lableTextSize = (int)getResources().getDimension(R.dimen.ts_chart_lable);
+    private int textSpaceLable = DensityUtil.dip2px(getContext(), 12);
     //设置坐标文字大小
     private int textSize = (int)getResources().getDimension(R.dimen.ts_chart_xy);
     //设置坐标文字颜色
@@ -62,13 +74,11 @@ public class NorthSouthChart extends BaseChart {
     //设置X坐标字体与横轴的距离
     private int textSpaceX = DensityUtil.dip2px(getContext(), 5);
     //设置Y坐标字体与左右的距离
-    private int textSpaceY = DensityUtil.dip2px(getContext(), 3);
+    private int textSpaceY = DensityUtil.dip2px(getContext(), 1);
     //设置焦点线颜色 及 粗细
     private int focusLineColor = getResources().getColor(R.color.tc_chart_focus_line);
     private int focusLineSize = DensityUtil.dip2px(getContext(), 0.8f);
 
-    /**需要计算相关值*/
-    private float lableLead, lableHeight;
 
     public NorthSouthChart(Context context) {
         this(context, null);
@@ -86,7 +96,12 @@ public class NorthSouthChart extends BaseChart {
         touchEnable = true;
     }
 
+
+
     /***********************************设置属性set方法**********************************/
+    public void setChartType(ChartType chartType) {
+        this.chartType = chartType;
+    }
     public void setYMARK_NUM(int YMARK_NUM) {
         this.YMARK_NUM = YMARK_NUM;
     }
@@ -94,6 +109,17 @@ public class NorthSouthChart extends BaseChart {
         this.XMARK_NUM = XMARK_NUM;
     }
 
+    /**
+     * 设置x刻度
+     * @param lableXArray X轴显示的刻度，如果不设置，会自动配置，但是需要设置x刻度显示数量
+     */
+    public void setLableX(String[] lableXArray){
+        if(null!=lableXArray && lableXArray.length>0)
+            this.lableXArray = lableXArray;
+    }
+    public void setlableArray(String[] lableArray) {
+        this.lableArray = lableArray;
+    }
     public void setLineColor(int[] lineColor) {
         this.lineColor = lineColor;
     }
@@ -119,14 +145,6 @@ public class NorthSouthChart extends BaseChart {
         this.dataList.addAll(dataList);
     }
 
-    /**
-     * 设置x刻度
-     * @param lableXList X轴显示的刻度，如果不设置，会自动配置，但是需要设置x刻度显示数量
-     */
-    public void setLableX(String[] lableXList){
-        if(null!=lableXList && lableXList.length>0)
-            this.lableXList = lableXList;
-    }
     /**重绘制*/
     public void refresh(){
         if(getMeasuredWidth()>0) {
@@ -140,37 +158,39 @@ public class NorthSouthChart extends BaseChart {
     private void evaluatorByData(){
         if(dataList.size()<=0)
             return;
-        dataNumCount = dataList.size();
-        LogUtil.w(TAG, "总共"+dataNumCount+"条数据");
         /**①、计算字体相关以及图表原点坐标*/
         paintLabel.setTextSize(textSize);
         lableHeight = FontUtil.getFontHeight(paintLabel);
         lableLead =  FontUtil.getFontLeading(paintLabel);
+
+        paintLabel.setTextSize(lableTextSize);
         //图表主体矩形
-        rectChart = new RectF(getPaddingLeft(),getPaddingTop() + lableHeight/2,
+        rectChart = new RectF(getPaddingLeft(),
+                getPaddingTop() + FontUtil.getFontHeight(paintLabel) +
+                        textSpaceLable +lableHeight/2,
                 getMeasuredWidth()-getPaddingRight(),
                 getMeasuredHeight()-getPaddingBottom() - lableHeight - textSpaceX - lableHeight/2);
 
         /**②、计算X标签绘制坐标*/
         float lableXSpace = 0;
-        if(lableXList==null){
+        if(lableXArray==null){
             //从数据中抽取x刻度
             if(dataList.size()<=XMARK_NUM)
                 XMARK_NUM = dataList.size();
-            lableXList = new String[XMARK_NUM];
+            lableXArray = new String[XMARK_NUM];
             if(dataList.size()==XMARK_NUM){
                 for(int i = 0 ; i < XMARK_NUM; i++)
-                    lableXList[i] = dataList.get(i).get(0);
+                    lableXArray[i] = dataList.get(i).get(0);
             }else{
-                lableXList[0] = dataList.get(0).get(0);   //取第一条数据的x坐标
-                lableXList[XMARK_NUM-1] = dataList.get(dataList.size()-1).get(0);
+                lableXArray[0] = dataList.get(0).get(0);   //取第一条数据的x坐标
+                lableXArray[XMARK_NUM-1] = dataList.get(dataList.size()-1).get(0);
                 float space = dataList.size()/XMARK_NUM;
                 boolean m = dataList.size()%XMARK_NUM>0;
                 float indexCount = 0;
                 for(int i = 1; i < XMARK_NUM-1; i++){
                     indexCount  += space;
                     //四舍五入，均匀分布
-                    lableXList[i] = dataList.get(
+                    lableXArray[i] = dataList.get(
                                 ((indexCount - (int)indexCount)>0.5)?
                                 (int)indexCount + 1 : (int)indexCount
                             ).get(0);
@@ -178,24 +198,24 @@ public class NorthSouthChart extends BaseChart {
             }
         }
         //计算x刻度坐标
-        for(String lableX : lableXList){
+        for(String lableX : lableXArray){
             lableXSpace += FontUtil.getFontlength(paintLabel, lableX);
         }
-        lableXSpace = (rectChart.right - rectChart.left - lableXSpace)/(lableXList.length -1);
+        lableXSpace = (rectChart.right - rectChart.left - lableXSpace)/(lableXArray.length -1);
         lableXPointList = new ArrayList<>();
         if(lableXSpace>0){
             float left = rectChart.left;
-            for(int i = 0; i<lableXList.length; i++){
-                String lableX = lableXList[i];
+            for(int i = 0; i<lableXArray.length; i++){
+                String lableX = lableXArray[i];
                 lableXPointList.add(new DataPoint(lableX, 0, new PointF(
                         left,rectChart.bottom + textSpaceX + lableLead)));
-                left += (FontUtil.getFontlength(paintLabel, lableXList[i])+lableXSpace);
+                left += (FontUtil.getFontlength(paintLabel, lableXArray[i])+lableXSpace);
             }
         }else{
             //如果X轴标签字体过长的情况需要特殊处理
-            float oneWidth = (rectChart.right - rectChart.left)/lableXList.length;
-            for(int i = 0; i<lableXList.length; i++){
-                String lableX = lableXList[i];
+            float oneWidth = (rectChart.right - rectChart.left)/lableXArray.length;
+            for(int i = 0; i<lableXArray.length; i++){
+                String lableX = lableXArray[i];
                 float xLen = FontUtil.getFontlength(paintLabel, lableX);
                 lableXPointList.add(new DataPoint(lableX, 0, new PointF(
                         rectChart.left+i*oneWidth+(oneWidth-xLen)/2,rectChart.bottom + textSpaceX + lableLead)));
@@ -207,43 +227,44 @@ public class NorthSouthChart extends BaseChart {
         evaluatorYMark(false);
 
         /**④、计算点的坐标，如果有动画的情况下，边绘制边计算会耗费性能，所以先计算*/
-        //创建集合，用于存放每条线上每个点的坐标数据
-        List<String> group = dataList.get(0);
         linePointList = new ArrayList<>();
-        for(int i = 0; i<group.size()-1; i++)
-            linePointList.add(new ArrayList<DataPoint>());
-        float oneSpace = (rectChart.right - rectChart.left) / (dataNumCount-1);
-        List<DataPoint> lastDataGroup = null;   //最后一组数据
-        for(int i = 0; i < dataList.size(); i++){
-           /* float valueY;
-            if(group.get(j).contains("%"))
-                valueY = Float.parseFloat(group.get(j).substring(0,group.get(j).indexOf("%"))) /100.0f;
-            else
-                valueY = Float.parseFloat(group.get(j));
-
-            PointF point = new PointF();
-            //只有需要绘制的线才计算坐标
-            if(j<lineNum+1){
-                point.x = rectChart.left + i * oneSpace;
-                //根据最高价和最低价，计算当前数据在图表上Y轴的坐标
-                point.y = rectChart.bottom -
-                        (rectChart.bottom-rectChart.top)/(YMARK_MAX - YMARK_MIN) * (valueY-YMARK_MIN);
+        linePointList.add(new ArrayList<DataPoint>());
+        linePointList.add(new ArrayList<DataPoint>());
+        if(chartType==ChartType.TYPE_T){
+            float oneSpace = (rectChart.right - rectChart.left) / (60*4);   //分时图
+            //今日 ["1558","27.3亿元","26208.240","+0.56%"]
+            for(int i=0; i<dataList.size(); i++){
+                //左Y刻度线
+                List<String> itemList = dataList.get(i);
+                float valueY = Float.valueOf(itemList.get(2));
+                PointF point = new PointF(rectChart.left + i * oneSpace,
+                        rectChart.bottom -
+                                (rectChart.bottom-rectChart.top)/(YMARK_MAX_L - YMARK_MIN_L) * (valueY-YMARK_MIN_L));
+                linePointList.get(0).add(new DataPoint(itemList.get(0), valueY, point));
+                //右Y刻度线
+                valueY = Float.valueOf(itemList.get(1).replace("亿元", ""));
+                point = new PointF(rectChart.left + i * oneSpace, rectChart.bottom -
+                        (rectChart.bottom-rectChart.top)/(YMARK_MAX_R - YMARK_MIN_R) * (valueY-YMARK_MIN_R));
+                linePointList.get(1).add(new DataPoint(itemList.get(0), valueY, point));
             }
-            linePointList.get(j-1).add(new DataPoint(group.get(0), valueY, point));
-//                    LogUtil.w(TAG, "绘制"+j+"曲线"+(int)point.x+", "+(int)point.y);
-
-            *//**默认最后一组数据为显示的lable数据*//*
-            if(null!=onFocusChangeListener && i==dataList.size()-1){
-                if(null==focusInfo) {
-                    focusInfo = new FocusInfo();
-                    lastDataGroup = new ArrayList<>();
-                    focusInfo.setPoint(point);
-                    focusInfo.setFocusData(lastDataGroup);
-                }
-                lastDataGroup.add(new DataPoint(group.get(0), valueY, point));
-            }*/
+        }else{
+            float oneSpace = (rectChart.right - rectChart.left) / (dataList.size());
+            //历史 ["2019-07-05","37.60亿元","28774.83","+0.81%"]
+            ONE_BAR_WEDTH = (rectChart.right - rectChart.left)/dataList.size();
+            for(int i=0; i<dataList.size(); i++){
+                //左Y刻度线
+                List<String> itemList = dataList.get(i);
+                float valueY = Float.valueOf(itemList.get(2));
+                PointF point = new PointF(rectChart.left+ONE_BAR_WEDTH*i+ONE_BAR_WEDTH/2, rectChart.bottom -
+                        (rectChart.bottom-rectChart.top)/(YMARK_MAX_L - YMARK_MIN_L) * (valueY-YMARK_MIN_L));
+                linePointList.get(0).add(new DataPoint(itemList.get(0), valueY, point));
+                //右Y刻度线
+                valueY = Float.valueOf(itemList.get(1).replace("亿元", ""));
+                point = new PointF(rectChart.left + i * oneSpace, rectChart.bottom -
+                        (rectChart.bottom-rectChart.top)/(YMARK_MAX_R - YMARK_MIN_R) * (valueY-YMARK_MIN_R));
+                linePointList.get(1).add(new DataPoint(itemList.get(0), valueY, point));
+            }
         }
-
 //        if(null!=onFocusChangeListener)
 //            onFocusChangeListener.onfocus(focusInfo);
     }
@@ -262,20 +283,19 @@ public class NorthSouthChart extends BaseChart {
                 YMARK_MIN = YMARK;
         }
         LogUtil.w(TAG, "Y轴真实YMARK_MIN="+YMARK_MIN+"   YMARK_MAX="+YMARK_MAX);
-        if(YMARK_MAX>0)
-            YMARK_MAX *= 1.1f;
-        else
-            YMARK_MAX /= 1.1f;
-        if(YMARK_MIN>0)
-            YMARK_MIN /= 1.1f;
-        else
-            YMARK_MIN *= 1.1f;
-        if(YMARK_MIN>0)
-            YMARK_MIN = 0;
+        float ce = (YMARK_MAX-YMARK_MIN)/10;
+        YMARK_MAX += ce;
+        YMARK_MIN -= ce;
 
         YMARK = (YMARK_MAX-YMARK_MIN)/(YMARK_NUM - 1);
         if(left){
+            YMARK_L = YMARK;
+            YMARK_MAX_L = YMARK_MAX;
+            YMARK_MIN_L = YMARK_MIN;
         }else{
+            YMARK_R = YMARK;
+            YMARK_MAX_R = YMARK_MAX;
+            YMARK_MIN_R = YMARK_MIN;
         }
         List<DataPoint> lableYPointList = left?lableYLPointList:lableYRPointList;
         lableYPointList.clear();
@@ -339,6 +359,7 @@ public class NorthSouthChart extends BaseChart {
         paint.setStyle(Paint.Style.FILL);
         paint.setStrokeWidth(lineWidth);
         paint.setColor(defColor);
+        drawTopLable(canvas);
         drawGrid(canvas);
         drawXLable(canvas);
         drawYLable(canvas);
@@ -359,6 +380,49 @@ public class NorthSouthChart extends BaseChart {
         drawFocus(canvas);
     }
 
+    /*** 绘制上方lable*/
+    private void drawTopLable(Canvas canvas) {
+        if(null==lableArray)
+            return;
+        String lableL, lableR;
+        if(chartType==ChartType.TYPE_T){
+            lableL = "指数价格";
+            lableR = "金额 (亿)";
+        }else{
+            lableL = "指数价格";
+            lableR = "金额 (亿)";
+        }
+        paintLabel.setTextSize(lableTextSize);
+        int itemSpace = DensityUtil.dip2px(getContext(), 12);   //指标lable间距
+        int lableSpace = DensityUtil.dip2px(getContext(), 2);  //指标y与圆圈的距离
+        int radis = DensityUtil.dip2px(getContext(), 3);    //圆圈半径
+        float lableHeight = FontUtil.getFontHeight(paintLabel);
+        float lableLead =  FontUtil.getFontLeading(paintLabel);
+        int lableLengthCount = (lableSpace + radis*2) * lableArray.length + itemSpace * (lableArray.length-1);
+        for(String lable : lableArray){
+            lableLengthCount += FontUtil.getFontlength(paintLabel, lable);
+        }
+
+        float lableL_len =  FontUtil.getFontlength(paintLabel, lableL);
+        float lableR_len =  FontUtil.getFontlength(paintLabel, lableR);
+        //指标开始绘制x坐标
+        float startX = rectChart.left + lableL_len +
+                (rectChart.right - rectChart.left - lableLengthCount - lableL_len - lableR_len)/2;
+
+        paintLabel.setColor(Color.parseColor("#5E5E5E"));
+        paintLabel.setFakeBoldText(true);   //加粗
+        canvas.drawText(lableL, rectChart.left, getPaddingTop()+lableLead, paintLabel);
+        canvas.drawText(lableR, rectChart.right-lableR_len, getPaddingTop()+lableLead, paintLabel);
+        paintLabel.setColor(Color.parseColor("#939393"));
+        paintLabel.setFakeBoldText(false);
+        for(int i = 0; i<lableArray.length; i++){
+            paint.setColor(lineColor[i]);
+            canvas.drawCircle(startX+radis, getPaddingTop()+lableHeight/2, radis, paint);
+            startX += radis*2+lableSpace;
+            canvas.drawText(lableArray[i],startX,getPaddingTop()+lableLead, paintLabel);
+            startX += FontUtil.getFontlength(paintLabel, lableArray[i]) + itemSpace;
+        }
+    }
     /**绘制X轴方向辅助网格*/
     private void drawGrid(Canvas canvas){
         float yMarkSpace = (rectChart.bottom - rectChart.top)/(YMARK_NUM-1);
@@ -370,7 +434,13 @@ public class NorthSouthChart extends BaseChart {
         paintEffect.setColor(defColor);
         canvas.drawLine(rectChart.left, rectChart.top, rectChart.left, rectChart.bottom, paint);
         canvas.drawLine(rectChart.right, rectChart.top, rectChart.right, rectChart.bottom, paint);
-
+        if(chartType==ChartType.TYPE_T){
+            //今日图表，需要绘制x刻度线
+            for(DataPoint lable : lableXPointList){
+                canvas.drawLine(lable.getPoint().x, rectChart.bottom, lable.getPoint().x,
+                        rectChart.bottom+DensityUtil.dip2px(getContext(), 3), paint);
+            }
+        }
         for (int i = 0; i < YMARK_NUM; i++) {
             if(i==0||i ==YMARK_NUM-1) {   //实线
                 canvas.drawLine(rectChart.left, rectChart.bottom-yMarkSpace*i,
@@ -413,46 +483,63 @@ public class NorthSouthChart extends BaseChart {
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeWidth(lineSize);
-
-       /* int lineNum = LINE_NUM==0?(dataList.get(0).size()-1):LINE_NUM;
-
-        for(int j = 0; j < lineNum; j++){
-//        for(int j = 0; j < linePointList.size(); j++){
-            List<DataPoint> lineList = linePointList.get(j);
-            paint.setColor(lineColor[j]);
-            //一条一条的绘制
-            Path path = new Path();
-            PointF lastPoint = null;
-            for(int i = 0 ; i<lineList.size(); i++){
-                DataPoint dataPoint = lineList.get(i);
-                if(i == 0){
-                    if(animType == AnimType.LEFT_TO_RIGHT){
-                        path.moveTo(rectChart.left+(dataPoint.getPoint().x-rectChart.left)*animPro, dataPoint.getPoint().y);
-                    }else if(animType == AnimType.BOTTOM_TO_TOP){
-                        path.moveTo(dataPoint.getPoint().x, rectChart.bottom-(rectChart.bottom- dataPoint.getPoint().y)* animPro);
+       if(chartType == ChartType.TYPE_T){
+            //今日
+            for(int j = 0; j < linePointList.size(); j++){ //一条一条的绘制
+                List<DataPoint> lineList = linePointList.get(j);
+                paint.setColor(lineColor[j]);
+                Path path = new Path();
+                PointF lastPoint = null;
+                for(int i = 0 ; i<lineList.size(); i++){
+                    if(i == 0){
+                        path.moveTo(lineList.get(i).getPoint().x, lineList.get(i).getPoint().y);
                     }else{
-                        path.moveTo(dataPoint.getPoint().x, dataPoint.getPoint().y);
+                        //quadTo：二阶贝塞尔曲线连接前后两点，这样使得曲线更加平滑
+                        path.quadTo(lastPoint.x, lastPoint.y, lineList.get(i).getPoint().x, lineList.get(i).getPoint().y);
                     }
-                }else{
-                    //quadTo：二阶贝塞尔曲线连接前后两点，这样使得曲线更加平滑
-                    if(animType == AnimType.LEFT_TO_RIGHT){
-                        path.quadTo(rectChart.left+(lastPoint.x-rectChart.left)*animPro, lastPoint.y,
-                                rectChart.left+(dataPoint.getPoint().x-rectChart.left)*animPro , dataPoint.getPoint().y);
-                    }else if(animType == AnimType.BOTTOM_TO_TOP){
-                        path.quadTo(lastPoint.x, rectChart.bottom-(rectChart.bottom-lastPoint.y)* animPro,
-                                dataPoint.getPoint().x, rectChart.bottom-(rectChart.bottom- dataPoint.getPoint().y)* animPro);
-                    }else if(animType == AnimType.SLOW_DRAW){
-                        if(i>lineList.size()*animPro)
-                            break;
-                        path.quadTo(lastPoint.x, lastPoint.y, dataPoint.getPoint().x, dataPoint.getPoint().y);
-                    }else{
-                        path.quadTo(lastPoint.x, lastPoint.y, dataPoint.getPoint().x, dataPoint.getPoint().y);
-                    }
+                    lastPoint = lineList.get(i).getPoint();
                 }
-                lastPoint = dataPoint.getPoint();
+                canvas.drawPath(path, paint);
+                paint.setStyle(Paint.Style.FILL);
+                paint.setAlpha(100);  //设置alpha不透明度，范围为0~255
+                canvas.drawCircle(lastPoint.x, lastPoint.y, DensityUtil.dip2px(getContext(), 5), paint);
+                paint.setAlpha(255);  //设置alpha不透明度，范围为0~255
+                canvas.drawCircle(lastPoint.x, lastPoint.y, DensityUtil.dip2px(getContext(), 2), paint);
+                paint.setStyle(Paint.Style.STROKE);
             }
-            canvas.drawPath(path, paint);
-        }*/
+       }else{
+           //历史 ["2019-07-05","37.60亿元","28774.83","+0.81%"]
+           //绘制柱子
+           List<DataPoint> barList = linePointList.get(0);
+           paint.setStyle(Paint.Style.FILL);
+           float inOut ;
+           for(int i = 0 ;i<barList.size(); i++) {
+               DataPoint dataPoint = barList.get(i);
+               //净流入、流出颜色选择
+               inOut = Float.parseFloat(dataList.get(i).get(3).replace("+", "").replace("%", ""));
+               paint.setColor(inOut>0?lineColor[0]:lineColor[1]);
+               canvas.drawRect(new Rect((int)(dataPoint.getPoint().x-barSize/2),
+                       (int)dataPoint.getPoint().y,
+                       (int)(dataPoint.getPoint().x+barSize/2),
+                       (int)rectChart.bottom), paint);
+           }
+           //绘制指数线
+           List<DataPoint> lineList = linePointList.get(1);
+           paint.setStyle(Paint.Style.STROKE);
+           paint.setColor(lineColor[2]);
+           Path path = new Path();
+           PointF lastPoint = null;
+           for(int i = 0 ; i<lineList.size(); i++){
+               if(i == 0){
+                   path.moveTo(lineList.get(i).getPoint().x, lineList.get(i).getPoint().y);
+               }else{
+                   //quadTo：二阶贝塞尔曲线连接前后两点，这样使得曲线更加平滑
+                   path.quadTo(lastPoint.x, lastPoint.y, lineList.get(i).getPoint().x, lineList.get(i).getPoint().y);
+               }
+               lastPoint = lineList.get(i).getPoint();
+           }
+           canvas.drawPath(path, paint);
+       }
     }
 
     /**绘制焦点*/

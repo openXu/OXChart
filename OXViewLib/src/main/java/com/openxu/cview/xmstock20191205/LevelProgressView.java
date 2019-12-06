@@ -35,7 +35,7 @@ public class LevelProgressView extends BaseChart {
     //默认Lv字体颜色（白色）
     private int textColor = Color.WHITE;
     //进度颜色（黄色）
-    private int proColor = Color.YELLOW;
+    private int proColor = Color.parseColor("#fda33c");
 
     public LevelProgressView(Context context) {
         super(context, null);

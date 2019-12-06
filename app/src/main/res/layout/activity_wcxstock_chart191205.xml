@@ -83,6 +83,7 @@ android:layout_height="match_parent"
             android:paddingRight="12dip"
             android:paddingBottom="10dip"
             android:paddingTop="10dip"
+            android:background="#fb000000"
             android:layout_width="match_parent"
             android:layout_height="230dip" />
 

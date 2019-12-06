@@ -74,7 +74,11 @@ public class XmStockChartActivity191205 extends AppCompatActivity {
 
                 tChart.setLoading(false);
                 tChart.setChartType(NorthSouthChart.ChartType.TYPE_T);
-                tChart.setLineColor(new int[]{Color.parseColor("#DC1010"), Color.parseColor("#FEB271")});
+                //涨跌颜色(红绿)
+                tChart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
+                        Color.parseColor("#1DAA3E")});
+                //lable 和 color必须按照后台返回数据的顺序设置，比如["0930","1.0亿元","26300.510","+0.91%"]   金额在前，指数在后
+                tChart.setlableColor(new int[]{Color.parseColor("#DC1010"), Color.parseColor("#FEB271")});
                 tChart.setlableArray(new String[]{"总资金净流入", "上证指数价格"});
                 tChart.setLableX(new String[]{"9:30", "11:30/13:00", "15:30"});
                 tChart.setYMARK_NUM(5);
@@ -84,12 +88,14 @@ public class XmStockChartActivity191205 extends AppCompatActivity {
                 dChart.setLoading(false);
                 dChart.setChartType(NorthSouthChart.ChartType.TYPE_DW);
                 dChart.setlableArray(new String[]{"净流入金额", "净流出金额", "恒生指数价格"});
-                dChart.setYMARK_NUM(5);
-                dChart.setXMARK_NUM(4);
-                //涨、跌、指数 颜色
-                dChart.setLineColor(new int[]{Color.parseColor("#FC4B4B"),
+                dChart.setlableColor(new int[]{Color.parseColor("#FC4B4B"),
                         Color.parseColor("#1DAA3E"),
                         Color.parseColor("#C9D0DC")});
+                dChart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
+                        Color.parseColor("#1DAA3E")});
+                dChart.setYMARK_NUM(5);
+                dChart.setXMARK_NUM(4);
+
                 dChart.setData(dData.getData());
                 dChart.refresh();
 
@@ -98,9 +104,11 @@ public class XmStockChartActivity191205 extends AppCompatActivity {
                 wChart.setlableArray(new String[]{"净流入金额", "净流出金额", "恒生指数价格"});
                 wChart.setYMARK_NUM(5);
                 wChart.setXMARK_NUM(4);
-                wChart.setLineColor(new int[]{Color.parseColor("#FC4B4B"),
+                wChart.setlableColor(new int[]{Color.parseColor("#FC4B4B"),
                         Color.parseColor("#1DAA3E"),
                         Color.parseColor("#C9D0DC")});
+                wChart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
+                        Color.parseColor("#1DAA3E")});
                 wChart.setData(wData.getData());
                 wChart.refresh();
 

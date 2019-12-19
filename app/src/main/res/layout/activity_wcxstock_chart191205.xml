@@ -64,6 +64,36 @@ android:layout_height="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/btn_d"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="日"/>
+            <Button
+                android:id="@+id/btn_y"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="月"/>
+        </LinearLayout>
+        <com.openxu.cview.xmstock20191205.NorthSouthChart
+            android:id="@+id/chart"
+            android:paddingLeft="12dip"
+            android:paddingRight="12dip"
+            android:paddingBottom="10dip"
+            android:paddingTop="10dip"
+            android:background="#fb000000"
+            android:layout_width="match_parent"
+            android:layout_height="230dip" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="10dip"
+            android:background="#fb000000"/>
         <com.openxu.cview.xmstock20191205.NorthSouthChart
             android:id="@+id/tChart"
             android:paddingLeft="12dip"

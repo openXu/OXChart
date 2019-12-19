@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Button;
 
 import com.google.gson.Gson;
 import com.openxu.cview.xmstock.bean.ChartData;
@@ -22,9 +23,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class XmStockChartActivity191205 extends AppCompatActivity {
+    Button btn_d, btn_y;
     NorthSouth tData, dData, wData;
     LevelProgressView levelView1, levelView2,levelView3,levelView4;
-    NorthSouthChart tChart, dChart, wChart;
+    NorthSouthChart chart, tChart, dChart, wChart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,13 +37,65 @@ public class XmStockChartActivity191205 extends AppCompatActivity {
         levelView2 = (LevelProgressView)findViewById(R.id.levelView2);
         levelView3 = (LevelProgressView)findViewById(R.id.levelView3);
         levelView4 = (LevelProgressView)findViewById(R.id.levelView4);
+
+        btn_d = (Button)findViewById(R.id.btn_d);
+        btn_y = (Button)findViewById(R.id.btn_y);
+        chart = (NorthSouthChart)findViewById(R.id.chart);
         tChart = (NorthSouthChart)findViewById(R.id.tChart);
         dChart = (NorthSouthChart)findViewById(R.id.dChart);
         wChart = (NorthSouthChart)findViewById(R.id.wChart);
 
+        btn_d.setOnClickListener(v->{
+            getData(true);
+        });
+        btn_y.setOnClickListener(v->{
+            getData(false);
+        });
+
         getData();
 
     }
+
+    private void getData(boolean d){
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(d){
+                    //今日流向
+                    tData = new Gson().fromJson(Constacts.dataMap.get("north-t"), NorthSouth.class);
+                    chart.setLoading(false);
+                    chart.setChartType(NorthSouthChart.ChartType.TYPE_T);
+                    //涨跌颜色(红绿)
+                    chart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
+                            Color.parseColor("#1DAA3E")});
+                    //lable 和 color必须按照后台返回数据的顺序设置，比如["0930","1.0亿元","26300.510","+0.91%"]   金额在前，指数在后
+                    chart.setlableColor(new int[]{Color.parseColor("#DC1010"), Color.parseColor("#FEB271")});
+                    chart.setlableArray(new String[]{"总资金净流入", "上证指数价格"});
+                    chart.setLableX(new String[]{"9:30", "11:30/13:00", "15:30"});
+                    chart.setYMARK_NUM(5);
+                    chart.setData(tData.getData());
+                    chart.refresh();
+                }else{
+                    //历史每日流向
+                    dData = new Gson().fromJson(Constacts.dataMap.get("north-d"), NorthSouth.class);
+                    chart.setLoading(false);
+                    chart.setChartType(NorthSouthChart.ChartType.TYPE_DW);
+                    chart.setlableArray(new String[]{"净流入金额", "净流出金额", "恒生指数价格"});
+                    chart.setlableColor(new int[]{Color.parseColor("#FC4B4B"),
+                            Color.parseColor("#1DAA3E"),
+                            Color.parseColor("#C9D0DC")});
+                    chart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
+                            Color.parseColor("#1DAA3E")});
+                    chart.setYMARK_NUM(5);
+                    chart.setXMARK_NUM(4);
+                    chart.setData(dData.getData());
+                    chart.refresh();
+                }
+            }
+        }, 500);
+    }
+
+
     /**2、模拟接口获取数据*/
     private void getData(){
         new Handler().postDelayed(new Runnable() {

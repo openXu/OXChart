@@ -154,8 +154,13 @@ public class NorthSouthChart extends BaseChart {
     private void evaluatorByData(){
         if(dataList.size()<=0)
             return;
-        if(chartType!=ChartType.TYPE_T)
+        if(chartType == ChartType.TYPE_T){
+            dataNumCount = 60*4;
+        }else{
             dataNumCount = dataList.size();
+            lableXArray = null;
+        }
+            dataNumCount = chartType == ChartType.TYPE_T ? 60*4 : dataList.size();
         /**①、计算字体相关以及图表原点坐标*/
         paintLabel.setTextSize(textSize);
         lableHeight = FontUtil.getFontHeight(paintLabel);

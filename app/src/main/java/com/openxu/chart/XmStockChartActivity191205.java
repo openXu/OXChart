@@ -8,25 +8,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 
 import com.google.gson.Gson;
-import com.openxu.cview.xmstock.bean.ChartData;
-import com.openxu.cview.xmstock.bean.DataPoint;
-import com.openxu.cview.xmstock.bean.FocusInfo;
 import com.openxu.cview.xmstock20191205.LevelProgressView;
 import com.openxu.cview.xmstock20191205.NorthSouthChart;
 import com.openxu.cview.xmstock20191205.bean.Constacts;
 import com.openxu.cview.xmstock20191205.bean.NorthSouth;
-import com.openxu.utils.NumberFormatUtil;
-
-import org.json.JSONObject;
-
-import java.util.Collections;
-import java.util.List;
 
 public class XmStockChartActivity191205 extends AppCompatActivity {
-    Button btn_d, btn_y;
-    NorthSouth tData, dData, wData;
+    Button btn_d_north, btn_d_south, btn_y_north, btn_y_south;
+    NorthSouth data;
     LevelProgressView levelView1, levelView2,levelView3,levelView4;
-    NorthSouthChart chart, tChart, dChart, wChart;
+    NorthSouthChart chart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,61 +29,93 @@ public class XmStockChartActivity191205 extends AppCompatActivity {
         levelView3 = (LevelProgressView)findViewById(R.id.levelView3);
         levelView4 = (LevelProgressView)findViewById(R.id.levelView4);
 
-        btn_d = (Button)findViewById(R.id.btn_d);
-        btn_y = (Button)findViewById(R.id.btn_y);
+        btn_d_north = (Button)findViewById(R.id.btn_d_north);
+        btn_d_south = (Button)findViewById(R.id.btn_d_south);
+        btn_y_north = (Button)findViewById(R.id.btn_y_north);
+        btn_y_south = (Button)findViewById(R.id.btn_y_south);
         chart = (NorthSouthChart)findViewById(R.id.chart);
-        tChart = (NorthSouthChart)findViewById(R.id.tChart);
-        dChart = (NorthSouthChart)findViewById(R.id.dChart);
-        wChart = (NorthSouthChart)findViewById(R.id.wChart);
-
-        btn_d.setOnClickListener(v->{
-            getData(true);
+        //北向资金今日
+        btn_d_north.setOnClickListener(v->{
+            getData(NorthSouthChart.ChartType.TYPE_T_NORTH);
         });
-        btn_y.setOnClickListener(v->{
-            getData(false);
+        //南向资金今日
+        btn_d_south.setOnClickListener(v->{
+            getData(NorthSouthChart.ChartType.TYPE_T_SOUTH);
         });
-
+        //北向资金 历史每日每周
+        btn_y_north.setOnClickListener(v->{
+            getData(NorthSouthChart.ChartType.TYPE_DW_NORTH);
+        });
+        //南向资金 历史每日每周
+        btn_y_south.setOnClickListener(v->{
+            getData(NorthSouthChart.ChartType.TYPE_DW_SOUTH);
+        });
         getData();
 
     }
 
-    private void getData(boolean d){
+    //模拟获取数据
+    private void getData(NorthSouthChart.ChartType type){
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                if(d){
-                    //今日流向
-                    tData = new Gson().fromJson(Constacts.dataMap.get("north-t"), NorthSouth.class);
-                    chart.setLoading(false);
-                    chart.setChartType(NorthSouthChart.ChartType.TYPE_T);
-                    //涨跌颜色(红绿)
-                    chart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
-                            Color.parseColor("#1DAA3E")});
-                    //lable 和 color必须按照后台返回数据的顺序设置，比如["0930","1.0亿元","26300.510","+0.91%"]   金额在前，指数在后
-                    chart.setlableColor(new int[]{Color.parseColor("#DC1010"), Color.parseColor("#FEB271")});
-                    chart.setlableArray(new String[]{"总资金净流入", "上证指数价格"});
-                    chart.setLableX(new String[]{"9:30", "11:30/13:00", "15:30"});
-                    chart.setYMARK_NUM(5);
-                    chart.setData(tData.getData());
-                    chart.refresh();
-                }else{
-                    //历史每日流向
-                    dData = new Gson().fromJson(Constacts.dataMap.get("north-d"), NorthSouth.class);
-                    chart.setLoading(false);
-                    chart.setChartType(NorthSouthChart.ChartType.TYPE_DW);
-                    chart.setlableArray(new String[]{"净流入金额", "净流出金额", "恒生指数价格"});
-                    chart.setlableColor(new int[]{Color.parseColor("#FC4B4B"),
-                            Color.parseColor("#1DAA3E"),
-                            Color.parseColor("#C9D0DC")});
-                    chart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
-                            Color.parseColor("#1DAA3E")});
-                    chart.setYMARK_NUM(5);
-                    chart.setXMARK_NUM(4);
-                    chart.setData(dData.getData());
-                    chart.refresh();
+                if(type == NorthSouthChart.ChartType.TYPE_T_NORTH){ //北向资金今日流向
+                    data = new Gson().fromJson(Constacts.dataMap.get("north-t"), NorthSouth.class);
+                }else if(type == NorthSouthChart.ChartType.TYPE_T_SOUTH){  //南向资金今日流向
+                    data = new Gson().fromJson(Constacts.dataMap.get("north-t"), NorthSouth.class);
+                } else if(type == NorthSouthChart.ChartType.TYPE_DW_NORTH){  //北向资金  历史每日/周流向
+                    data = new Gson().fromJson(Constacts.dataMap.get("north-d"), NorthSouth.class);
+                } else if(type == NorthSouthChart.ChartType.TYPE_DW_SOUTH){  //南向资金  历史每日/周流向
+                    data = new Gson().fromJson(Constacts.dataMap.get("north-w"), NorthSouth.class);
                 }
+                setChartData(data, type);
             }
         }, 500);
+    }
+
+    /**设置图表数据*/
+    private void setChartData(NorthSouth data, NorthSouthChart.ChartType type){
+        chart.setLoading(false);
+        chart.setChartType(type);
+        //北向资金
+        if(type == NorthSouthChart.ChartType.TYPE_T_NORTH || type == NorthSouthChart.ChartType.TYPE_DW_NORTH){
+            chart.setFocusLableArray(new String[]{"时间", "净流入金额", "上证指数价格", "上证指数跌涨幅"});
+            //南向资金
+        }else if(type == NorthSouthChart.ChartType.TYPE_T_SOUTH || type == NorthSouthChart.ChartType.TYPE_DW_SOUTH){
+            chart.setFocusLableArray(new String[]{"时间", "净流入金额", "恒生指数价格", "恒生指数跌涨幅"});
+        }
+        //今日流向
+        if(type == NorthSouthChart.ChartType.TYPE_T_NORTH || type == NorthSouthChart.ChartType.TYPE_T_SOUTH){
+            chart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
+                    Color.parseColor("#1DAA3E")});  //涨跌颜色(红绿)
+            //lable 和 color必须按照后台返回数据的顺序设置，比如["0930","1.0亿元","26300.510","+0.91%"]   金额在前，指数在后
+            chart.setlableColor(new int[]{Color.parseColor("#DC1010"), Color.parseColor("#FEB271")});
+            chart.setYMARK_NUM(5);
+            // 历史每日每周
+        }else if(type == NorthSouthChart.ChartType.TYPE_DW_NORTH || type == NorthSouthChart.ChartType.TYPE_DW_SOUTH){
+            data = new Gson().fromJson(Constacts.dataMap.get("north-d"), NorthSouth.class);
+            chart.setlableColor(new int[]{Color.parseColor("#FC4B4B"),
+                    Color.parseColor("#1DAA3E"),
+                    Color.parseColor("#C9D0DC")});
+            chart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
+                    Color.parseColor("#1DAA3E")});
+            chart.setYMARK_NUM(5);
+            chart.setXMARK_NUM(4);
+        }
+        /**今日流向数据结构一样，历史日周数据结构一样*/
+        if(type == NorthSouthChart.ChartType.TYPE_T_NORTH){ //北向资金今日流向
+            chart.setlableArray(new String[]{"总资金净流入", "上证指数价格"});
+            chart.setLableX(new String[]{"9:30", "11:30/13:00", "15:00"});
+        }else if(type == NorthSouthChart.ChartType.TYPE_T_SOUTH){  //南向资金今日流向
+            chart.setlableArray(new String[]{"总资金净流入", "恒生指数价格"});
+            chart.setLableX(new String[]{"9:30", "12:00/13:00", "16:00"});
+        } else if(type == NorthSouthChart.ChartType.TYPE_DW_NORTH){  //北向资金  历史每日/周流向
+            chart.setlableArray(new String[]{"净流入金额", "净流出金额", "上证指数价格"});
+        } else if(type == NorthSouthChart.ChartType.TYPE_DW_SOUTH){  //南向资金  历史每日/周流向
+            chart.setlableArray(new String[]{"净流入金额", "净流出金额", "恒生指数价格"});
+        }
+        chart.setData(data.getData());
+        chart.refresh();
     }
 
 
@@ -117,54 +140,6 @@ public class XmStockChartActivity191205 extends AppCompatActivity {
                 levelView4.setLoading(false);
                 levelView4.setLable("91折+50优惠卷");
                 levelView4.setData(11, 10);//总共Lv10，当前Lv9
-
-                //今日流向
-                tData = new Gson().fromJson(Constacts.dataMap.get("north-t"), NorthSouth.class);
-                //历史每日流向
-                dData = new Gson().fromJson(Constacts.dataMap.get("north-d"), NorthSouth.class);
-                //历史每轴流向
-                wData = new Gson().fromJson(Constacts.dataMap.get("north-w"), NorthSouth.class);
-
-
-                tChart.setLoading(false);
-                tChart.setChartType(NorthSouthChart.ChartType.TYPE_T);
-                //涨跌颜色(红绿)
-                tChart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
-                        Color.parseColor("#1DAA3E")});
-                //lable 和 color必须按照后台返回数据的顺序设置，比如["0930","1.0亿元","26300.510","+0.91%"]   金额在前，指数在后
-                tChart.setlableColor(new int[]{Color.parseColor("#DC1010"), Color.parseColor("#FEB271")});
-                tChart.setlableArray(new String[]{"总资金净流入", "上证指数价格"});
-                tChart.setLableX(new String[]{"9:30", "11:30/13:00", "15:30"});
-                tChart.setYMARK_NUM(5);
-                tChart.setData(tData.getData());
-                tChart.refresh();
-
-                dChart.setLoading(false);
-                dChart.setChartType(NorthSouthChart.ChartType.TYPE_DW);
-                dChart.setlableArray(new String[]{"净流入金额", "净流出金额", "恒生指数价格"});
-                dChart.setlableColor(new int[]{Color.parseColor("#FC4B4B"),
-                        Color.parseColor("#1DAA3E"),
-                        Color.parseColor("#C9D0DC")});
-                dChart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
-                        Color.parseColor("#1DAA3E")});
-                dChart.setYMARK_NUM(5);
-                dChart.setXMARK_NUM(4);
-
-                dChart.setData(dData.getData());
-                dChart.refresh();
-
-                wChart.setLoading(false);
-                wChart.setChartType(NorthSouthChart.ChartType.TYPE_DW);
-                wChart.setlableArray(new String[]{"净流入金额", "净流出金额", "恒生指数价格"});
-                wChart.setYMARK_NUM(5);
-                wChart.setXMARK_NUM(4);
-                wChart.setlableColor(new int[]{Color.parseColor("#FC4B4B"),
-                        Color.parseColor("#1DAA3E"),
-                        Color.parseColor("#C9D0DC")});
-                wChart.setUpDownColor(new int[]{Color.parseColor("#FC4B4B"),
-                        Color.parseColor("#1DAA3E")});
-                wChart.setData(wData.getData());
-                wChart.refresh();
 
             }
         }, 500);

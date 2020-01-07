@@ -160,9 +160,9 @@ public class NorthSouthChart extends BaseChart {
         if(dataList.size()<=0)
             return;
         if(chartType == ChartType.TYPE_T_SOUTH){//南向资金今日流向
-            dataNumCount = (int)(60*5.5f);   //9：30 - 12：00  13：00 - 16：00   2.5+3=5.5小时
+            dataNumCount = (int)(60*5.5f)+2;   //9：30 - 12：00  13：00 - 16：00   2.5+3=5.5小时
         }else if(chartType == ChartType.TYPE_T_NORTH){//北向资金今日流向
-            dataNumCount = 60*4;      //9：30 - 11：30  13：00 - 15：00   2+2=4小时
+            dataNumCount = 60*4+2;      //9：30 - 11：30  13：00 - 15：00   2+2=4小时
         }else{
             dataNumCount = dataList.size();
             lableXArray = null;
@@ -207,18 +207,19 @@ public class NorthSouthChart extends BaseChart {
                 }
             }
         }
+        paintLabel.setTextSize(textSize);
         //计算x刻度坐标
-        for(String lableX : lableXArray){
+        for(String lableX : lableXArray)
             lableXSpace += FontUtil.getFontlength(paintLabel, lableX);
-        }
         lableXSpace = (rectChart.right - rectChart.left - lableXSpace)/(lableXArray.length -1);
         lableXPointList = new ArrayList<>();
         if(lableXSpace>0){
             float left = rectChart.left;
             for(int i = 0; i<lableXArray.length; i++){
                 String lableX = lableXArray[i];
-                lableXPointList.add(new DataPoint(lableX, 0, new PointF(
-                        left,rectChart.bottom + textSpaceX + lableLead)));
+                //借用valueY字段表示 x轴刻度点x坐标， point表示字体绘制开始点坐标
+                lableXPointList.add(new DataPoint(lableX, i==0?rectChart.left:(i==lableXArray.length-1?rectChart.right:(left+FontUtil.getFontlength(paintLabel, lableXArray[i])/2)),
+                        new PointF(left,rectChart.bottom + textSpaceX + lableLead)));
                 left += (FontUtil.getFontlength(paintLabel, lableXArray[i])+lableXSpace);
             }
         }else{
@@ -453,8 +454,8 @@ public class NorthSouthChart extends BaseChart {
         if(chartType==ChartType.TYPE_T_SOUTH||chartType==ChartType.TYPE_T_NORTH){
             //今日图表，需要绘制x刻度线
             for(DataPoint lable : lableXPointList){
-                canvas.drawLine(lable.getPoint().x, rectChart.bottom, lable.getPoint().x,
-                        rectChart.bottom+DensityUtil.dip2px(getContext(), 3), paint);
+                canvas.drawLine(lable.getValueY(), rectChart.bottom, lable.getValueY(),
+                        rectChart.bottom-DensityUtil.dip2px(getContext(), 3), paint);
             }
         }
         for (int i = 0; i < YMARK_NUM; i++) {
@@ -481,8 +482,6 @@ public class NorthSouthChart extends BaseChart {
     }
     /**绘制Y轴刻度*/
     private void drawYLable(Canvas canvas){
-        paintLabel.setTextSize(textSize);
-        paintLabel.setColor(textColor);
         paintLabel.setTextSize(textSize);
         paintLabel.setColor(textColor);
         for(DataPoint lable : lableYLPointList){
@@ -514,8 +513,8 @@ public class NorthSouthChart extends BaseChart {
                         path.quadTo(lastPoint.x, lastPoint.y, lineList.get(i).getPoint().x, lineList.get(i).getPoint().y);
                     }
                     lastPoint = lineList.get(i).getPoint();
-                    if(j==0 && i==lineList.size()-1){
-                        //绘制今日图 金额 最后一个点的值，显示在折线上
+                    if(i==lineList.size()-1){
+                        //绘制今日图 最后一个点的值，显示在折线上
                         paintLabel.setColor(lableColor[j]);
                         paintLabel.setTextSize(textSize);
                         float length = FontUtil.getFontlength(paintLabel, lineList.get(i).getValueY()+"");

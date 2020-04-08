@@ -8,14 +8,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 
 import com.google.gson.Gson;
+import com.openxu.cview.chart.dashboard.DashBoardItem;
+import com.openxu.cview.xmstock20191205.DashboardView;
 import com.openxu.cview.xmstock20191205.LevelProgressView;
 import com.openxu.cview.xmstock20191205.NorthSouthChart;
 import com.openxu.cview.xmstock20191205.bean.Constacts;
 import com.openxu.cview.xmstock20191205.bean.NorthSouth;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class XmStockChartActivity191205 extends AppCompatActivity {
     Button btn_d_north, btn_d_south, btn_y_north, btn_y_south;
     NorthSouth data;
+    com.openxu.cview.chart.dashboard.DashBoardView dashboardViewOld;
+    DashboardView dashboardView;
+
     LevelProgressView levelView1, levelView2,levelView3,levelView4;
     NorthSouthChart chart;
 
@@ -23,6 +31,8 @@ public class XmStockChartActivity191205 extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wcxstock_chart191205);
+        dashboardViewOld = (com.openxu.cview.chart.dashboard.DashBoardView)findViewById(R.id.dashboardViewOld);
+        dashboardView = (DashboardView)findViewById(R.id.dashboardView);
 
         levelView1 = (LevelProgressView)findViewById(R.id.levelView1);
         levelView2 = (LevelProgressView)findViewById(R.id.levelView2);
@@ -124,6 +134,17 @@ public class XmStockChartActivity191205 extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
+                dashboardViewOld.setLoading(false);
+                List<DashBoardItem> list = new ArrayList<>();
+                int[] colors = new int[]{Color.BLUE,Color.RED,Color.YELLOW};
+                for(int i =0;i<3;i++){
+                    list.add(new DashBoardItem(colors[i], "lable"+i, i+10));
+                }
+                dashboardViewOld.setData(list);
+                dashboardViewOld.setPro(20);
+                dashboardView.setLoading(false);
+                dashboardView.setData(100, 50);
+
                 //注意：等级是从0开始的，所以总等级和当前等级值在设置时应该+1
                 levelView1.setLoading(false);
                 levelView1.setLable("9折+100优惠卷");

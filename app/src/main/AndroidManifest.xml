@@ -24,6 +24,7 @@
         <activity android:name=".ProgressPieActivity"/>
         <activity android:name=".XmStockChartActivity"/>
         <activity android:name=".XmStockChartActivity191205"/>
+        <activity android:name=".Base64ToBitmapActivity"/>
     </application>
 
 </manifest>

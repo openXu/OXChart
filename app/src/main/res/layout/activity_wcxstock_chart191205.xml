@@ -22,6 +22,9 @@ android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
+        <com.openxu.cview.xmstock20191205.OilTableLine
+            android:layout_width="match_parent"
+            android:layout_height="200dp" />
         <com.openxu.cview.chart.dashboard.DashBoardView
             android:id="@+id/dashboardViewOld"
             android:paddingLeft="12dip"

@@ -143,7 +143,7 @@ public class XmStockChartActivity191205 extends AppCompatActivity {
                 dashboardViewOld.setData(list);
                 dashboardViewOld.setPro(20);
                 dashboardView.setLoading(false);
-                dashboardView.setData(100, 50);
+                dashboardView.setData(10000, 4563);
 
                 //注意：等级是从0开始的，所以总等级和当前等级值在设置时应该+1
                 levelView1.setLoading(false);

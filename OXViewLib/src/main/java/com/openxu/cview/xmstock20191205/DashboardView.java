@@ -195,7 +195,8 @@ public class DashboardView extends BaseChart {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.WHITE);
         canvas.drawCircle(centerPoint.x, centerPoint.y, centerRaidus, paint);
-
+        //反转90度还原
+        canvas.rotate(-90, centerPoint.x, centerPoint.y);
     }
 
     /**绘制图表*/
@@ -206,8 +207,6 @@ public class DashboardView extends BaseChart {
             paintLabel.setTextSize(centerTextSize);
             paintLabel.setColor(centerTextColor);
             String text = ((int)animPro)+"";
-            //反转90度还原
-            canvas.rotate(-90, centerPoint.x, centerPoint.y);
             canvas.drawText(text, centerPoint.x - FontUtil.getFontlength(paintLabel, text)/2,
                     centerPoint.y-FontUtil.getFontHeight(paintLabel)+FontUtil.getFontLeading(paintLabel), paintLabel);
             text = "亿";

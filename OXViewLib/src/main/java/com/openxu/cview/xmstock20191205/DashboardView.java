@@ -59,13 +59,17 @@ public class DashboardView extends BaseChart {
     //0  一万亿 文字与扇形间距
     private int lableSpace = DensityUtil.dip2px(getContext(), 4);
     //渐变色
-    int[] colors = new int[]{
+    int[] proColors = new int[]{
             Color.parseColor("#e7ac6a"),   //初始颜色
             Color.parseColor("#e47f3f"),   //中间颜色
             Color.parseColor("#df422c")};  //最终颜色
-    float[] positions = new float[]{0.3f, .5f, .7f};
-    SweepGradient mColorShader;
-
+    float[] proPositions = new float[]{0.3f, .5f, .7f};
+    SweepGradient proShader;
+    //中间灰色边缘渐变色
+    RadialGradient sideShader;
+    int[] sideColors = new int[]{
+            Color.parseColor("#b2c2dd"),    //灰色
+            Color.parseColor("#00b2c2dd")};  //全透明灰色
     //虚线间隔
     PathEffect effects = new DashPathEffect(new float[]{9,11,9,11},0);
 
@@ -134,7 +138,9 @@ public class DashboardView extends BaseChart {
         startPointLeft = new PointF((int)(centerPoint.x-Math.sin(Math.toRadians(startAngle))*raidus), centerPoint.y+sectionRaidus);
         startPointRight = new PointF((int)(centerPoint.x+Math.sin(Math.toRadians(startAngle))*raidus), centerPoint.y+sectionRaidus);
         //渐变色
-        mColorShader = new SweepGradient(centerPoint.x, centerPoint.y,colors,positions);
+        proShader = new SweepGradient(centerPoint.x, centerPoint.y,proColors,proPositions);
+        sideShader = new RadialGradient(centerPoint.x, centerPoint.y, centerRaidus+rSpace1, sideColors,
+                new float[]{0.2f,.75f}, Shader.TileMode.CLAMP);
         LogUtil.d(TAG, "centerPoint："+centerPoint);
         LogUtil.d(TAG, "rectChart："+rectChart);
         invalidate();
@@ -178,7 +184,7 @@ public class DashboardView extends BaseChart {
         //实线扇形
         //由于渐变色shader是从正东方开始绘制，导致颜色排版错误，这里将画布旋转90度，正下方为0度
         canvas.rotate(90, centerPoint.x, centerPoint.y);
-        paint.setShader(mColorShader);
+        paint.setShader(proShader);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(solidSize);
         canvas.drawArc(rectSolid, startAngle, 360.0f  - startAngle*2, false, paint);
@@ -191,6 +197,15 @@ public class DashboardView extends BaseChart {
         paintEffect.setColor(defColor);
         paintEffect.setStrokeWidth(dashesSize);
         canvas.drawArc(rectDashes, startAngle, 360.0f  - startAngle*2, false, paintEffect);
+
+        //绘制中间灰色边缘
+        paint.setShader(sideShader);
+//        paint.setColor(Color.RED);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(rSpace1);
+        canvas.drawCircle(centerPoint.x, centerPoint.y, centerRaidus+rSpace1/2, paint);
+        paint.setShader(null);
+
         //中间白色圆圈
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.WHITE);
@@ -218,7 +233,7 @@ public class DashboardView extends BaseChart {
             float proAngle = (360.0f  - startAngle*2) * (animPro/total*1.0f);
             paintEffect.setStyle(Paint.Style.STROKE);
             paintEffect.setPathEffect(effects);
-            paintEffect.setShader(mColorShader);
+            paintEffect.setShader(proShader);
             paintEffect.setStrokeWidth(dashesSize);
             //消除由于虚线间隔导致视觉上仪表进度不够的情况，默认多绘制2.5度
             canvas.drawArc(rectDashes, startAngle, proAngle<(360.0f - startAngle*2-5)? proAngle+2.5f:proAngle, false, paintEffect);

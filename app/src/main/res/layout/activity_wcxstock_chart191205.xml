@@ -21,25 +21,11 @@ android:layout_height="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical">
-
-        <com.openxu.cview.xmstock20191205.OilTableLine
-            android:layout_width="match_parent"
-            android:layout_height="200dp" />
-        <com.openxu.cview.chart.dashboard.DashBoardView
-            android:id="@+id/dashboardViewOld"
-            android:paddingLeft="12dip"
-            android:paddingRight="12dip"
-            android:paddingBottom="10dip"
-            android:paddingTop="10dip"
-            android:layout_weight="3"
-            android:layout_width="match_parent"
-            android:layout_height="200dp" />
         <!--仪表-->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-
             <com.openxu.cview.xmstock20191205.DashboardView
                 android:id="@+id/dashboardView"
                 android:paddingLeft="12dip"
@@ -61,6 +47,18 @@ android:layout_height="match_parent"
             </LinearLayout>
 
         </LinearLayout>
+        <com.openxu.cview.xmstock20191205.OilTableLine
+            android:layout_width="match_parent"
+            android:layout_height="200dp" />
+        <com.openxu.cview.chart.dashboard.DashBoardView
+            android:id="@+id/dashboardViewOld"
+            android:paddingLeft="12dip"
+            android:paddingRight="12dip"
+            android:paddingBottom="10dip"
+            android:paddingTop="10dip"
+            android:layout_weight="3"
+            android:layout_width="match_parent"
+            android:layout_height="200dp" />
 
         <!--等级-->
         <LinearLayout

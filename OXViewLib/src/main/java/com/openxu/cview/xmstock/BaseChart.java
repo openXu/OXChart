@@ -30,6 +30,9 @@ import static android.content.Context.VIBRATOR_SERVICE;
  * className : BaseChart
  * version : 1.0
  * description : 图表基类
+ *
+ *
+ *
  */
 public abstract class BaseChart extends View {
 

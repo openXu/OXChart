@@ -14,4 +14,8 @@
     <dimen name="ts_chart_lable">12sp</dimen>    <!--上面指标文字大小-->
     <dimen name="ts_chart_time">14sp</dimen>     <!--时间文字大小-->
 
+
+    <!--图表标准-->
+    <dimen name="chart_axis_textsize">10sp</dimen>     <!--xy轴lable文字大小-->
+
 </resources>

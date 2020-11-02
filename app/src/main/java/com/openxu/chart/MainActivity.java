@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         datas.add("横向柱状图");
         datas.add("折线图");
         datas.add("股票信息");
+        datas.add("股票信息20201031");
         datas.add("Base64TBitmap");
 
         recyclerView.setAdapter(new CommandRecyclerAdapter<String>(this, R.layout.list_item, datas) {
@@ -75,6 +76,9 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(new Intent(MainActivity.this, XmStockChartActivity191205.class));
                         break;
                     case 7:
+                        startActivity(new Intent(MainActivity.this, XmStockChartActivity20201030.class));
+                        break;
+                    case 8:
                         startActivity(new Intent(MainActivity.this, Base64ToBitmapActivity.class));
                         break;
                 }

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.openxu.chart"
         minSdkVersion 16
@@ -28,8 +28,8 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:25.3.1'
     implementation 'com.android.support:recyclerview-v7:25.3.1'
     implementation 'com.google.code.gson:gson:2.8.0'
-      implementation project(':OXViewLib')
-//    implementation 'com.openxu.viewlib:OXViewLib:1.0.2'
+    implementation project(':OXViewLib')
+    //    implementation 'com.openxu.viewlib:OXViewLib:1.0.2'
 }
 
 

@@ -256,6 +256,7 @@ public abstract class BaseChart extends View {
             drawLoading(canvas);
             return;
         }
+//        drawChart(canvas);
         if(!startDraw){
             startDraw = true;
             startAnimation(canvas);

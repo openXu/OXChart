@@ -72,9 +72,16 @@ public class AxisMark {
             axisMark.lableOrientation = lableOrientation;
             return this;
         }
-
         public Builder lableType(LABLE_TYPE lableType) {
             axisMark.lableType = lableType;
+            return this;
+        }
+        public Builder textSize(int textSize) {
+            axisMark.textSize = textSize;
+            return this;
+        }
+        public Builder textColor(int textColor) {
+            axisMark.textColor = textColor;
             return this;
         }
         public Builder lables(String[] lables) {

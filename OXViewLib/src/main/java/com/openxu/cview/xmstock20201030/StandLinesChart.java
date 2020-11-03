@@ -12,16 +12,19 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
-import com.openxu.cview.chart.BaseChart;
+import com.openxu.cview.R;
 import com.openxu.cview.chart.anim.AngleEvaluator;
+import com.openxu.cview.xmstock.BaseChart;
 import com.openxu.cview.xmstock20201030.build.AnimType;
 import com.openxu.cview.xmstock20201030.build.AxisLine;
 import com.openxu.cview.xmstock20201030.build.AxisLineType;
 import com.openxu.cview.xmstock20201030.build.AxisMark;
+import com.openxu.cview.xmstock20201030.build.ChartFocus;
 import com.openxu.cview.xmstock20201030.build.DataPoint;
 import com.openxu.cview.xmstock20201030.build.Line;
 import com.openxu.cview.xmstock20201030.build.Orientation;
 import com.openxu.utils.ChartCalUtil;
+import com.openxu.utils.DensityUtil;
 import com.openxu.utils.FontUtil;
 import com.openxu.utils.ReflectUtil;
 
@@ -112,7 +115,7 @@ public class StandLinesChart extends BaseChart {
         public Builder yRightAxisMark(AxisMark yRightAxisMark){
             if(yRightAxisMark.lableOrientation==null)
                 yRightAxisMark.lableOrientation = Orientation.RIGHT;
-            if(yRightAxisMark.lables==null)
+            if(yRightAxisMark.showLable && yRightAxisMark.lables==null)
                 ChartCalUtil.calYLable(yRightAxisMark);
             StandLinesChart.this.yRightAxisMark = yRightAxisMark;
             setXAxisLines(yRightAxisMark);
@@ -155,6 +158,8 @@ public class StandLinesChart extends BaseChart {
         }
 
         private void setXAxisLines(AxisMark yAxisMark){
+            if(xAxisLines!=null)
+                return;
             xAxisLines = new AxisLine[yAxisMark.lableNum];
             for(int i = 0; i<yAxisMark.lableNum; i++){
                 //第一条和最后一条线为实线，其他竖直方向不划线
@@ -519,58 +524,80 @@ public class StandLinesChart extends BaseChart {
             }
             canvas.drawPath(path, paint);
         }
-
-
-
-
     }
 
+    private ChartFocus focusInfo;
+    @Override
+    protected void onTouchMoved(PointF point) {
+        if(null==lineList || lineList.size()<=0)
+            return;
+        onFocus = (null != point);
+        if(null != point) {
+            //获取焦点对应的数据的索引
+            int index = (int) ((point.x - rectChart.left) * lineList.get(0).dataNumCount
+                    / (rectChart.right - rectChart.left));
+
+            //避免滑出
+            List<DataPoint> dataPoints = lineList.get(0).linePointList;
+            if(point.x > dataPoints.get(dataPoints.size()-1).point.x)
+                point.x = dataPoints.get(dataPoints.size()-1).point.x;
+            if(point.x < dataPoints.get(0).point.x)
+                point.x = dataPoints.get(0).point.x;
+            index = Math.max(0, Math.min(index, dataPoints.size() - 1));
+
+            focusInfo = new ChartFocus();
+            List<Object> objs = new ArrayList<>();
+            List<PointF> points = new ArrayList<>();
+            for(Line line : lineList){
+                objs.add(line.datas.get(index));
+                points.add(((DataPoint)line.linePointList.get(index)).point);
+            }
+            focusInfo.setFocusData(objs);
+            focusInfo.setPoints(points);
+            if(null!=onFocusChangeListener)
+                onFocusChangeListener.onfocus(focusInfo);
+        }
+        invalidate();
+    }
+
+    private OnFocusChangeListener onFocusChangeListener;
+    public void setOnFocusChangeListener(OnFocusChangeListener onFocusChangeListener) {
+        this.onFocusChangeListener = onFocusChangeListener;
+    }
+    public interface OnFocusChangeListener{
+        public void onfocus(ChartFocus focusInfo);
+    }
+
+    //设置焦点线颜色 及 粗细
+    private int focusLineColor = getResources().getColor(R.color.tc_chart_focus_line);
+    private int focusLineSize = DensityUtil.dip2px(getContext(), 0.8f);
     /**绘制焦点*/
     private void drawFocus(Canvas canvas){
-//        if(!onFocus || null==focusInfo)
-//            return;
-//        paint.setAntiAlias(true);
-//        paint.setStyle(Paint.Style.FILL);
-//        paint.setStrokeWidth(focusLineSize);
-//        paint.setColor(focusLineColor);
-//        //竖直线
-//        canvas.drawLine(focusInfo.getPoint().x, rectChart.bottom, focusInfo.getPoint().x, rectChart.top, paint);
+        if(!onFocus || null==focusInfo)
+            return;
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setStrokeWidth(focusLineSize);
+        paint.setColor(focusLineColor);
+        //竖直线
+        canvas.drawLine(focusInfo.getPoints().get(0).x, rectChart.bottom,
+                focusInfo.getPoints().get(0).x, rectChart.top, paint);
 
-      /*
-        paintLabel.setTextSize(focusTextSize);
-        paintLabel.setColor(focusTextColor);
-        float focusTextLead = FontUtil.getFontLeading(paintLabel);
-        float focusTextHeight = FontUtil.getFontHeight(paintLabel);
+//        paintLabel.setTextSize(focusTextSize);
+//        paintLabel.setColor(focusTextColor);
+//        float focusTextLead = FontUtil.getFontLeading(paintLabel);
+//        float focusTextHeight = FontUtil.getFontHeight(paintLabel);
         try {
-
-            for (Object obj : focusInfo.getObjs()) {
-                DataPoint dataPoint = (DataPoint)obj;
+            for (PointF point : focusInfo.getPoints()) {
                 //水平参考线
                 canvas.drawLine(rectChart.left, point.y, rectChart.right, point.y, paint);
                 //中心点
-                canvas.drawCircle(point.x, point.y, 2.0f, paint);
-                //绘制刻度值
-                String str = "("+ dataPoint.getValueX()+",";
-                if(yMarkType == YMARK_TYPE.INTEGER) {
-                    str += dataPoint.getValueY()+")";
-                }else if(yMarkType == YMARK_TYPE.PERCENTAGE){
-                    str += formattedDecimalToPercentage(dataPoint.getValueY())+")";
-                }
-                float textLength = FontUtil.getFontlength(paintLabel,str);
-                if((rectChart.right- point.x)>textLength){
-                    canvas.drawText(str, point.x + 10,
-                            point.y-focusTextHeight+focusTextLead - 10, paintLabel);
-                }else{
-                    canvas.drawText(str, point.x - 10 - textLength,
-                            point.y-focusTextHeight+focusTextLead - 10, paintLabel);
-                }
-
+                canvas.drawCircle(point.x, point.y, 10.0f, paint);
             }
         }catch (Exception e){
             e.printStackTrace();
         }
 
-        */
     }
 
     private float animPro;       //动画计算的占比数量

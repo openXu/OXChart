@@ -441,7 +441,7 @@ public class SshqLinesChart extends BaseChart {
      * 根据传入的Y轴信息，从数据中获取最小最大值，并获取到Y刻度点值
      */
     private void calYLable(){
-        float redundance = 1.1f;  //y轴最大和最小值冗余
+        float redundance = 1.01f;  //y轴最大和最小值冗余
         yLeft.cal_mark_max =  Float.MIN_VALUE;    //Y轴刻度最大值
         yLeft.cal_mark_min =  Float.MAX_VALUE;    //Y轴刻度最小值
         yRight.cal_mark_max =  Float.MIN_VALUE;    //记录最大涨幅

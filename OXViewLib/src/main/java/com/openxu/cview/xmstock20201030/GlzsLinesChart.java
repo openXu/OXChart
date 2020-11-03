@@ -445,7 +445,7 @@ public class GlzsLinesChart extends BaseChart {
      * 根据传入的Y轴信息，从数据中获取最小最大值，并获取到Y刻度点值
      */
     private void calYLable(YAxisMark axisMark, int index){
-        float redundance = 1.1f;  //y轴最大和最小值冗余
+        float redundance = 1.01f;  //y轴最大和最小值冗余
         axisMark.cal_mark_max =  Float.MIN_VALUE;    //Y轴刻度最大值
         axisMark.cal_mark_min =  Float.MAX_VALUE;    //Y轴刻度最小值
         //设置数据  概念走势图， 每个元素表示：时间、概念、热度 [20200803,"1582.08","30.00"],

@@ -157,7 +157,7 @@ public class QsrdLinesChart extends BaseChart {
         /**③、计算Y刻度最大值和最小值以及幅度*/
         YMARK_MAX =  Float.MIN_VALUE;    //Y轴刻度最大值
         YMARK_MIN =  Float.MAX_VALUE;    //Y轴刻度最小值
-        float redundance = 1f;  //y轴最大和最小值冗余
+        float redundance = 1.01f;  //y轴最大和最小值冗余
         for(List<Object> list : dataList){
             //["2020-07-10", 2491.7 ]
             try {

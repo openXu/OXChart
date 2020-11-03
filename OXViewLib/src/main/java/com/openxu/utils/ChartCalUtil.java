@@ -54,24 +54,21 @@ public class ChartCalUtil {
         axisMark.cal_mark_max =  Float.MIN_VALUE;    //Y轴刻度最大值
         axisMark.cal_mark_min =  Float.MAX_VALUE;    //Y轴刻度最小值
         for(Object data : axisMark.datas){
-            for(int i = 1; i< axisMark.lableNum + 1 ; i++){
-                String str = ReflectUtil.getField(data, axisMark.field).toString();
-                try {
-                    if(str.contains("%")){
-                        str = str.substring(0,str.indexOf("%"));//百分数不能直接强转
-                        axisMark.cal_mark = Float.parseFloat(str) /100.0f;
-                    }else{
-                        axisMark.cal_mark = Float.parseFloat(str);
-                    }
-//                    LogUtil.d(TAG, str+" Y轴 被识别为Float = "+YMARK);
-                    if(axisMark.cal_mark>axisMark.cal_mark_max)
-                        axisMark.cal_mark_max = axisMark.cal_mark;
-                    if(axisMark.cal_mark<axisMark.cal_mark_min)
-                        axisMark.cal_mark_min = axisMark.cal_mark;
-                }catch (Exception e){
+            String str = ReflectUtil.getField(data, axisMark.field).toString();
+            try {
+                if(str.contains("%")){
+                    str = str.substring(0,str.indexOf("%"));//百分数不能直接强转
+                    axisMark.cal_mark = Float.parseFloat(str) /100.0f;
+                }else{
+                    axisMark.cal_mark = Float.parseFloat(str);
                 }
+//                    LogUtil.d(TAG, str+" Y轴 被识别为Float = "+YMARK);
+                if(axisMark.cal_mark>axisMark.cal_mark_max)
+                    axisMark.cal_mark_max = axisMark.cal_mark;
+                if(axisMark.cal_mark<axisMark.cal_mark_min)
+                    axisMark.cal_mark_min = axisMark.cal_mark;
+            }catch (Exception e){
             }
-
         }
         LogUtil.i(TAG, "Y轴真实axisMark.cal_mark_min="+axisMark.cal_mark_min+"   axisMark.cal_mark_max="+axisMark.cal_mark_max);
         if(axisMark.cal_mark_max>0)

@@ -31,8 +31,9 @@ android:layout_height="match_parent"
             android:layout_height="200dip" />
 
 
-        <com.openxu.cview.xmstock20201030.StandLinesChart
-            android:id="@+id/linesChart2"
+        <com.openxu.cview.xmstock20201030.QsrdLinesChart
+            android:id="@+id/qsrdLinesChart"
+            android:layout_marginTop="20dp"
             android:paddingLeft="12dip"
             android:paddingRight="12dip"
             android:paddingBottom="10dip"
@@ -40,8 +41,9 @@ android:layout_height="match_parent"
             android:layout_width="match_parent"
             android:layout_height="200dip" />
 
-        <com.openxu.cview.xmstock20201030.StandLinesChart
-            android:id="@+id/linesChart3"
+        <com.openxu.cview.xmstock20201030.GlzsLinesChart
+            android:id="@+id/glzsLinesChart"
+            android:layout_marginTop="20dp"
             android:paddingLeft="12dip"
             android:paddingRight="12dip"
             android:paddingBottom="10dip"
@@ -49,8 +51,9 @@ android:layout_height="match_parent"
             android:layout_width="match_parent"
             android:layout_height="200dip" />
 
-        <com.openxu.cview.xmstock20201030.StandLinesChart
-            android:id="@+id/linesChart4"
+        <com.openxu.cview.xmstock20201030.SshqLinesChart
+            android:id="@+id/sshqLinesChart"
+            android:layout_marginTop="20dp"
             android:paddingLeft="12dip"
             android:paddingRight="12dip"
             android:paddingBottom="10dip"

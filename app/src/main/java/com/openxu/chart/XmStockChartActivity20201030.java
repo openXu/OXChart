@@ -4,8 +4,18 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.openxu.cview.xmstock20201030.GlzsLinesChart;
+import com.openxu.cview.xmstock20201030.QsrdLinesChart;
+import com.openxu.cview.xmstock20201030.SshqLinesChart;
 import com.openxu.cview.xmstock20201030.StandLinesChart;
+import com.openxu.cview.xmstock20201030.bean.HotDetail;
+import com.openxu.cview.xmstock20201030.bean.HotDetailData;
+import com.openxu.cview.xmstock20201030.bean.TopDetail;
+import com.openxu.cview.xmstock20201030.bean.Constacts;
 import com.openxu.cview.xmstock20201030.build.AnimType;
 import com.openxu.cview.xmstock20201030.build.AxisLine;
 import com.openxu.cview.xmstock20201030.build.AxisLineType;
@@ -13,6 +23,9 @@ import com.openxu.cview.xmstock20201030.build.AxisMark;
 import com.openxu.cview.xmstock20201030.build.Line;
 import com.openxu.cview.xmstock20201030.build.Orientation;
 import com.openxu.utils.DensityUtil;
+import com.openxu.utils.LogUtil;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,26 +34,90 @@ import java.util.Random;
 public class XmStockChartActivity20201030 extends AppCompatActivity {
 
 
-    StandLinesChart linesChart1, linesChart2, linesChart3, linesChart4;
+    StandLinesChart linesChart1;
 
-
+    QsrdLinesChart qsrdLinesChart;
+    GlzsLinesChart glzsLinesChart;
+    SshqLinesChart sshqLinesChart;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wcxstock_chart20201030);
 
         linesChart1 = (StandLinesChart)findViewById(R.id.linesChart1);
-        linesChart2 = (StandLinesChart)findViewById(R.id.linesChart2);
-        linesChart3 = (StandLinesChart)findViewById(R.id.linesChart3);
-        linesChart4 = (StandLinesChart)findViewById(R.id.linesChart4);
-
-        /**1、设置图表*/
+        qsrdLinesChart = (QsrdLinesChart) findViewById(R.id.qsrdLinesChart);
+        glzsLinesChart = (GlzsLinesChart) findViewById(R.id.glzsLinesChart);
+        sshqLinesChart = (SshqLinesChart) findViewById(R.id.sshqLinesChart);
 
         getData();
 
     }
-    /**2、模拟接口获取数据*/
+
     private void getData(){
+
+        //1. 券商热点与走势对比
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                JSONObject json = null;
+                try {
+//                    json = new JSONObject(Constacts.data);
+//                    Gson gson = new Gson();
+//                    String dataStr = json.getString("data");
+                    TopDetail topDetail = new Gson().fromJson(Constacts.data1, TopDetail.class);
+                    //触摸回调
+                    qsrdLinesChart.setOnFocusChangeListener(new QsrdLinesChart.OnFocusChangeListener() {
+                        @Override
+                        public void onfocus(QsrdLinesChart.FocusData focusData) {
+                            //手指触摸后回调焦点数据，
+                            //focusData.getData() --> ["2020-09-30", 2245.38]
+                            //focusData.getNews() --> {"title":"国办:协调推动智能路网设施建设","publishdate":"2020-11-03 08:00:00"}
+                            LogUtil.v(getClass().getSimpleName(), "焦点数据："+focusData.getData().get(0)+":"+focusData.getData().get(1));
+                            if(focusData.getNews()==null){
+                                LogUtil.w(getClass().getSimpleName(), "--------当天没有新闻");
+                            }else{
+                                Toast.makeText(getApplicationContext(), "焦点新闻："+focusData.getNews().getPublishdate()+
+                                        " "+focusData.getNews().getTitle(), Toast.LENGTH_SHORT).show();
+                                LogUtil.e(getClass().getSimpleName(), "========焦点新闻："+focusData.getNews().getTitle());
+                            }
+                        }
+                    });
+                    //绑定数据
+                    qsrdLinesChart.setData(topDetail.getData().getTrend_line(), topDetail.getData().getNews());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 500);
+
+
+        //2. 概念走势图
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                JSONObject json = null;
+                try {
+                    HotDetail hotDetail = new Gson().fromJson(Constacts.data2, HotDetail.class);
+                    //概念走势图， 每个元素表示：时间、概念、热度 [20200803,"1582.08","30.00"],
+                    glzsLinesChart.setData(hotDetail.getData().getTrend_line());
+
+                    //实时行情
+                    sshqLinesChart.setData(hotDetail.getData().getReal_trend_line());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 500);
+
+
+
+
+
+
+
+
+
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -56,7 +133,7 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
                         datas.add(new LinesData(random.nextInt(10)+i, random.nextInt(30)+i, "2020-"+i));
                     }
                     //绑定
-                    bindChartData(datas);
+//                    bindChartData(datas);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -138,124 +215,7 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
                         .lineType(AxisLineType.NONE).build())
                 .build();
 
-        //券商热点与走势对比
-        linesChart2.builder()
-                //设置折线
-                .line(new Line.Builder<LinesData>(this)
-                        .lineColor(Color.RED)
-                        .lineWidth(2)
-                        .lineType(Line.LineType.CURVE)
-                        .orientation(Orientation.LEFT)
-                        .animType(AnimType.LEFT_TO_RIGHT)
-                        .datas(datas)
-                        .field_x("xlable")
-                        .field_y("num1").build())
-                //设置x轴刻度
-                .xAxisMark(new AxisMark.Builder(this)
-                        .showLable(true)
-                        .lableOrientation(Orientation.BOTTOM)
-                        .lableNum(2)  //x轴显示2个日期
-                        .datas(datas)
-                        .field("xlable").build())
-                //设置左右y轴刻度
-                .yLeftAxisMark(new AxisMark.Builder(this)
-                        .showLable(true)
-                        .lableNum(3)
-                        .lableOrientation(Orientation.LEFT)
-                        .lableType(AxisMark.LABLE_TYPE.INTEGER)
-                        .datas(datas)
-                        .field("num1").build())
-//                .yRightAxisMark(new AxisMark.Builder(this)
-//                        .showLable(false)
-//                        .build())
-                //默认坐标轴线水平方向最下方和最上方为实线，其他为虚线；垂直方向最左和最右为实线，中间不画线。
-                //可以设置任意一条线，只需要传入指定的index ，并调用设置水平或者垂直线的方法，需要注意index不能超标
-                //设置竖直方向上第3根线为红色实线，总共5根线（xAxisMark()确定）
-                .verticalAxisLine(0, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.NONE).build())
-                .verticalAxisLine(1, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.NONE).build())
-                //设置水平方向上第3根线为红色实线，总共5根线（yLeftAxisMark() / yRightAxisMark()确定）
-                .horizontalAxisLine(0, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.SOLID)
-                        .lineWidth(DensityUtil.dip2px(this, 1))
-                        .lineColor(Color.parseColor("#939393")).build())
-                .horizontalAxisLine(1, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.NONE).build())
-                .horizontalAxisLine(2, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.NONE).build())
-                .build();
 
-
-        //概念走势图
-        linesChart3.builder()
-                //设置折线
-                .line(new Line.Builder<LinesData>(this)
-                        .lineColor(Color.BLUE)
-                        .lineWidth(2)
-                        .lineType(Line.LineType.CURVE)
-                        .orientation(Orientation.LEFT)
-                        .animType(AnimType.LEFT_TO_RIGHT)
-                        .datas(datas)
-                        .field_x("xlable")
-                        .field_y("num1").build())
-                .line(new Line.Builder(this)
-                        .lineColor(Color.RED)
-                        .lineType(Line.LineType.BROKEN)
-                        .orientation(Orientation.RIGHT)
-                        .animType(AnimType.BOTTOM_TO_TOP)
-                        .datas(datas)
-                        .field_x("xlable")
-                        .field_y("num2").build())
-                //设置x轴刻度
-                .xAxisMark(new AxisMark.Builder(this)
-                        .showLable(true)
-                        .lableOrientation(Orientation.BOTTOM)
-                        .lableNum(5)
-                        .datas(datas)
-                        .field("xlable").build())
-                //设置左右y轴刻度
-                .yLeftAxisMark(new AxisMark.Builder(this)
-                        .showLable(true)
-                        .lableNum(4)
-                        .textColor(Color.BLUE)
-                        .lableOrientation(Orientation.LEFT)
-                        .lableType(AxisMark.LABLE_TYPE.FLOAT)
-                        .datas(datas)
-                        .field("num1").build())
-                .yRightAxisMark(new AxisMark.Builder(this)
-                        .showLable(true)
-                        .lableNum(4)
-                        .textColor(Color.RED)
-                        .lableOrientation(Orientation.RIGHT)
-                        .lableType(AxisMark.LABLE_TYPE.FLOAT)
-                        .datas(datas)
-                        .field("num2").build())
-                //默认坐标轴线水平方向最下方和最上方为实线，其他为虚线；垂直方向最左和最右为实线，中间不画线。
-                //可以设置任意一条线，只需要传入指定的index ，并调用设置水平或者垂直线的方法，需要注意index不能超标
-                //设置竖直方向上第3根线为红色实线，总共5根线（xAxisMark()确定）
-                .verticalAxisLine(0, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.NONE).build())
-                .verticalAxisLine(4, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.NONE).build())
-                //设置水平方向上第3根线为红色实线，总共5根线（yLeftAxisMark() / yRightAxisMark()确定）
-                .horizontalAxisLine(0, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.DASHE)
-                        .lineWidth(DensityUtil.dip2px(this, 1))
-                        .lineColor(Color.parseColor("#939393")).build())
-                .horizontalAxisLine(1, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.DASHE)
-                        .lineWidth(DensityUtil.dip2px(this, 1))
-                        .lineColor(Color.parseColor("#939393")).build())
-                .horizontalAxisLine(2, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.DASHE)
-                        .lineWidth(DensityUtil.dip2px(this, 1))
-                        .lineColor(Color.parseColor("#939393")).build())
-                .horizontalAxisLine(3, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.DASHE)
-                        .lineWidth(DensityUtil.dip2px(this, 1))
-                        .lineColor(Color.parseColor("#939393")).build())
-                .build();
 
     }
 

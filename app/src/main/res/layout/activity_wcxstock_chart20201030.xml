@@ -21,7 +21,7 @@ android:layout_height="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical">
-        <com.openxu.cview.xmstock20201030.StandLinesChart
+        <com.openxu.chart.linechart.StandLinesChart
             android:id="@+id/linesChart1"
             android:paddingLeft="12dip"
             android:paddingRight="12dip"

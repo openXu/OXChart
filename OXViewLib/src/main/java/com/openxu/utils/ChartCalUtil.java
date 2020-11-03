@@ -3,9 +3,12 @@ package com.openxu.utils;
 
 import android.util.Log;
 
-import com.openxu.cview.xmstock20201030.build.AxisMark;
+import com.openxu.chart.element.AxisMark;
+import com.openxu.chart.element.AxisMarkLableType;
+import com.openxu.chart.element.DisplayConfig;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * 图表计算工具
@@ -16,29 +19,26 @@ public class ChartCalUtil {
 
     /**
      * 计算X轴刻度点lable值
-     * @param axisMark
+     * 根据data值，
      */
-    public static void calXLable(AxisMark axisMark){/*List datas, String field, int num){*/
+    public static void calXLable(DisplayConfig display, List datas, AxisMark axisMark){
         Object[] newDatas;
-        if(axisMark.datas==null || axisMark.field==null) {
+        if(display.dataDisplay < axisMark.lableNum){
+            display.dataDisplay = axisMark.lableNum;
+        }
+        if(datas==null || axisMark.field==null) {
             axisMark.lables = new String[]{};
         }
-        if(axisMark.datas.size()<=axisMark.lableNum){
-            axisMark.lables = new String[axisMark.datas.size()];
-            newDatas = axisMark.datas.toArray();
-        }else{
-            axisMark.lables = new String[axisMark.lableNum];
-            newDatas = new Object[axisMark.lableNum];
-            //取第一个和最后一个
-            newDatas[0] = axisMark.datas.get(0);
-            newDatas[axisMark.lableNum-1] = axisMark.datas.get(axisMark.datas.size()-1);
-            int part = axisMark.datas.size() / axisMark.lableNum;
-            Log.i(TAG, "均匀取值："+part);
-            for(int i = 1; i< axisMark.lableNum-1; i++){
-                newDatas[i] = axisMark.datas.get(i*part);
-            }
+        axisMark.lables = new String[axisMark.lableNum];
+        newDatas = new Object[axisMark.lableNum];
+        //取第一个和最后一个
+        newDatas[0] =datas.get(0);
+        newDatas[axisMark.lableNum-1] =datas.get(datas.size()-1);
+        int part = datas.size() / axisMark.lableNum;
+        Log.i(TAG, "均匀取值："+part);
+        for(int i = 1; i< axisMark.lableNum-1; i++){
+            newDatas[i] =datas.get(i*part);
         }
-
         for(int j = 0; j<newDatas.length; j++){
             axisMark.lables[j] = ReflectUtil.getField(newDatas[j], axisMark.field).toString();
         }
@@ -50,10 +50,11 @@ public class ChartCalUtil {
      * @param axisMark
      * @return
      */
-    public static AxisMark calYLable(AxisMark axisMark){
+    public static AxisMark calYLable(DisplayConfig display, List datas, AxisMark axisMark){
         axisMark.cal_mark_max =  Float.MIN_VALUE;    //Y轴刻度最大值
         axisMark.cal_mark_min =  Float.MAX_VALUE;    //Y轴刻度最小值
-        for(Object data : axisMark.datas){
+//        List<Object> tempData =datas.subList(display.displayIndex, display.displayIndex + display.dataDisplay);
+        for(Object data : datas){
             for(int i = 1; i< axisMark.lableNum + 1 ; i++){
                 String str = ReflectUtil.getField(data, axisMark.field).toString();
                 try {
@@ -71,37 +72,36 @@ public class ChartCalUtil {
                 }catch (Exception e){
                 }
             }
-
         }
         LogUtil.i(TAG, "Y轴真实axisMark.cal_mark_min="+axisMark.cal_mark_min+"   axisMark.cal_mark_max="+axisMark.cal_mark_max);
+        float space = 1.1f;
         if(axisMark.cal_mark_max>0)
-            axisMark.cal_mark_max *= 1.1f;
+            axisMark.cal_mark_max *= space;
         else
-            axisMark.cal_mark_max /= 1.1f;
+            axisMark.cal_mark_max /= space;
         if(axisMark.cal_mark_min>0)
-            axisMark.cal_mark_min /= 1.1f;
+            axisMark.cal_mark_min /= space;
         else
-            axisMark.cal_mark_min *= 1.1f;
-        if(axisMark.cal_mark_min>0)
-            axisMark.cal_mark_min = 0;
-
+            axisMark.cal_mark_min *= space;
+//        if(axisMark.cal_mark_min>0)
+//            axisMark.cal_mark_min = 0;
         axisMark.cal_mark = (axisMark.cal_mark_max-axisMark.cal_mark_min)/(axisMark.lableNum - 1);
         axisMark.lables = new String[axisMark.lableNum];
-        if(axisMark.lableType == AxisMark.LABLE_TYPE.INTEGER){
+        if(axisMark.lableType == AxisMarkLableType.INTEGER){
             axisMark.cal_mark = (int)axisMark.cal_mark + 1;
             axisMark.cal_mark_min = (int)axisMark.cal_mark_min;
             axisMark.cal_mark_max = axisMark.cal_mark_min+axisMark.cal_mark*(axisMark.lableNum-1);
-        }else if(axisMark.lableType == AxisMark.LABLE_TYPE.PERCENTAGE){
-        }else if(axisMark.lableType == AxisMark.LABLE_TYPE.FLOAT){
+        }else if(axisMark.lableType == AxisMarkLableType.PERCENTAGE){
+        }else if(axisMark.lableType == AxisMarkLableType.FLOAT){
         }
         LogUtil.i(TAG, "Y轴axisMark.cal_mark_min="+axisMark.cal_mark_min+"   axisMark.cal_mark_max="+axisMark.cal_mark_max+"   axisMark.cal_mark="+axisMark.cal_mark);
         for(int i = 0; i< axisMark.lableNum; i++){
             float num = axisMark.cal_mark_min + i * axisMark.cal_mark;
-            if(axisMark.lableType == AxisMark.LABLE_TYPE.INTEGER){
+            if(axisMark.lableType == AxisMarkLableType.INTEGER){
                 axisMark.lables[i] = ((int)num)+"";
-            }else if(axisMark.lableType == AxisMark.LABLE_TYPE.PERCENTAGE){
+            }else if(axisMark.lableType == AxisMarkLableType.PERCENTAGE){
                 axisMark.lables[i] = NumberFormatUtil.formattedDecimalToPercentage(num);
-            }else if(axisMark.lableType == AxisMark.LABLE_TYPE.FLOAT){
+            }else if(axisMark.lableType == AxisMarkLableType.FLOAT){
                 axisMark.lables[i] = NumberFormatUtil.formattedDecimal(num);
             }
         }

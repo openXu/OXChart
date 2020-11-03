@@ -1,4 +1,4 @@
-package com.openxu.cview.xmstock20201030.build;
+package com.openxu.chart.element;
 
 public enum Orientation {
 

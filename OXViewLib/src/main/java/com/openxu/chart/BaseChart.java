@@ -1,4 +1,4 @@
-package com.openxu.cview.chart;
+package com.openxu.chart;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -9,11 +9,13 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Scroller;
 
 import com.openxu.cview.BuildConfig;
 import com.openxu.cview.R;
@@ -139,124 +141,79 @@ public abstract class BaseChart extends View {
         rectChart = new RectF(getPaddingLeft(),getPaddingTop(),getMeasuredWidth()-getPaddingRight(),
                 getMeasuredHeight()-getPaddingBottom());
     }
-
-
-    protected TOUCH_EVENT_TYPE touchEventType = EVENT_NULL;
-    /**需要拦截的事件方向*/
-    public enum TOUCH_EVENT_TYPE{
-        EVENT_NULL,  /*不处理事件*/
-        EVENT_X,  /*拦截X轴方向的事件*/
-        EVENT_Y,  /*拦截Y轴方向的事件*/
-        EVENT_XY  /*拦截XY轴方向的事件*/
-    }
-    /**设置事件方向*/
-    public void setTouchEventType(TOUCH_EVENT_TYPE touchEventType) {
-        this.touchEventType = touchEventType;
-    }
-
-    protected boolean touchEnable = false;      //是否超界，控件的大小是否足以显示内容，是否需要滑动来展示。子控件根据计算赋值
-    protected float mDownX, mDownY;
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-        LogUtil.d(TAG, "dispatchTouchEvent  "+touchEventType);
-        if(!touchEnable){
-            LogUtil.w(TAG, "没超界");
-        }else if(EVENT_NULL == touchEventType){
-            LogUtil.w(TAG, "不需要处理事件");
-        }else if(EVENT_XY == touchEventType){
-            LogUtil.w(TAG, "需要拦截XY方向的事件");
-            getParent().requestDisallowInterceptTouchEvent(true);
-        }else{
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    mDownX = event.getX();
-                    mDownY = event.getY();
-                    if(null!=touchAnim && touchAnim.isRunning())
-                        touchAnim.cancel();
-                    getParent().requestDisallowInterceptTouchEvent(true);//ACTION_DOWN的时候，赶紧把事件hold住
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    if(EVENT_X == touchEventType){
-                        if(Math.abs(event.getY()-mDownY)> Math.abs(event.getX() - mDownX)) {
-                            getParent().requestDisallowInterceptTouchEvent(false);
-                            LogUtil.i(TAG, "竖直滑动的距离大于水平的时候，将事件还给父控件");
-                        }else {
-                            getParent().requestDisallowInterceptTouchEvent(true);
-                            LogUtil.i(TAG, "正常请求事件");
-                            dispatchTouchEvent1(event);
-                        }
-                    }else if(EVENT_Y == touchEventType){
-                        if(Math.abs(event.getX() - mDownX)> Math.abs(event.getY()-mDownY)) {
-                            getParent().requestDisallowInterceptTouchEvent(false);
-                            LogUtil.i(TAG, "水平滑动的距离大于竖直的时候，将事件还给父控件");
-                        }else {
-                            getParent().requestDisallowInterceptTouchEvent(true);
-                            dispatchTouchEvent1(event);
-                            LogUtil.i(TAG, "正常请求事件");
-                        }
-                    }
-                    break;
-                case MotionEvent.ACTION_CANCEL:
-                case MotionEvent.ACTION_UP:
-                    break;
-            }
-        }
-        return super.dispatchTouchEvent(event);
-    }
-
-    protected void dispatchTouchEvent1(MotionEvent event){
-
-    }
-
     protected PointF lastTouchPoint;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if(!touchEnable)
-            return false;
         boolean result = mGestureDetector.onTouchEvent(event);
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 lastTouchPoint = new PointF(event.getX(), event.getY());
-                onTouchMoved(lastTouchPoint);
                 return true;
             case MotionEvent.ACTION_MOVE:
                 int move = 0;
-                if(EVENT_X == touchEventType){
-                    move = (int)(event.getX() - lastTouchPoint.x);
-                }else if(EVENT_Y == touchEventType){
-                    move = (int)(event.getY() - lastTouchPoint.y);
-                }
-                LogUtil.i(TAG, "MotionEvent.ACTION_MOVE"+move);
+                onMove(event.getX() - lastTouchPoint.x, event.getY() - lastTouchPoint.y);
                 lastTouchPoint.x = (int)event.getX();
                 lastTouchPoint.y = (int)event.getY();
-                onTouchMoved(lastTouchPoint);
                 evaluatorFling(move);
-                invalidate();
+
+//                invalidate();
                 return true;
             case MotionEvent.ACTION_UP:
                 lastTouchPoint.x = 0;
                 lastTouchPoint.y = 0;
-                onTouchMoved(null);
                 return true;
         }
         return result;
     }
     class MyOnGestureListener extends GestureDetector.SimpleOnGestureListener {
+        //手指按下
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return super.onDown(e);
+        }
+        //按压事件
+        @Override
+        public void onShowPress(MotionEvent e) {
+            super.onShowPress(e);
+        }
+        //长按
+        @Override
+        public void onLongPress(MotionEvent e) {
+            super.onLongPress(e);
+        }
+        //手指抬起
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            return super.onSingleTapUp(e);
+        }
+        //
+        @Override
+        public boolean onDoubleTapEvent(MotionEvent e) {
+            return super.onDoubleTapEvent(e);
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+//            Log.w(TAG, "===================滚动");
+//            Log.w(TAG, "event1："+e1.getAction()+"  "+e1.getX()+"  "+e1.getY());
+//            Log.w(TAG, "event2："+e2.getAction()+"  "+e2.getX()+"  "+e2.getY());
+//            Log.w(TAG, "distanceX："+distanceX+"   distanceY="+distanceY);
+            return true;
+        }
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            LogUtil.e(TAG,"onFling------------>velocityX="+velocityX+"    velocityY="+velocityY);
-            if(EVENT_X == touchEventType){
-                startFlingAnimation(velocityX);
-            }else if(EVENT_Y == touchEventType){
-                startFlingAnimation(velocityY);
-            }
-            return false;
+//            LogUtil.e(TAG,"onFling------------>velocityX="+velocityX+"    velocityY="+velocityY);
+            return true;
         }
     }
 
-    protected void onTouchMoved(PointF point){
-    }
+    //Scroller本身不会去移动View，它只是一个移动计算辅助类，用于跟踪控件滑动的轨迹，只相当于一个滚动轨迹记录工具，最终还是通过View的scrollTo、scrollBy方法完成View的移动的
+//    Scroller scroller = new Scroller();
 
+    /**滑动*/
+    protected void onMove(float x, float y){
+        Log.w(TAG, "===================滑动了"+x+"  "+y);
+    }
 
     public void onDraw(Canvas canvas){
         //画布背景
@@ -269,13 +226,13 @@ public abstract class BaseChart extends View {
             drawLoading(canvas);
             return;
         }
-//        drawChart(canvas);
-        if(!startDraw){
-            startDraw = true;
-            startAnimation(canvas);
-        }else{
-            drawChart(canvas);
-        }
+        drawChart(canvas);
+//        if(!startDraw){
+//            startDraw = true;
+//            startAnimation(canvas);
+//        }else{
+//            drawChart(canvas);
+//        }
     }
 
     public void drawLoading(Canvas canvas) {

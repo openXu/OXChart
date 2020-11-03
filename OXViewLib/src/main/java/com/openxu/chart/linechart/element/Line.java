@@ -1,25 +1,27 @@
-package com.openxu.cview.xmstock20201030.build;
+package com.openxu.chart.linechart.element;
 
 import android.content.Context;
 import android.graphics.Color;
 
+import com.openxu.chart.element.AnimType;
+import com.openxu.chart.element.DataPoint;
+import com.openxu.chart.element.Orientation;
 import com.openxu.utils.DensityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 //图表曲线
-public class Line<D>{
+public class Line{
 
     public int lineColor;        //线条颜色
     public int lineWidth;        //线条粗细
     public AnimType animType;    //线条动画
     public LineType lineType;    //线条类型，默认曲线（曲线LineType.CURVE   折线LineType.BROKEN）
     public Orientation orientation;   //* 参照那个方向Y轴的坐标 Orientation.LEFT or Orientation.RIGHT
-    public List<D> datas;        //* 数据
     public String field_x;       //* x轴对应的数据中的成员变量字符串
     public String field_y;       //* y轴对应的数据中的成员变量字符串
-    public int dataNumCount;     //可以设置总共的数量，默认=datas.size()
+
     /**计算*/
     public List<DataPoint> linePointList = new ArrayList<>();
 
@@ -62,11 +64,6 @@ public class Line<D>{
             return this;
         }
 
-        public Builder datas(List<D> datas) {
-            line.datas = datas;
-            return this;
-        }
-
         public Builder field_x(String field) {
             line.field_x = field;
             return this;
@@ -76,7 +73,7 @@ public class Line<D>{
             return this;
         }
 
-        public Line<D> build(){
+        public Line build(){
             return  line;
         }
     }

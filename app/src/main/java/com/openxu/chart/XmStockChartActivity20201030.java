@@ -4,14 +4,17 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
-import com.openxu.cview.xmstock20201030.StandLinesChart;
-import com.openxu.cview.xmstock20201030.build.AnimType;
-import com.openxu.cview.xmstock20201030.build.AxisLine;
-import com.openxu.cview.xmstock20201030.build.AxisLineType;
-import com.openxu.cview.xmstock20201030.build.AxisMark;
-import com.openxu.cview.xmstock20201030.build.Line;
-import com.openxu.cview.xmstock20201030.build.Orientation;
+import com.openxu.chart.element.AxisMarkLableType;
+import com.openxu.chart.element.DisplayConfig;
+import com.openxu.chart.linechart.StandLinesChart;
+import com.openxu.chart.element.AnimType;
+import com.openxu.chart.element.AxisLine;
+import com.openxu.chart.element.AxisLineType;
+import com.openxu.chart.element.AxisMark;
+import com.openxu.chart.linechart.element.Line;
+import com.openxu.chart.element.Orientation;
 import com.openxu.utils.DensityUtil;
 
 import java.util.ArrayList;
@@ -49,10 +52,17 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
 
                     Random random = new Random();
                     List<LinesData> datas = new ArrayList<>();
-                    for(int i = 100; i<200; i++){
-                        datas.add(new LinesData(random.nextInt(10)+i, random.nextInt(30)+i, "2020-"+i));
+                    for(int i = 0; i<10; i++){
+                        datas.add(new LinesData(i, random.nextInt(5)+i, "2020-"+i));
+                    }
+                    for(int i = 10; i<16; i++){
+                        datas.add(new LinesData(i-random.nextInt(5), random.nextInt(5)-i, "2020-"+i));
+                    }
+                    for(int i = 16; i<16; i++){
+                        datas.add(new LinesData(i+1, random.nextInt(5)-i, "2020-"+i));
                     }
                     //绑定
+                    Log.w(getClass().getSimpleName(), "=================绑定数据"+datas.size()+"===============");
                     bindChartData(datas);
                 }catch (Exception e){
                     e.printStackTrace();
@@ -69,30 +79,36 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
     /**3、绑定数据*/
     private void bindChartData(List<LinesData> datas){
         linesChart1.builder()
+                .datas(datas)
+                .display(new DisplayConfig.Builder()
+                        .dataTotal(datas.size())
+                        .dataDisplay(datas.size()/2)
+                        .displayIndex(1)
+                        .build())
                 //设置折线
-                .line(new Line.Builder<LinesData>(this)
-                        .lineColor(Color.RED)
-                        .lineWidth(2)
-                        .lineType(Line.LineType.CURVE)
-                        .orientation(Orientation.LEFT)
-                        .animType(AnimType.LEFT_TO_RIGHT)
-                        .datas(datas)
-                        .field_x("xlable")
-                        .field_y("num1").build())
+//                .line(new Line.Builder<LinesData>(this)
+//                        .lineColor(Color.RED)
+//                        .lineWidth(2)
+//                        .lineType(Line.LineType.CURVE)
+//                        .orientation(Orientation.LEFT)
+//                        .animType(AnimType.NONE)
+//                        .field_x("xlable")
+//                        .field_y("num1").build())
                 .line(new Line.Builder(this)
                         .lineColor(Color.BLUE)
                         .lineType(Line.LineType.BROKEN)
-                        .orientation(Orientation.RIGHT)
-                        .animType(AnimType.BOTTOM_TO_TOP)
-                        .datas(datas)
+                        .orientation(Orientation.LEFT)
+//                        .orientation(Orientation.RIGHT)
+                        .animType(AnimType.NONE)  //BOTTOM_TO_TOP
                         .field_x("xlable")
-                        .field_y("num2").build())
+                        .field_y("num1").build())
                 //设置x轴刻度
                 .xAxisMark(new AxisMark.Builder(this)
-                        .showLable(true)
-                        .lables(new String[]{"9:00", "10:00", "11:00", "12:00"})
-                        .lableOrientation(Orientation.BOTTOM)
-                        .datas(datas)
+                        .showLable(true)       //显示刻度lable（默认true）
+                        .showMark(true)        //显示刻度线（默认true）
+                        //lables() 和 datas()/field() 两者都是设置刻度值，二者中必选一个设置，同时设置时lables()优先级高
+//                        .lables(new String[]{"9:00", "10:00", "11:00", "12:00"})  //手动设置坐标刻度值
+                        .lableNum(4)
                         .field("xlable").build())
 //                .xAxisMark(new AxisMark.Builder(this)
 //                        .showLable(true)
@@ -105,15 +121,13 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
                         .showLable(true)
                         .lableNum(5)
                         .lableOrientation(Orientation.TOP)
-                        .lableType(AxisMark.LABLE_TYPE.FLOAT)
-                        .datas(datas)
+                        .lableType(AxisMarkLableType.FLOAT)
                         .field("num1").build())
                 .yRightAxisMark(new AxisMark.Builder(this)
                         .showLable(true)
                         .lableNum(5)
                         .lableOrientation(Orientation.RIGHT)
-                        .lableType(AxisMark.LABLE_TYPE.FLOAT)
-                        .datas(datas)
+                        .lableType(AxisMarkLableType.FLOAT)
                         .field("num2").build())
                 //默认坐标轴线水平方向最下方和最上方为实线，其他为虚线；垂直方向最左和最右为实线，中间不画线。
                 //可以设置任意一条线，只需要传入指定的index ，并调用设置水平或者垂直线的方法，需要注意index不能超标
@@ -123,10 +137,6 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
                         .lineWidth(DensityUtil.dip2px(this, 1))
                         .lineColor(Color.parseColor("#939393")).build())
                 //设置水平方向上第3根线为红色实线，总共5根线（yLeftAxisMark() / yRightAxisMark()确定）
-                .horizontalAxisLine(0, new AxisLine.Builder(this)
-                        .lineType(AxisLineType.SOLID)
-                        .lineWidth(DensityUtil.dip2px(this, 3))
-                        .lineColor(Color.parseColor("#939393")).build())
                 .horizontalAxisLine(2, new AxisLine.Builder(this)
                         .lineType(AxisLineType.DASHE)
                         .lineWidth(DensityUtil.dip2px(this, 1))
@@ -134,7 +144,6 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
                 .horizontalAxisLine(3, new AxisLine.Builder(this)
                         .lineType(AxisLineType.NONE).build())
                 .build();
-
     }
 
 

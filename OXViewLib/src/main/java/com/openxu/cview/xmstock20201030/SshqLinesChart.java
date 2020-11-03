@@ -155,7 +155,8 @@ public class SshqLinesChart extends BaseChart {
         float yLeftlableMaxLength = FontUtil.getFontlength(paintLabel, (int)yLeft.cal_mark_max+"");
         paintLabel.setTextSize(yRight.textSize);
         float yRightlableHeight = FontUtil.getFontHeight(paintLabel);
-        float yRightlableMaxLength = FontUtil.getFontlength(paintLabel, (int)yRight.cal_mark_max+"");
+        String text = NumberFormatUtil.formattedDecimalToPercentage(yRight.cal_mark_min);
+        float yRightlableMaxLength = FontUtil.getFontlength(paintLabel, text);
         //图表主体矩形
         rectChart = new RectF(getPaddingLeft() + yLeft.textSpace + yLeftlableMaxLength,
                 getPaddingTop() + Math.max(yLeftlableHeight, yRightlableHeight)/2,

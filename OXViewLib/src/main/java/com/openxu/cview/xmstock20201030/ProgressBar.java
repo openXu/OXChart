@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathEffect;
@@ -14,6 +15,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Region;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -39,21 +41,17 @@ import java.util.List;
  */
 public class ProgressBar extends BaseChart {
     /**可以设置的属性*/
-    //设置线条颜色
-    private int[] barColor = new int[]{Color.parseColor("#3d7cc9"),
-            Color.parseColor("#d74b3c")};
-    private int bitmapID = R.mipmap.proicon;
-    private int barSize = DensityUtil.dip2px(getContext(), 1.5f);
-    private float total;
-    private float progress;
-
-    private int space = DensityUtil.dip2px(getContext(), 5);
-    //计算
+    private int[] barColor = new int[]{Color.parseColor("#e9403b"),
+            Color.parseColor("#f98683")};
+    private float total = 100;
+    private float progress = 0;
+    //左边图
+    private int bitmapID = R.mipmap.ic_concept_hot_more_fire;
+    //进度条高度
+    private int barHeight = DensityUtil.dip2px(getContext(), 8f);
+    private int chonghe = DensityUtil.dip2px(getContext(), 3f);//重合度
+    private float up = 0.2f;  //预留图片下方白色区域
     private Bitmap bitmap;
-    private PointF bitmapCenter;
-    private int bigRadios;   //图片底部圆形半径
-    private int paddingBottom;  //居中时需要用到的，图片与barsize差值
-
 
     public ProgressBar(Context context) {
         this(context, null);
@@ -68,7 +66,6 @@ public class ProgressBar extends BaseChart {
     @Override
     public void init(Context context, AttributeSet attrs, int defStyleAttr) {
         touchEnable = false;
-        bitmap = BitmapFactory.decodeResource(getResources(), bitmapID);
     }
 
     @Override
@@ -78,11 +75,16 @@ public class ProgressBar extends BaseChart {
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-        bigRadios = bitmap.getWidth()/2;
-        paddingBottom = bitmap.getHeight() - barSize;
-        heightSize = bitmap.getHeight() + paddingBottom;
-        bitmapCenter = new PointF(bigRadios, heightSize);
+        if(bitmap==null)
+            bitmap = BitmapFactory.decodeResource(getResources(), bitmapID);
+
+        float uph = up*bitmap.getHeight();
+        float bottom = bitmap.getHeight() - uph - barHeight;
+        heightSize = bitmap.getHeight() + (int)bottom;   //让进度条居中
         setMeasuredDimension(widthSize, heightSize);
+        rectChart = new RectF(getPaddingLeft(),getPaddingTop(),getMeasuredWidth()-getPaddingRight(),
+                getMeasuredHeight()-getPaddingBottom());
+        centerPoint = new PointF(getMeasuredWidth()/2, getMeasuredHeight()/2);
     }
 
     @Override
@@ -109,29 +111,47 @@ public class ProgressBar extends BaseChart {
 
     @Override
     public void drawDefult(Canvas canvas) {
-        canvas.drawBitmap(bitmap, rectChart.left, rectChart.top, paint);
-
-        RectF rectF = new RectF(
-                bitmapCenter.x -bigRadios - space,
-                bitmapCenter.y -bigRadios - space,
-                bitmapCenter.x +bigRadios + space,
-                bitmapCenter.y +bigRadios + space
-        );
-        //添加路径信息
-        Path path = new Path();
-        //将指定的圆弧作为新轮廓添加到路径中
-//        path.addArc(rectF, 90, 180);
-//        blackPath.moveTo(center, 0);
-//        blackPath.arcTo(smallTopRectF, 270, 180);
-//        blackPath.moveTo(center, center);
-//        blackPath.arcTo(smallBottomRectF, 270, -180);
-//        //将黑色路径信息存入Region
-//        Region region = new Region();
-//        blackRegion.setPath(blackPath, totalRegion);
-
     }
     @Override
     public void drawChart(Canvas canvas) {
+        float left = bitmap.getWidth()-chonghe;
+        float proSize = (rectChart.right-left)/total*progress * animPro;
+        //添加路径信息
+        Path pathDef = new Path();
+        Path pathPro = new Path();
+        pathDef.moveTo(left , centerPoint.y-barHeight/2);  //左上
+        pathPro.moveTo(left , centerPoint.y-barHeight/2);
+        pathDef.lineTo(rectChart.right-barHeight/2, centerPoint.y-barHeight/2);  //右上
+        pathPro.lineTo(left + proSize, centerPoint.y-barHeight/2);
+        RectF rectFDef = new RectF(rectChart.right-barHeight, centerPoint.y-barHeight/2, rectChart.right, centerPoint.y+barHeight/2);
+        RectF rectFPro = new RectF(left + proSize -barHeight, centerPoint.y-barHeight/2, left + proSize , centerPoint.y+barHeight/2);
+        pathDef.arcTo(rectFDef, -90, 180);
+        pathPro.arcTo(rectFPro, -90, 180);
+//        canvas.drawArc(rectFDef, -90, 180, false ,paint);
+        pathDef.lineTo(rectChart.right - barHeight/2, centerPoint.y+barHeight/2);  //右下
+        pathPro.lineTo(rectChart.right - proSize - barHeight/2, centerPoint.y+barHeight/2);
+        pathDef.lineTo(left, centerPoint.y+barHeight/2);  //左下
+        pathPro.lineTo(left, centerPoint.y+barHeight/2);
+        //1.绘制默认灰色
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(defColor);
+        canvas.drawPath(pathDef, paint);
+        //2.绘制进度
+        //线性渐变：前两个参数是渐变开始的点坐标，第三四个参数是渐变结束的点的坐标；渐变的颜色，渐变颜色的分布，模式
+        Shader mShader = new LinearGradient(left, centerPoint.y ,rectChart.right, centerPoint.y,
+                new int[] {barColor[0],barColor[1]},null,Shader.TileMode.CLAMP);
+        Log.w(TAG, "从"+left+"*"+centerPoint.y+"->"+rectChart.right+"*"+centerPoint.y+"渐变");
+        paintEffect.setStyle(Paint.Style.FILL);
+        paintEffect.setColor(defColor);
+        paintEffect.setShader(mShader);
+        canvas.drawPath(pathPro, paintEffect);
+        paintEffect.setShader(null);
+        //圆角矩形
+//        canvas.drawRoundRect(new RectF(bitmap.getWidth()-chonghe, centerPoint.y+barHeight/2,
+//                        rectChart.right, centerPoint.y-barHeight/2),
+//                barHeight/2, barHeight/2, paint);
+        canvas.drawBitmap(bitmap, rectChart.left, rectChart.top, paint);
     }
 
     private float animPro;       //动画计算的占比数量

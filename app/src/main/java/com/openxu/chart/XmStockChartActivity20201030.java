@@ -41,7 +41,7 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
     StandLinesChart linesChart1;
 //    CustomCalendar cal;
 
-    ProgressBar progress;
+    ProgressBar progress1, progress2, progress3, progress4;
     //1. 券商热点走势对比图
     QsrdLinesChart qsrdLinesChart;
     //2. 概念走势图
@@ -55,7 +55,14 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
 
         linesChart1 = (StandLinesChart)findViewById(R.id.linesChart1);
 
-        progress = (ProgressBar) findViewById(R.id.progress);
+        progress1 = (ProgressBar) findViewById(R.id.progress1);
+        progress2 = (ProgressBar) findViewById(R.id.progress2);
+        progress3 = (ProgressBar) findViewById(R.id.progress3);
+        progress4 = (ProgressBar) findViewById(R.id.progress4);
+        progress1.setData(100, 0);
+        progress2.setData(100, 50);
+        progress3.setData(100, 90);
+        progress4.setData(100, 100);
 
         qsrdLinesChart = (QsrdLinesChart) findViewById(R.id.qsrdLinesChart);
         glzsLinesChart = (GlzsLinesChart) findViewById(R.id.glzsLinesChart);
@@ -163,7 +170,6 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
 
     private void getData(){
 
-        progress.setData(100, 30);
 
         //1. 券商热点与走势对比
         new Handler().postDelayed(new Runnable() {

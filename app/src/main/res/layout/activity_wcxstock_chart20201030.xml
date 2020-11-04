@@ -21,6 +21,13 @@ android:layout_height="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical">
+
+        <com.openxu.cview.xmstock20201030.MyCalendar
+            android:id="@+id/calendar"
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
         <com.openxu.cview.xmstock20201030.StandLinesChart
             android:id="@+id/linesChart1"
             android:paddingLeft="12dip"

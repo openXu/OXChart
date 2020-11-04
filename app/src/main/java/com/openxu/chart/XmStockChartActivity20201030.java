@@ -10,10 +10,12 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.openxu.cview.xmstock20201030.CustomCalendar;
 import com.openxu.cview.xmstock20201030.GlzsLinesChart;
+import com.openxu.cview.xmstock20201030.MyCalendar;
 import com.openxu.cview.xmstock20201030.ProgressBar;
 import com.openxu.cview.xmstock20201030.QsrdLinesChart;
 import com.openxu.cview.xmstock20201030.SshqLinesChart;
 import com.openxu.cview.xmstock20201030.StandLinesChart;
+import com.openxu.cview.xmstock20201030.bean.CalandarList;
 import com.openxu.cview.xmstock20201030.bean.DayFinish;
 import com.openxu.cview.xmstock20201030.bean.HotDetail;
 import com.openxu.cview.xmstock20201030.bean.HotDetailData;
@@ -40,7 +42,7 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
 
     StandLinesChart linesChart1;
 //    CustomCalendar cal;
-
+    MyCalendar calendar;
     ProgressBar progress1, progress2, progress3, progress4;
     //1. 券商热点走势对比图
     QsrdLinesChart qsrdLinesChart;
@@ -52,7 +54,7 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wcxstock_chart20201030);
-
+        calendar = (MyCalendar)findViewById(R.id.calendar);
         linesChart1 = (StandLinesChart)findViewById(R.id.linesChart1);
 
         progress1 = (ProgressBar) findViewById(R.id.progress1);
@@ -169,6 +171,19 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
     }
 
     private void getData(){
+        //1. 日历
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    CalandarList calandarList = new Gson().fromJson(Constacts.data3, CalandarList.class);
+                    //绑定数据
+                    calendar.setData(calandarList.getData().getCalendar(), calandarList.getData().getCalendar_detail());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 500);
 
 
         //1. 券商热点与走势对比
@@ -277,10 +292,10 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
                         .field_y("num1").build())
                 .line(new Line.Builder(this)
                         .lineColor(Color.BLUE)
-                        .lineType(Line.LineType.BROKEN)
-                        .orientation(Orientation.RIGHT)
-                        .animType(AnimType.BOTTOM_TO_TOP)
-                        .datas(datas)
+                        .lineType(Line.LineType.CURVE)
+                        .orientation(Orientation.LEFT)
+//                        .orientation(Orientation.RIGHT)
+                        .animType(AnimType.NONE)  //BOTTOM_TO_TOP
                         .field_x("xlable")
                         .field_y("num2").build())
                 //设置x轴刻度

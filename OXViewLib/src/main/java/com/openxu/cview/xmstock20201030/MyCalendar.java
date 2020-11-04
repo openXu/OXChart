@@ -18,12 +18,14 @@ import android.view.View;
 
 import com.openxu.cview.R;
 import com.openxu.cview.xmstock20201030.bean.CalendarData;
+import com.openxu.cview.xmstock20201030.bean.CalendarDataStock;
 import com.openxu.cview.xmstock20201030.bean.CalendarDetail;
 import com.openxu.cview.xmstock20201030.bean.DayFinish;
 import com.openxu.utils.DensityUtil;
 import com.openxu.utils.FontUtil;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -55,17 +57,18 @@ public class MyCalendar extends View {
     private int textSizeStock = DensityUtil.sp2px(getContext(), 12);
 
     /**颜色*/
-    private int colorEvent = Color.parseColor("#00ff00");
+    private int colorDot = Color.parseColor("#00ff00");
     private int colorSelected = Color.parseColor("#ff0000");
     /**间隙*/
     private int lableTextSpace = DensityUtil.dip2px(getContext(), 4);  //lable与上方的间距
-    private int lineSpace = DensityUtil.dip2px(getContext(), 20); //日期每行间距
+    private int dateLineSpace = DensityUtil.dip2px(getContext(), 20); //日期每行间距
     private int stockTextSpace = DensityUtil.dip2px(getContext(), 4);  //股票字之间的间距
     private int dateTopSpace = DensityUtil.dip2px(getContext(), 3);   //日子与月份、星期的间距
     private int dotSpace = DensityUtil.dip2px(getContext(), 8);   //圆点与字的间距
     private float selectRadius = DensityUtil.dip2px(getContext(), 15);    //选中日期的圆圈半径
     private float dotRadius = DensityUtil.dip2px(getContext(), 3);
     /**常量*/
+    private Bitmap bitmapRow;
     private String[] weekStrs = new String[]{"一", "二", "三", "四", "五", "六", "七", };
     private Paint paint, paintText;
     /**计算*/
@@ -76,11 +79,14 @@ public class MyCalendar extends View {
     private float textStockHeight, textStockLead;
     private float topHeight;   //上方简要日期高度
     private float lableHeight; //lable高度
-    private float dateLineHeight;  //每行日期高度
+    private float weekHeight;
+    private float dateLineHeight;  //每行日期高度，包括下间隙
 
-    private RectF rectTop, rectLable, rectDate, rectRow;
-    private int columnWidth;       //每列宽度
+    private RectF rectTop, rectLable, rectWeek, rectDate, rectRow;
     private int lineNum;           //日期行数
+    private int startIndex;       //第一行开始绘制索引0-6
+
+    private boolean showCalendar = true;
 
     public MyCalendar(Context context) {
         this(context, null);
@@ -90,6 +96,8 @@ public class MyCalendar extends View {
     }
     public MyCalendar(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        setBackgroundColor(Color.parseColor("#aa000000"));
+        bitmapRow = BitmapFactory.decodeResource(getResources(), R.mipmap.btn_back);
         paint = new Paint();
         paintText = new Paint();
         paint.setAntiAlias(true);
@@ -112,21 +120,32 @@ public class MyCalendar extends View {
         //上方简要日期高度
         topHeight = textMonthHeight + dateTopSpace + textDateHeight + dotSpace + dotRadius*2;
         //lable高度
-        lableHeight = textLableHeight + lableTextSpace;
+        lableHeight = lableTextSpace + textLableHeight;
+        weekHeight = dateLineSpace + textWeekHeight + dateTopSpace;
         //每行日期高度
-        dateLineHeight =
-
-        //每行高度 = 行间距 + 日期字体高度 + 字间距 + 次数字体高度
-        oneHeight = mLineSpac + dayHeight + mTextSpac + preHeight;
+        dateLineHeight = textDateHeight + dotSpace+dotRadius*2+ (stockTextSpace+textStockHeight)*2+dateLineSpace;
     }
 
     /***********************接口API↓↓↓↓↓↓↓**************************/
     //date，CalendarData
     private Map<String, DayFinish> map;
+    List<CalendarData> calendar_data = new ArrayList<>();
+    List<CalendarDetail> calendar_detail = new ArrayList<>();
+    List<CalendarData> getCalendar_data_top = new ArrayList<>();
 
-    public void setData(List<CalendarData> calendar, List<CalendarDetail> calendar_detail) {
+    public void setData(List<CalendarData> calendar, List<CalendarDetail> detail) {
+        calendar_data.clear();
+        calendar_data.addAll(calendar);
+        calendar_detail.clear();
+        calendar_detail.addAll(detail);
+        getCalendar_data_top.clear();
+        for(int i = 0; i<7; i++){
+            if(i<calendar_data.size())
+                getCalendar_data_top.add(calendar_data.get(i));
+        }
 
         evaluatorByData();
+        requestLayout();
     }
     private onClickListener listener;
     public void setOnClickListener(onClickListener listener){
@@ -144,241 +163,183 @@ public class MyCalendar extends View {
     /***********************接口API↑↑↑↑↑↑↑**************************/
 
     private void evaluatorByData(){
-        mPaint = new Paint();
-        bgPaint = new Paint();
-        mPaint.setAntiAlias(true); //抗锯齿
-        bgPaint.setAntiAlias(true); //抗锯齿
-
-        map = new HashMap<>();
-
-        //标题高度
-        mPaint.setTextSize(mTextSizeMonth);
-        titleHeight = FontUtil.getFontHeight(mPaint) + 2 * mMonthSpac;
-        //星期高度
-        mPaint.setTextSize(mTextSizeWeek);
-        weekHeight = FontUtil.getFontHeight(mPaint);
-        //日期高度
-        mPaint.setTextSize(mTextSizeDay);
-        dayHeight = FontUtil.getFontHeight(mPaint);
-        //次数字体高度
-        mPaint.setTextSize(mTextSizePre);
-        preHeight = FontUtil.getFontHeight(mPaint);
-        //每行高度 = 行间距 + 日期字体高度 + 字间距 + 次数字体高度
-        oneHeight = mLineSpac + dayHeight + mTextSpac + preHeight;
-
-        //默认当前月份
-        String cDateStr = getMonthStr(new Date());
-//        cDateStr = "2015年08月";
-        setMonth(cDateStr);
-    }
-
-    /**设置月份*/
-    private void setMonth(String Month){
-        //设置的月份（2017年01月）
-        month = str2Date(Month);
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        //获取今天是多少号
-        currentDay = calendar.get(Calendar.DAY_OF_MONTH);
-        todayWeekIndex = calendar.get(Calendar.DAY_OF_WEEK)-1;
-
-        Date cM = str2Date(getMonthStr(new Date()));
-        //判断是否为当月
-        if(cM.getTime() == month.getTime()){
-            isCurrentMonth = true;
-            selectDay = currentDay;//当月默认选中当前日
-        }else{
-            isCurrentMonth = false;
-            selectDay = 0;
-        }
-        Log.d(TAG, "设置月份："+month+"   今天"+currentDay+"号, 是否为当前月："+isCurrentMonth);
-        calendar.setTime(month);
-        dayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        //第一行1号显示在什么位置（星期几）
-        firstIndex = calendar.get(Calendar.DAY_OF_WEEK)-1;
-        lineNum = 1;
-        //第一行能展示的天数
-        firstLineNum = 7-firstIndex;
-        lastLineNum = 0;
-        int shengyu = dayOfMonth - firstLineNum;
-        while (shengyu>7){
-            lineNum ++;
-            shengyu-=7;
-        }
-        if(shengyu>0){
-            lineNum ++;
-            lastLineNum = shengyu;
-        }
-        Log.i(TAG, getMonthStr(month)+"一共有"+dayOfMonth+"天,第一天的索引是："+firstIndex+"   有"+lineNum+
-                "行，第一行"+firstLineNum+"个，最后一行"+lastLineNum+"个");
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         //宽度 = 填充父窗体
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);   //获取宽的尺寸
-        columnWidth = widthSize / 7;
-        //高度 = 标题高度 + 星期高度 + 日期行数*每行高度
-        float height = titleHeight + weekHeight + (lineNum * oneHeight);
-        Log.v(TAG, "标题高度："+titleHeight+" 星期高度："+weekHeight+" 每行高度："+oneHeight+
-                " 行数："+ lineNum + "  \n控件高度："+height);
+        int rowHeight = bitmapRow.getHeight() * 3;
+        float dateHeightSize = weekHeight;
+        if(showCalendar && calendar_data!=null && calendar_data.size()>0){
+            //"date":"2020-10-20","week":"2","stock_list"
+            startIndex = Integer.parseInt(calendar_data.get(0).getWeek())-1;
+            lineNum = 1 + ((calendar_data.size()-(7-startIndex))/7) +
+                    ((calendar_data.size()-(7-startIndex))%7>0?1:0);
+            Log.w(TAG, "行数："+(calendar_data.size()-(7-startIndex))/7);
+            Log.w(TAG, "行数："+((calendar_data.size()-(7-startIndex))%7>0?1:0));
+            Log.w(TAG, "总共"+calendar_data.size()+"个数据，第一个数据显示索引"+startIndex+"   总行数："+lineNum);
+            //计算日历高度
+            dateHeightSize += dateHeightSize * lineNum;
+        }
         setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
-                (int)height);
-
+                (int)(getPaddingTop() + getPaddingBottom() +
+                        topHeight +
+                        lableHeight +
+                        dateHeightSize +
+                        rowHeight));
+        Log.w(TAG, "测量："+getMeasuredWidth()+"*"+getMeasuredHeight());
+        rectTop = new RectF(getPaddingLeft(), getPaddingTop(), getMeasuredWidth()-getPaddingRight(),getPaddingTop()+topHeight + lableHeight);
+        rectLable = new RectF(rectTop.left, rectTop.bottom, rectTop.right, rectTop.bottom+lableHeight);
+        rectWeek = new RectF(rectTop.left, rectLable.bottom, rectTop.right, rectLable.bottom+weekHeight);
+        rectDate = new RectF(rectTop.left, rectWeek.bottom, rectTop.right, rectWeek.bottom+dateHeightSize);
+        rectRow = new RectF(rectTop.left, rectDate.bottom, rectTop.right, rectDate.bottom+rowHeight);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        drawMonth(canvas);
-        drawWeek(canvas);
-        drawDayAndPre(canvas);
+        drawRect(canvas);
+        if(calendar_data==null || calendar_data.size()<=0)
+            return;
+        drawTop(canvas);
+        drawLable(canvas);
+        if(showCalendar){
+            drawWeek(canvas);
+            drawDayAndPre(canvas);
+        }
     }
 
-    /**绘制月份*/
-    private int rowLStart, rowRStart, rowWidth;
-    private void drawMonth(Canvas canvas){
+    private void drawTop(Canvas canvas) {
+        float top;
+        float left = rectTop.left;
+        float oneWidth = (rectTop.right-rectTop.left)/7;
+        float textWidth;
+        for(int i = 0; i<getCalendar_data_top.size(); i++){
+            top = rectTop.top;
+            CalendarData data = getCalendar_data_top.get(i);
+            paintText.setTextSize(textSizeMonth);
+            paintText.setColor(textColorMonth);
+            textWidth = FontUtil.getFontlength(paintText, data.getDate());
+            //月
+            canvas.drawText(data.getDate(), left + oneWidth/2 - textWidth/2, top + textMonthLead , paintText);
+            paintText.setTextSize(textSizeDate);
+            paintText.setColor(textColorDate);
+            textWidth = FontUtil.getFontlength(paintText, data.getDate());
+            top += textMonthHeight+dateTopSpace;
+            canvas.drawText(data.getDate(), left + oneWidth/2 - textWidth/2, top + textMonthLead , paintText);
+            //点
+            top += textDateHeight+dotSpace;
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(colorDot);
+            canvas.drawCircle(left + oneWidth/2-dotRadius, top+dotRadius, dotRadius, paint);
+            left+=oneWidth;
+        }
+
     }
-    /**绘制绘制星期*/
+    private void drawLable(Canvas canvas) {
+        paintText.setTextSize(textSizeLable);
+        paintText.setColor(textColorLable);
+        String str = "日历效应";
+        float textWidth = FontUtil.getFontlength(paintText, str);
+        float right = rectLable.right - textWidth;
+        canvas.drawText(str, right,
+                rectLable.bottom - textLableHeight + textLableLead ,paintText);
+        //点
+        right -= lableTextSpace;
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(colorDot);
+        canvas.drawCircle(right + dotRadius, rectLable.bottom - textLableHeight/2, dotRadius, paint);
+        str = "重大事件";
+        textWidth = FontUtil.getFontlength(paintText, str);
+        right -= dotRadius*2+lableTextSpace+textWidth;
+        canvas.drawText(str, right,
+                rectLable.bottom - textLableHeight + textLableLead ,paintText);
+        right -= lableTextSpace;
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(colorDot);
+        canvas.drawCircle(right + dotRadius, rectLable.bottom - textLableHeight/2, dotRadius, paint);
+    }
+
+
+    private void drawRect(Canvas canvas){
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(3);
+        paint.setColor(Color.RED);
+        canvas.drawRect(rectTop, paint);
+        paint.setColor(Color.GREEN);
+        canvas.drawRect(rectLable, paint);
+        paint.setColor(Color.BLUE);
+        canvas.drawRect(rectWeek, paint);
+        paint.setColor(Color.BLACK);
+        canvas.drawRect(rectDate, paint);
+        paint.setColor(Color.RED);
+        canvas.drawRect(rectRow, paint);
+    }
     private void drawWeek(Canvas canvas){
+        float left = rectWeek.left;
+        float oneWidth = (rectWeek.right-rectWeek.left)/7;
+        float textWidth;
+        for(int i = 0 ;i<weekStrs.length; i++){
+            paintText.setTextSize(textSizeWeek);
+            paintText.setColor(textColorWeek);
+            textWidth = FontUtil.getFontlength(paintText, weekStrs[i]);
+            canvas.drawText(weekStrs[i], left + oneWidth/2 - textWidth/2,
+                    rectWeek.top - dateLineSpace + textWeekLead ,paintText);
+
+        }
+
+
     }
     /**绘制日期和次数*/
     private void drawDayAndPre(Canvas canvas){
-        //某行开始绘制的Y坐标，第一行开始的坐标为标题高度+星期部分高度
-        float top = titleHeight+weekHeight;
-        //行
-        for(int line = 0; line < lineNum; line++){
-            if(line == 0){
-                //第一行
-                drawDayAndPre(canvas, top, firstLineNum, 0, firstIndex);
-            }else if(line == lineNum-1){
-                //最后一行
-                top += oneHeight;
-                drawDayAndPre(canvas, top, lastLineNum, firstLineNum+(line-1)*7, 0);
-            }else{
-                //满行
-                top += oneHeight;
-                drawDayAndPre(canvas, top, 7, firstLineNum+(line-1)*7, 0);
-            }
+
+        if(!showCalendar || calendar_data==null || calendar_data.size()<=0)
+            return;
+        for(int i = 0 ; i < lineNum; i++){
+            //一行行绘制
+            drawDayAndPre(canvas, i, i==0?startIndex:0);
         }
     }
 
     /**
      * 绘制某一行的日期
      * @param canvas
-     * @param top 顶部坐标
-     * @param count 此行需要绘制的日期数量（不一定都是7天）
-     * @param overDay 已经绘制过的日期，从overDay+1开始绘制
      * @param startIndex 此行第一个日期的星期索引
      */
-    private void drawDayAndPre(Canvas canvas, float top,
-                               int count, int overDay, int startIndex){
-//        Log.e(TAG, "总共"+dayOfMonth+"天  有"+lineNum+"行"+ "  已经画了"+overDay+"天,下面绘制："+count+"天");
-        //背景
-        float topPre = top + mLineSpac + dayHeight;
-        bgPaint.setColor(mBgDay);
-        RectF rect = new RectF(0, top, getWidth(), topPre);
-        canvas.drawRect(rect, bgPaint);
+    private void drawDayAndPre(Canvas canvas, int line, int startIndex){
 
-        bgPaint.setColor(mBgPre);
-        rect = new RectF(0, topPre, getWidth(), topPre + mTextSpac + dayHeight);
-        canvas.drawRect(rect, bgPaint);
-
-        mPaint.setTextSize(mTextSizeDay);
-        float dayTextLeading = FontUtil.getFontLeading(mPaint);
-        mPaint.setTextSize(mTextSizePre);
-        float preTextLeading = FontUtil.getFontLeading(mPaint);
-//        Log.v(TAG, "当前日期："+currentDay+"   选择日期："+selectDay+"  是否为当前月："+isCurrentMonth);
-        for(int i = 0; i<count; i++){
-            int left = (startIndex + i)*columnWidth;
-            int day = (overDay+i+1);
-
-            mPaint.setTextSize(mTextSizeDay);
-
-            //如果是当前月，当天日期需要做处理
-            if(isCurrentMonth && currentDay == day){
-                mPaint.setColor(mTextColorDay);
-                bgPaint.setColor(mCurrentBg);
-                bgPaint.setStyle(Paint.Style.STROKE);  //空心
-                PathEffect effect = new DashPathEffect(mCurrentBgDashPath, 1);
-                bgPaint.setPathEffect(effect);   //设置画笔曲线间隔
-                bgPaint.setStrokeWidth(mCurrentBgStrokeWidth);       //画笔宽度
-                //绘制空心圆背景
-                canvas.drawCircle(left+columnWidth/2, top + mLineSpac +dayHeight/2,
-                        mSelectRadius-mCurrentBgStrokeWidth, bgPaint);
-            }
-            //绘制完后将画笔还原，避免脏笔
-            bgPaint.setPathEffect(null);
-            bgPaint.setStrokeWidth(0);
-            bgPaint.setStyle(Paint.Style.FILL);
-
-            //选中的日期，如果是本月，选中日期正好是当天日期，下面的背景会覆盖上面绘制的虚线背景
-            if(selectDay == day){
-                //选中的日期字体白色，橙色背景
-                mPaint.setColor(mSelectTextColor);
-                bgPaint.setColor(mSelectBg);
-                //绘制橙色圆背景，参数一是中心点的x轴，参数二是中心点的y轴，参数三是半径，参数四是paint对象；
-                canvas.drawCircle(left+columnWidth/2, top + mLineSpac +dayHeight/2, mSelectRadius, bgPaint);
-            }else{
-                mPaint.setColor(mTextColorDay);
-            }
-
-            int len = (int)FontUtil.getFontlength(mPaint, day+"");
-            int x = left + (columnWidth - len)/2;
-            canvas.drawText(day+"", x, top + mLineSpac + dayTextLeading, mPaint);
-
-            //绘制次数
-            mPaint.setTextSize(mTextSizePre);
-            DayFinish finish = map.get(day);
-            String preStr = "0/0";
-            if(isCurrentMonth){
-                if(day>currentDay){
-                    mPaint.setColor(mTextColorPreNull);
-                }else if(finish!=null){
-                    //区分完成未完成
-                    if(finish.finish >= finish.all) {
-                        mPaint.setColor(mTextColorPreFinish);
-                    }else{
-                        mPaint.setColor(mTextColorPreUnFinish);
-                    }
-                    preStr = finish.finish+"/"+finish.all;
-
-                }else{
-                    mPaint.setColor(mTextColorPreNull);
-                }
-            }else{
-                if(finish!=null){
-                    //区分完成未完成
-                    if(finish.finish >= finish.all) {
-                        mPaint.setColor(mTextColorPreFinish);
-                    }else{
-                        mPaint.setColor(mTextColorPreUnFinish);
-                    }
-                    preStr = finish.finish+"/"+finish.all;
-
-                }else{
-                    mPaint.setColor(mTextColorPreNull);
+        int dataIndex = line==0?0 : (7-startIndex) + (line-1)*7;//该行绘制的第一个数据索引
+        float top;
+        float left = rectDate.left;
+        float oneWidth = (rectDate.right-rectDate.left)/7;
+        float textWidth;
+        for(int i = 0; i<7; i++){
+            top = rectDate.top;
+            if(dataIndex+i>=calendar_data.size())
+                return;
+            CalendarData data = calendar_data.get(dataIndex+i);
+            paintText.setTextSize(textSizeDate);
+            paintText.setColor(textColorDate);
+            textWidth = FontUtil.getFontlength(paintText, data.getDate());
+            //日期
+            canvas.drawText(data.getDate(), left + oneWidth/2 - textWidth/2, top +textDateLead ,paintText);
+            if(data.getStock_list()!=null && data.getStock_list().size()>0){
+                top += textDateHeight+dotSpace;
+                //点
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(colorDot);
+                canvas.drawCircle(left + oneWidth/2-dotRadius, top+dotRadius, dotRadius, paint);
+                top += dotRadius*2+stockTextSpace;
+                //股票
+                paintText.setTextSize(textSizeStock);
+                paintText.setColor(textColorStock);
+                for(CalendarDataStock stock : data.getStock_list()){
+                    textWidth = FontUtil.getFontlength(paintText, data.getDate());
+                    canvas.drawText(stock.getName(), left + oneWidth/2 - textWidth/2, top+textStockLead,paintText);
+                    top += textStockHeight+stockTextSpace;
                 }
             }
-
-            len = (int)FontUtil.getFontlength(mPaint, preStr);
-            x = left + (columnWidth - len)/2;
-            canvas.drawText(preStr, x, topPre + mTextSpac + preTextLeading, mPaint);
-        }
-    }
-
-    /**获取月份标题*/
-    private String getMonthStr(Date month){
-        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月");
-        return df.format(month);
-    }
-    private Date str2Date(String str){
-        try {
-            SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月");
-            return df.parse(str);
-        }catch (Exception e){
-            e.printStackTrace();
-            return null;
+            left += oneWidth;
         }
     }
 

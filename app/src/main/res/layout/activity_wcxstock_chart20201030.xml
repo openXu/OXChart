@@ -30,6 +30,45 @@ android:layout_height="match_parent"
             android:layout_width="match_parent"
             android:layout_height="200dip" />
 
+    <!--    <com.openxu.cview.xmstock20201030.CustomCalendar
+            android:id="@+id/cal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            app:mMonthRowL="@mipmap/custom_calendar_row_left"
+            app:mMonthRowR="@mipmap/custom_calendar_row_right"
+            app:mMonthRowSpac="20dip"
+
+            app:mTextSizeMonth="20sp"
+            app:mTextSizeWeek="17sp"
+            app:mTextSizeDay="17sp"
+            app:mTextSizePre="10sp"
+
+            app:mTextColorMonth="#4b4b4b"
+            app:mTextColorWeek="#9e9e9d"
+            app:mSelectWeekTextColor="#f67633"
+            app:mTextColorDay="#686768"
+            app:mTextColorPreFinish="#fc7451"
+            app:mTextColorPreUnFinish="#60ba8d"
+            app:mTextColorPreNull="#cecdcd"
+            app:mSelectTextColor="#ffffff"
+
+            app:mMonthSpac="10dip"
+            app:mLineSpac="12dip"
+            app:mTextSpac="8dip"
+
+            app:mCurrentBg="#6E6E6E"
+            app:mCurrentBgStrokeWidth="1.5dip"
+            app:mCurrentBgDashPath="@array/customCalendar_currentDay_bg_DashPath"
+            app:mSelectBg="#fe7f5c"
+            app:mSelectRadius="15dip" />
+-->
+        <com.openxu.cview.xmstock20201030.ProgressBar
+            android:id="@+id/progress"
+            android:layout_marginTop="20dp"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content" />
+
 
         <com.openxu.cview.xmstock20201030.QsrdLinesChart
             android:id="@+id/qsrdLinesChart"

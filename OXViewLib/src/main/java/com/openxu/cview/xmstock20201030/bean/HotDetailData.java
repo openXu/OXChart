@@ -16,7 +16,7 @@ public class HotDetailData {
     private String intro;
     private String pub_time;
     private List<HotDetailNew> news;
-    //实时行情走势图，每个元素字段分别是：时间、现价、均价 ["0930",1639.83,1625.58]
+    //实时行情走势图，每个元素字段分别是：时间、现价、均价 、跌涨浮["0930",1639.83,1625.58,"0.10"]
     private List<List<Object>> real_trend_line;
     private HotDetailHotInfo hot_info;   //实时行情数据
     //概念走势图， 每个元素表示：时间、概念、热度 [20200803,"1582.08","30.00"],

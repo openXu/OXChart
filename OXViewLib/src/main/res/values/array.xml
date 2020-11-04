@@ -1,0 +1,10 @@
+<resources>
+    <array name="customCalendar_currentDay_bg_DashPath">
+        <item>8</item>
+        <item>8</item>
+        <item>8</item>
+        <item>4</item>
+        <item>4</item>
+        <item>4</item>
+    </array>
+</resources>

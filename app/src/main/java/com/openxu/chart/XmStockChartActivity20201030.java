@@ -8,10 +8,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.openxu.cview.xmstock20201030.CustomCalendar;
 import com.openxu.cview.xmstock20201030.GlzsLinesChart;
+import com.openxu.cview.xmstock20201030.ProgressBar;
 import com.openxu.cview.xmstock20201030.QsrdLinesChart;
 import com.openxu.cview.xmstock20201030.SshqLinesChart;
 import com.openxu.cview.xmstock20201030.StandLinesChart;
+import com.openxu.cview.xmstock20201030.bean.DayFinish;
 import com.openxu.cview.xmstock20201030.bean.HotDetail;
 import com.openxu.cview.xmstock20201030.bean.HotDetailData;
 import com.openxu.cview.xmstock20201030.bean.TopDetail;
@@ -28,6 +31,7 @@ import com.openxu.utils.LogUtil;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -35,9 +39,14 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
 
 
     StandLinesChart linesChart1;
+//    CustomCalendar cal;
 
+    ProgressBar progress;
+    //1. 券商热点走势对比图
     QsrdLinesChart qsrdLinesChart;
+    //2. 概念走势图
     GlzsLinesChart glzsLinesChart;
+    //3. 实时行情图
     SshqLinesChart sshqLinesChart;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,15 +54,116 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
         setContentView(R.layout.activity_wcxstock_chart20201030);
 
         linesChart1 = (StandLinesChart)findViewById(R.id.linesChart1);
+
+        progress = (ProgressBar) findViewById(R.id.progress);
+
         qsrdLinesChart = (QsrdLinesChart) findViewById(R.id.qsrdLinesChart);
         glzsLinesChart = (GlzsLinesChart) findViewById(R.id.glzsLinesChart);
         sshqLinesChart = (SshqLinesChart) findViewById(R.id.sshqLinesChart);
 
+//        cal = (CustomCalendar)findViewById(R.id.cal);
+        //TODO 模拟请求当月数据
+       /* final List<DayFinish> list = new ArrayList<>();
+        list.add(new DayFinish(1,2,2));
+        list.add(new DayFinish(2,1,2));
+        list.add(new DayFinish(3,0,2));
+        list.add(new DayFinish(4,2,2));
+        list.add(new DayFinish(5,2,2));
+        list.add(new DayFinish(6,2,2));
+        list.add(new DayFinish(7,2,2));
+        list.add(new DayFinish(8,0,2));
+        list.add(new DayFinish(9,1,2));
+        list.add(new DayFinish(10,2,2));
+        list.add(new DayFinish(11,5,2));
+        list.add(new DayFinish(12,2,2));
+        list.add(new DayFinish(13,2,2));
+        list.add(new DayFinish(14,3,2));
+        list.add(new DayFinish(15,2,2));
+        list.add(new DayFinish(16,1,2));
+        list.add(new DayFinish(17,0,2));
+        list.add(new DayFinish(18,2,2));
+        list.add(new DayFinish(19,2,2));
+        list.add(new DayFinish(20,0,2));
+        list.add(new DayFinish(21,2,2));
+        list.add(new DayFinish(22,1,2));
+        list.add(new DayFinish(23,2,0));
+        list.add(new DayFinish(24,0,2));
+        list.add(new DayFinish(25,2,2));
+        list.add(new DayFinish(26,2,2));
+        list.add(new DayFinish(27,2,2));
+        list.add(new DayFinish(28,2,2));
+        list.add(new DayFinish(29,2,2));
+        list.add(new DayFinish(30,2,2));
+        list.add(new DayFinish(31,2,2));
+
+        cal.setRenwu("2017年1月", list);
+        cal.setOnClickListener(new CustomCalendar.onClickListener() {
+            @Override
+            public void onLeftRowClick() {
+                Toast.makeText(XmStockChartActivity20201030.this, "点击减箭头", Toast.LENGTH_SHORT).show();
+                cal.monthChange(-1);
+                new Thread(){
+                    @Override
+                    public void run() {
+                        try{
+                            Thread.sleep(1000);
+                            XmStockChartActivity20201030.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    cal.setRenwu(list);
+                                }
+                            });
+                        }catch (Exception e){
+                        }
+                    }
+                }.start();
+            }
+
+            @Override
+            public void onRightRowClick() {
+                Toast.makeText(XmStockChartActivity20201030.this, "点击加箭头", Toast.LENGTH_SHORT).show();
+                cal.monthChange(1);
+                new Thread(){
+                    @Override
+                    public void run() {
+                        try{
+                            Thread.sleep(1000);
+                            XmStockChartActivity20201030.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    cal.setRenwu(list);
+                                }
+                            });
+                        }catch (Exception e){
+                        }
+                    }
+                }.start();
+            }
+
+            @Override
+            public void onTitleClick(String monthStr, Date month) {
+                Toast.makeText(XmStockChartActivity20201030.this, "点击了标题："+monthStr, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onWeekClick(int weekIndex, String weekStr) {
+                Toast.makeText(XmStockChartActivity20201030.this, "点击了星期："+weekStr, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onDayClick(int day, String dayStr, DayFinish finish) {
+                Toast.makeText(XmStockChartActivity20201030.this, "点击了日期："+dayStr, Toast.LENGTH_SHORT).show();
+                Log.w("", "点击了日期:"+dayStr);
+            }
+        });
+*/
         getData();
 
     }
 
     private void getData(){
+
+        progress.setData(100, 30);
 
         //1. 券商热点与走势对比
         new Handler().postDelayed(new Runnable() {

@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathEffect;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -22,9 +23,12 @@ import com.openxu.cview.xmstock.bean.DataPoint;
 import com.openxu.utils.DensityUtil;
 import com.openxu.utils.FontUtil;
 import com.openxu.utils.LogUtil;
+import com.openxu.utils.NumberFormatUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.openxu.utils.NumberFormatUtil.formattedDecimal;
 
 /**
  * autour : xiami
@@ -57,8 +61,13 @@ public class GlzsLinesChart extends BaseChart {
     //设置动画类型
     private AnimType animType = AnimType.SLOW_DRAW;
     //设置焦点线颜色 及 粗细
-    private int focusLineColor = getResources().getColor(R.color.tc_chart_focus_line);
-    private int focusLineSize = DensityUtil.dip2px(getContext(), 0.8f);
+    private int focusLineColor = Color.parseColor("#5E5E5E");
+    private int focusLineSize = DensityUtil.dip2px(getContext(), 1f);
+    //焦点面板矩形，只记录矩形宽高
+    private int foucsRectTextSpace = DensityUtil.dip2px(getContext(), 3);
+    private int foucsRectSpace = DensityUtil.dip2px(getContext(), 6);
+    private float foucsRectWidth;
+    private float foucsRectHeight;
 
     public enum AnimType{
         LEFT_TO_RIGHT,   //动画从左往右
@@ -81,7 +90,7 @@ public class GlzsLinesChart extends BaseChart {
     @Override
     public void init(Context context, AttributeSet attrs, int defStyleAttr) {
         dataList = new ArrayList<>();
-        touchEnable = false;
+        touchEnable = true;
     }
 
     @Override
@@ -163,18 +172,28 @@ public class GlzsLinesChart extends BaseChart {
         paintLabel.setTextSize(textSizeX);
         float xlableHeight = FontUtil.getFontHeight(paintLabel);
         float xlableLead = FontUtil.getFontLeading(paintLabel);
+        float xFoucsLenght = FontUtil.getFontlength(paintLabel, lableXList[0]);
         paintLabel.setTextSize(yLeft.textSize);
         float yLeftlableHeight = FontUtil.getFontHeight(paintLabel);
         float yLeftlableMaxLength = FontUtil.getFontlength(paintLabel, (int)yLeft.cal_mark_max+"");
+        float yLeftFoucsLenght = FontUtil.getFontlength(paintLabel, "概念:"+ NumberFormatUtil.formattedDecimal(yLeft.cal_mark_max));
+        Log.w(TAG, "计算面板最长字符串："+"概念:"+yLeft.cal_mark_max);
         paintLabel.setTextSize(yRight.textSize);
         float yRightlableHeight = FontUtil.getFontHeight(paintLabel);
         float yRightlableMaxLength = FontUtil.getFontlength(paintLabel, (int)yRight.cal_mark_max+"");
+        float yRightFoucsLenght = FontUtil.getFontlength(paintLabel, "热度:"+NumberFormatUtil.formattedDecimal(yRight.cal_mark_max));
+        Log.w(TAG, "计算面板最长字符串："+"热度:"+yRight.cal_mark_max);
         //图表主体矩形
         rectChart = new RectF(getPaddingLeft() + yLeft.textSpace + yLeftlableMaxLength,
                 getPaddingTop() + Math.max(yLeftlableHeight, yRightlableHeight)/2,
                 getMeasuredWidth()-getPaddingRight()-yRight.textSpace - yRightlableMaxLength,
                 getMeasuredHeight()-getPaddingBottom() - xlableHeight - textSpaceX);
-
+        //焦点面板
+        //10-16
+        //概念：1234.02
+        //热度：45.00
+        foucsRectWidth = Math.max(xFoucsLenght, Math.max(yLeftFoucsLenght, yRightFoucsLenght)) + foucsRectSpace*2;
+        foucsRectHeight = xlableHeight + yLeftlableHeight + yRightlableHeight + foucsRectTextSpace*2 + foucsRectSpace*2;
         /**②、计算X标签绘制坐标*/
         float lableXSpace = 0;
         for(String lableX : lableXList){
@@ -394,13 +413,98 @@ public class GlzsLinesChart extends BaseChart {
     private void drawFocus(Canvas canvas){
         if(!onFocus || null==focusData)
             return;
+        PointF point1 = focusData.getPoints().get(0).getPoint();
+        PointF point2 = focusData.getPoints().get(1).getPoint();
+        //绘制竖直虚线
+        PathEffect effects = new DashPathEffect(new float[]{15,10,15,10},0);
+        paintEffect.setStyle(Paint.Style.STROKE);
+        paintEffect.setStrokeWidth(focusLineSize);
+        paintEffect.setColor(focusLineColor);
+        paintEffect.setPathEffect(effects);
+        Path path = new Path();
+        path.moveTo(point1.x, rectChart.bottom);
+        path.lineTo(point1.x, rectChart.top);
+        canvas.drawPath(path , paintEffect);
+//        canvas.drawLine(focusData.getPoints().get(0).getPoint().x, rectChart.bottom, focusData.getPoints().get(0).getPoint().x, rectChart.top, paint);
+        //绘制水平线
+//        canvas.drawLine(rectChart.left, focusData.getPoints().get(0).getPoint().y, rectChart.right, focusData.getPoints().get(0).getPoint().y, paint);
+//        canvas.drawLine(rectChart.left, focusData.getPoints().get(1).getPoint().y, rectChart.right, focusData.getPoints().get(1).getPoint().y, paint);
+        //绘制焦点
         paint.setAntiAlias(true);
+        //半透明圆圈
+        int radius = DensityUtil.dip2px(getContext(), 8);
+        int strokeWidth = DensityUtil.dip2px(getContext(), 3);
+        paint.setStrokeWidth(strokeWidth);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(lineColor[0]);
+        paint.setAlpha(80);  //透明度
+        canvas.drawCircle(point1.x, point1.y, radius,paint);
+        paint.setColor(lineColor[1]);
+        paint.setAlpha(80);
+        canvas.drawCircle(point2.x, point2.y, radius,paint);
+        //里面
+        int radius1 = radius-strokeWidth/2 - 4;
         paint.setStyle(Paint.Style.FILL);
-        paint.setStrokeWidth(focusLineSize);
-        paint.setColor(focusLineColor);
-        canvas.drawLine(focusData.getPoints().get(0).getPoint().x, rectChart.bottom, focusData.getPoints().get(0).getPoint().x, rectChart.top, paint);
-        canvas.drawLine(rectChart.left, focusData.getPoints().get(0).getPoint().y, rectChart.right, focusData.getPoints().get(0).getPoint().y, paint);
-        canvas.drawLine(rectChart.left, focusData.getPoints().get(1).getPoint().y, rectChart.right, focusData.getPoints().get(1).getPoint().y, paint);
+        paint.setColor(lineColor[0]);
+        paint.setAlpha(255);
+        canvas.drawCircle(point1.x, point1.y, radius1, paint);
+        paint.setColor(lineColor[1]);
+        paint.setAlpha(255);
+//        canvas.rotate(-90);
+//        canvas.drawRect(new Rect((int), (int)point2.y - radius1, (int)point2.x+radius1, (int)point2.y+radius1), paint);
+        radius1 = radius-strokeWidth/2;
+        path.reset();
+        path.moveTo(point2.x - radius1, point2.y);
+        path.lineTo(point2.x, point2.y - radius1);
+        path.lineTo(point2.x + radius1, point2.y);
+        path.lineTo(point2.x, point2.y + radius1);
+        canvas.drawPath(path , paint);
+        //面板
+        radius1 = radius*2;
+        boolean showLeft = point1.x-rectChart.left > (rectChart.right - rectChart.left)/2;
+        RectF rect = new RectF(
+            showLeft?point1.x - foucsRectWidth - radius1:point1.x + radius1,
+                rectChart.top + (rectChart.bottom - rectChart.top)/2 - foucsRectHeight/2,
+                showLeft? point1.x - radius1 : point1.x + foucsRectWidth + radius1,
+                rectChart.top + (rectChart.bottom - rectChart.top)/2 + foucsRectHeight/2
+        );
+        paint.setColor(lineColor[0]);
+        strokeWidth = DensityUtil.dip2px(getContext(), 0.8f);
+        paint.setStrokeWidth(strokeWidth);
+        paint.setStyle(Paint.Style.STROKE);
+        path.reset();
+        path.moveTo(rect.left, rect.top);
+        path.lineTo(rect.right, rect.top);
+        path.lineTo(rect.right, rect.bottom);
+        path.lineTo(rect.left, rect.bottom);
+        path.close();
+        canvas.drawPath(path , paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.WHITE);
+        paint.setAlpha(210);
+        canvas.drawRect(rect , paint);
+        //面板中的文字
+        paintLabel.setTextSize(textSizeX);
+        paintLabel.setColor(textColorX);
+        float lableHeight = FontUtil.getFontHeight(paintLabel);
+        float lableLead = FontUtil.getFontLeading(paintLabel);
+        float top = rect.top + foucsRectSpace;
+        float left = showLeft?rect.left + foucsRectSpace:rect.left + foucsRectSpace;
+        canvas.drawText(formatDate(focusData.getPoints().get(0).getValueX()),
+                left, top + lableLead, paintLabel);
+        top += (lableHeight+foucsRectTextSpace);
+        paintLabel.setTextSize(yLeft.textSize);
+        paintLabel.setColor(yLeft.textColor);
+        lableHeight = FontUtil.getFontHeight(paintLabel);
+        lableLead = FontUtil.getFontLeading(paintLabel);
+        canvas.drawText("概念:"+NumberFormatUtil.formattedDecimal(focusData.getPoints().get(0).getValueY()),
+                left, top + lableLead, paintLabel);
+        top += (lableHeight+foucsRectTextSpace);
+        paintLabel.setTextSize(yRight.textSize);
+        paintLabel.setColor(yRight.textColor);
+        lableLead = FontUtil.getFontLeading(paintLabel);
+        canvas.drawText("热度:"+NumberFormatUtil.formattedDecimal(focusData.getPoints().get(1).getValueY()),
+                left, top + lableLead, paintLabel);
     }
 
     private float animPro;       //动画计算的占比数量

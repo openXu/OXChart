@@ -30,5 +30,39 @@
         <attr name="titleTextColor" format="color" />
         <attr name="titleTextSize" format="dimension" />
     </declare-styleable>-->
+    <declare-styleable name="CustomCalendar">
+        <!--这四个颜色分别是月份、星期、日期、任务的背景色，只是方便调试测量时使用，正式试用时可配置透明色-->
+        <attr name="mBgMonth" format="color" />
+        <attr name="mBgWeek" format="color" />
+        <attr name="mBgDay" format="color" />
+        <attr name="mBgPre" format="color" />
 
+        <attr name="mTextColorMonth" format="color" />           <!--标题字体颜色-->
+        <attr name="mTextColorWeek" format="color" />            <!--星期字体颜色-->
+        <attr name="mSelectWeekTextColor" format="color" />      <!--当前星期字体颜色-->
+        <attr name="mTextColorDay" format="color" />             <!--日期字体颜色-->
+        <attr name="mTextColorPreFinish" format="color" />       <!--任务次数字体颜色-->
+        <attr name="mTextColorPreUnFinish" format="color" />
+        <attr name="mTextColorPreNull" format="color" />
+
+        <attr name="mTextSizeMonth" format="dimension" />        <!--标题字体大小-->
+        <attr name="mTextSizeWeek" format="dimension" />         <!--星期字体大小-->
+        <attr name="mTextSizeDay" format="dimension" />          <!--日期字体大小-->
+        <attr name="mTextSizePre" format="dimension" />          <!--任务次数字体大小-->
+
+        <attr name="mMonthRowL" format="reference" />            <!--月份箭头-->
+        <attr name="mMonthRowR" format="reference" />            <!--月份箭头-->
+        <attr name="mMonthRowSpac" format="dimension" />
+
+        <attr name="mSelectTextColor" format="color" />          <!--选中日期字体颜色-->
+        <attr name="mSelectBg" format="color" />                 <!--选中日期背景-->
+        <attr name="mSelectRadius" format="dimension" />         <!--选中日期背景半径-->
+        <attr name="mCurrentBg" format="color" />                <!--当天日期背景-->
+        <attr name="mCurrentBgStrokeWidth" format="dimension" /> <!--当天日期背景虚线宽度-->
+        <attr name="mCurrentBgDashPath" format="reference" />    <!--当天日期背景虚线数组-->
+
+        <attr name="mMonthSpac" format="dimension" />            <!--标题月份上下间隔-->
+        <attr name="mLineSpac" format="dimension" />             <!--日期行间距-->
+        <attr name="mTextSpac" format="dimension" />             <!--日期和任务次数字体上下间距-->
+    </declare-styleable>
 </resources>

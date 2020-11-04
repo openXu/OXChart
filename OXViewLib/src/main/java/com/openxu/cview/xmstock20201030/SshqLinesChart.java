@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class SshqLinesChart extends BaseChart {
 
-    //实时行情走势图，每个元素字段分别是：时间、现价、均价 ["0930",1639.83,1625.58]
+    //实时行情走势图，每个元素字段分别是：时间、现价、均价 、跌涨浮["0930",1639.83,1625.58,"0.10"]
     private List<List<Object>> dataList;
 
     private String[] lableXList = new String[]{"09:30", "11:30/13:00", "15:00"};
@@ -121,7 +121,7 @@ public class SshqLinesChart extends BaseChart {
             return;
         this.dataList.clear();
         this.dataList.addAll(dataList);
-        //实时行情走势图，每个元素字段分别是：时间、现价、均价 ["0930",1639.83,1625.58]
+        //实时行情走势图，每个元素字段分别是：时间、现价、均价 、跌涨浮["0930",1639.83,1625.58,"0.10"]
         yLeft = new YAxisMark.Builder(getContext())
                 .lableNum(3)
                 .textSize(textSizeX)
@@ -144,7 +144,7 @@ public class SshqLinesChart extends BaseChart {
         if(dataList.size()<=0)
             return;
         /**③、计算Y刻度最大值和最小值以及幅度*/
-        //实时行情走势图，每个元素字段分别是：时间、现价、均价 ["0930",1639.83,1625.58]
+        //实时行情走势图，每个元素字段分别是：时间、现价、均价 、跌涨浮["0930",1639.83,1625.58,"0.10"]
         calYLable();
         /**①、计算字体相关以及图表原点坐标*/
         paintLabel.setTextSize(textSizeX);
@@ -162,7 +162,7 @@ public class SshqLinesChart extends BaseChart {
                 getPaddingTop() + Math.max(yLeftlableHeight, yRightlableHeight)/2,
                 getMeasuredWidth()-getPaddingRight()-yRight.textSpace - yRightlableMaxLength,
                 getMeasuredHeight()-getPaddingBottom() - xlableHeight - textSpaceX);
-
+        Log.w(TAG, "计算图表矩形："+rectChart);
         /**②、计算X标签绘制坐标*/
         float lableXSpace = 0;
         for(String lableX : lableXList){
@@ -192,7 +192,7 @@ public class SshqLinesChart extends BaseChart {
         linePointList = new ArrayList<>();
         float oneSpace = (rectChart.right - rectChart.left) / (dataList.size()-1);
         for(int i = 0; i < dataList.size(); i++){
-            // //实时行情走势图，每个元素字段分别是：时间、现价、均价 ["0930",1639.83,1625.58]
+            // //实时行情走势图，每个元素字段分别是：时间、现价、均价 、跌涨浮["0930",1639.83,1625.58,"0.10"]
             List<Object> onePart = dataList.get(i);
             try {
                 //第一条线的数据
@@ -201,11 +201,6 @@ public class SshqLinesChart extends BaseChart {
                         rectChart.bottom -
                           (rectChart.bottom-rectChart.top)/(yLeft.cal_mark_max - yLeft.cal_mark_min) * (valueY-yLeft.cal_mark_min));
                 linePointList.add(new DataPoint(onePart.get(0).toString(), valueY, point));
-                //第二条线的数据
-//                valueY = Float.parseFloat(onePart.get(2).toString());
-//                point = new PointF(rectChart.left + i * oneSpace,
-//                        rectChart.bottom - (rectChart.bottom-rectChart.top)/(yRight.cal_mark_max - yRight.cal_mark_min) * (valueY-yRight.cal_mark_min));
-//                linePointList.get(1).add(new DataPoint(onePart.get(0).toString(), valueY, point));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -318,11 +313,12 @@ public class SshqLinesChart extends BaseChart {
                     rectChart.bottom - yMarkSpace * i - lableHeight/2 + lableLead, paintLabel);
         }
         paintLabel.setTextSize(yRight.textSize);
-        paintLabel.setColor(yRight.textColor);
         lableHeight = FontUtil.getFontHeight(paintLabel);
         lableLead = FontUtil.getFontLeading(paintLabel);
         for (int i = 0; i < yRight.lableNum; i++) {
-            String text = NumberFormatUtil.formattedDecimalToPercentage((yRight.cal_mark_min + i * yRight.cal_mark));
+            //最后一个涨幅值刻度为红色
+            paintLabel.setColor(i==yRight.lableNum-1?Color.RED: yRight.textColor);
+            String text = NumberFormatUtil.formattedDecimal(yRight.cal_mark_min + i * yRight.cal_mark)+"%";
             canvas.drawText(text,
                     rectChart.right + yRight.textSpace,
                     rectChart.bottom - yMarkSpace * i - lableHeight/2 + lableLead, paintLabel);
@@ -341,49 +337,67 @@ public class SshqLinesChart extends BaseChart {
         //渐变色路径
         Path jianBianPath = new Path();
         PointF lastPoint = null;
+        PointF lastDrawPoint = new PointF();
+        float minYValue = 0;
         for(int i = 0 ; i<linePointList.size(); i++){
             DataPoint dataPoint = linePointList.get(i);
             if(i == 0){
+                jianBianPath.moveTo(rectChart.left, rectChart.bottom);
                 if(animType == AnimType.LEFT_TO_RIGHT){
-                    path.moveTo(rectChart.left+(dataPoint.getPoint().x-rectChart.left)*animPro, dataPoint.getPoint().y);
+                    lastDrawPoint.x = rectChart.left+(dataPoint.getPoint().x-rectChart.left)*animPro;
+                    lastDrawPoint.y = dataPoint.getPoint().y;
                 }else if(animType == AnimType.BOTTOM_TO_TOP){
-                    path.moveTo(dataPoint.getPoint().x, rectChart.bottom-(rectChart.bottom- dataPoint.getPoint().y)* animPro);
+                    lastDrawPoint.x = dataPoint.getPoint().x;
+                    lastDrawPoint.y = rectChart.bottom-(rectChart.bottom- dataPoint.getPoint().y)* animPro;
                 }else{
-                    path.moveTo(dataPoint.getPoint().x, dataPoint.getPoint().y);
+                    lastDrawPoint.x = dataPoint.getPoint().x;
+                    lastDrawPoint.y = dataPoint.getPoint().y;
                 }
-                jianBianPath.moveTo(dataPoint.getPoint().x, dataPoint.getPoint().y);
+                minYValue = Math.min(lastDrawPoint.y,minYValue);
+                path.moveTo(lastDrawPoint.x, lastDrawPoint.y);
+                jianBianPath.lineTo(lastDrawPoint.x, lastDrawPoint.y);
             }else{
                 //quadTo：二阶贝塞尔曲线连接前后两点，这样使得曲线更加平滑
                 if(animType == AnimType.LEFT_TO_RIGHT){
+                    lastDrawPoint.x = rectChart.left+(dataPoint.getPoint().x-rectChart.left)*animPro;
+                    lastDrawPoint.y = dataPoint.getPoint().y;
                     path.quadTo(rectChart.left+(lastPoint.x-rectChart.left)*animPro, lastPoint.y,
-                            rectChart.left+(dataPoint.getPoint().x-rectChart.left)*animPro , dataPoint.getPoint().y);
+                            lastDrawPoint.x, lastDrawPoint.y);
                 }else if(animType == AnimType.BOTTOM_TO_TOP){
+                    lastDrawPoint.x =  dataPoint.getPoint().x;
+                    lastDrawPoint.y = rectChart.bottom-(rectChart.bottom- dataPoint.getPoint().y)* animPro;
                     path.quadTo(lastPoint.x, rectChart.bottom-(rectChart.bottom-lastPoint.y)* animPro,
-                            dataPoint.getPoint().x, rectChart.bottom-(rectChart.bottom- dataPoint.getPoint().y)* animPro);
+                            lastDrawPoint.x, lastDrawPoint.y);
                 }else if(animType == AnimType.SLOW_DRAW){
                     if(i>linePointList.size()*animPro)
                         break;
-                    path.quadTo(lastPoint.x, lastPoint.y, dataPoint.getPoint().x, dataPoint.getPoint().y);
+                    lastDrawPoint.x =  dataPoint.getPoint().x;
+                    lastDrawPoint.y = dataPoint.getPoint().y;
+                    path.quadTo(lastPoint.x, lastPoint.y, lastDrawPoint.x, lastDrawPoint.y);
                 }else{
-                    path.quadTo(lastPoint.x, lastPoint.y, dataPoint.getPoint().x, dataPoint.getPoint().y);
+                    lastDrawPoint.x =  dataPoint.getPoint().x;
+                    lastDrawPoint.y = dataPoint.getPoint().y;
+                    path.quadTo(lastPoint.x, lastPoint.y, lastDrawPoint.x, lastDrawPoint.y);
                 }
-                jianBianPath.lineTo(dataPoint.getPoint().x, dataPoint.getPoint().y);
+                minYValue = Math.min(lastDrawPoint.y,minYValue);
+                path.moveTo(lastDrawPoint.x, lastDrawPoint.y);
+                jianBianPath.lineTo(lastDrawPoint.x, lastDrawPoint.y);
             }
             lastPoint = dataPoint.getPoint();
         }
         canvas.drawPath(path, paint);
         //https://blog.csdn.net/s297165331/article/details/52875624
-        jianBianPath.lineTo(lastPoint.x, rectChart.bottom);
-        jianBianPath.lineTo(rectChart.left, rectChart.bottom);
+        jianBianPath.lineTo(lastDrawPoint.x, rectChart.bottom);
         jianBianPath.close();
-        Shader mShader = new LinearGradient(rectChart.left,rectChart.top ,rectChart.left, rectChart.bottom,
-                new int[] {lineColor[1],Color.TRANSPARENT},null,Shader.TileMode.REPEAT);
-        //新建一个线性渐变，前两个参数是渐变开始的点坐标，第三四个参数是渐变结束的点的坐标。连接这2个点就拉出一条渐变线了，
-        // 玩过PS的都懂。然后那个数组是渐变的颜色。下一个参数是渐变颜色的分布，如果为空，每个颜色就是均匀分布的。最后是模式，
-        // 这里设置的是循环渐变
-        paint.setShader(mShader);
-        canvas.drawPath(jianBianPath, paint);
-        paint.setShader(null);
+        //线性渐变：前两个参数是渐变开始的点坐标，第三四个参数是渐变结束的点的坐标；渐变的颜色，渐变颜色的分布，模式
+        Shader mShader = new LinearGradient(rectChart.left, minYValue ,rectChart.left, rectChart.bottom,
+                new int[] {lineColor[1],Color.TRANSPARENT},null,Shader.TileMode.CLAMP);
+        Log.w(TAG, "从"+rectChart.left+"*"+minYValue+"->"+rectChart.left+"*"+rectChart.bottom+"渐变");
+        paintEffect.setStyle(Paint.Style.FILL);
+        paintEffect.setColor(defColor);
+        paintEffect.setShader(mShader);
+        canvas.drawPath(jianBianPath, paintEffect);
+        paintEffect.setShader(null);
     }
 
     /**绘制焦点*/
@@ -446,28 +460,20 @@ public class SshqLinesChart extends BaseChart {
         yLeft.cal_mark_min =  Float.MAX_VALUE;    //Y轴刻度最小值
         yRight.cal_mark_max =  Float.MIN_VALUE;    //记录最大涨幅
         yRight.cal_mark_min =  Float.MAX_VALUE;    //记录最大跌幅
-        //实时行情走势图，每个元素字段分别是：时间、现价、均价 ["0930",1639.83,1625.58]
-        float price1,price2,downUp;
+        //实时行情走势图，每个元素字段分别是：时间、现价、均价 、跌涨浮["0930",1639.83,1625.58,"0.10"]
+        float price, downUp;
         for(List<Object> data : dataList){
-            try {
-                price1 = Float.parseFloat(data.get(1).toString());
-                price2 = Float.parseFloat(data.get(2).toString());
-                downUp = (price1-price2)/price2;
-                data.add(downUp);  //添加涨跌幅
-                if(price1>yLeft.cal_mark_max)
-                    yLeft.cal_mark_max = price1;
-                if(price1<yLeft.cal_mark_min)
-                    yLeft.cal_mark_min = price1;
-                if(downUp>yRight.cal_mark_max)
-                    yRight.cal_mark_max = downUp;
-                if(downUp<yRight.cal_mark_min)
-                    yRight.cal_mark_min = downUp;
-            }catch (Exception e){
-            }
+            price = Float.parseFloat(data.get(1).toString());
+            downUp = Float.parseFloat(data.get(3).toString());
+            yLeft.cal_mark_max = Math.max(yLeft.cal_mark_max, price);
+            yLeft.cal_mark_min = Math.min(yLeft.cal_mark_min, price);
+            yRight.cal_mark_max = Math.max(yRight.cal_mark_max, downUp);
+            yRight.cal_mark_min = Math.min(yRight.cal_mark_min, downUp);
         }
+        LogUtil.i(TAG, "Y轴真实yLeft.cal_mark_min="+yLeft.cal_mark_min+"   yLeft.cal_mark_max="+yLeft.cal_mark_max);
         LogUtil.i(TAG, "Y轴真实yRight.cal_mark_min="+yRight.cal_mark_min+"   yRight.cal_mark_max="+yRight.cal_mark_max);
         yLeft.cal_mark_max *= redundance;
-        yLeft.cal_mark_min *= redundance;
+        yLeft.cal_mark_min /= redundance;
         yLeft.cal_mark = (yLeft.cal_mark_max-yLeft.cal_mark_min)/(yLeft.lableNum - 1);
         //获取正负跌涨浮绝对值最大值
         downUp = Math.max(Math.abs(yRight.cal_mark_max), Math.abs(yRight.cal_mark_min));
@@ -475,6 +481,7 @@ public class SshqLinesChart extends BaseChart {
         yRight.cal_mark_max = downUp;
         yRight.cal_mark_min = -downUp;
         yRight.cal_mark = downUp;
+        LogUtil.i(TAG, "yLeft.cal_mark_min="+yLeft.cal_mark_min+"   yLeft.cal_mark_max="+yLeft.cal_mark_max+"  yLeft.cal_mark="+yLeft.cal_mark);
         LogUtil.i(TAG, "yRight.cal_mark_min="+yRight.cal_mark_min+"   yRight.cal_mark_max="+yRight.cal_mark_max+"   yRight.cal_mark="+yRight.cal_mark);
     }
 

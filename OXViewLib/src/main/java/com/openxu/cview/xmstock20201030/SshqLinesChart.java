@@ -392,7 +392,7 @@ public class SshqLinesChart extends BaseChart {
         //线性渐变：前两个参数是渐变开始的点坐标，第三四个参数是渐变结束的点的坐标；渐变的颜色，渐变颜色的分布，模式
         Shader mShader = new LinearGradient(rectChart.left, minYValue ,rectChart.left, rectChart.bottom,
                 new int[] {lineColor[1],Color.TRANSPARENT},null,Shader.TileMode.CLAMP);
-        Log.w(TAG, "从"+rectChart.left+"*"+minYValue+"->"+rectChart.left+"*"+rectChart.bottom+"渐变");
+//        Log.w(TAG, "从"+rectChart.left+"*"+minYValue+"->"+rectChart.left+"*"+rectChart.bottom+"渐变");
         paintEffect.setStyle(Paint.Style.FILL);
         paintEffect.setColor(defColor);
         paintEffect.setShader(mShader);

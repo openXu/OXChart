@@ -1,10 +1,13 @@
 package com.openxu.chart;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -16,6 +19,8 @@ import com.openxu.cview.xmstock20201030.QsrdLinesChart;
 import com.openxu.cview.xmstock20201030.SshqLinesChart;
 import com.openxu.cview.xmstock20201030.StandLinesChart;
 import com.openxu.cview.xmstock20201030.bean.CalandarList;
+import com.openxu.cview.xmstock20201030.bean.CalendarData;
+import com.openxu.cview.xmstock20201030.bean.CalendarDetail;
 import com.openxu.cview.xmstock20201030.bean.DayFinish;
 import com.openxu.cview.xmstock20201030.bean.HotDetail;
 import com.openxu.cview.xmstock20201030.bean.HotDetailData;
@@ -172,11 +177,25 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
 
     private void getData(){
         //1. 日历
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 try {
-                    CalandarList calandarList = new Gson().fromJson(Constacts.data3, CalandarList.class);
+                    CalandarList calandarList = new Gson().fromJson(Constacts.data4, CalandarList.class);
+                    //设置监听
+                    calendar.setItemClickListener(new MyCalendar.ItemClickListener() {
+                        @Override
+                        public void onDayClick(CalendarData calendar, List<CalendarDetail> details) {
+                            String str = "点击的日期为"+calendar.getDate()+"\n"+"股票信息数量"+details.size();
+                            Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
+                            Log.w("XmStockChartActivity", str);
+
+                            Intent intent = new Intent(XmStockChartActivity20201030.this, XmStockChartActivity202010301.class);
+                            intent.putExtra("stock", details.get(0).getStock_list().get(0));
+                            startActivity(intent);
+                        }
+                    });
                     //绑定数据
                     calendar.setData(calandarList.getData().getCalendar(), calandarList.getData().getCalendar_detail());
                 } catch (Exception e) {

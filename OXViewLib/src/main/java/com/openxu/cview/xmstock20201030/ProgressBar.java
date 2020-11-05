@@ -141,7 +141,7 @@ public class ProgressBar extends BaseChart {
         //线性渐变：前两个参数是渐变开始的点坐标，第三四个参数是渐变结束的点的坐标；渐变的颜色，渐变颜色的分布，模式
         Shader mShader = new LinearGradient(left, centerPoint.y ,rectChart.right, centerPoint.y,
                 new int[] {barColor[0],barColor[1]},null,Shader.TileMode.CLAMP);
-        Log.w(TAG, "从"+left+"*"+centerPoint.y+"->"+rectChart.right+"*"+centerPoint.y+"渐变");
+//        Log.w(TAG, "从"+left+"*"+centerPoint.y+"->"+rectChart.right+"*"+centerPoint.y+"渐变");
         paintEffect.setStyle(Paint.Style.FILL);
         paintEffect.setColor(defColor);
         paintEffect.setShader(mShader);

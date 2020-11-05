@@ -203,21 +203,25 @@ public abstract class BaseChart extends View {
 
 
     public void onDraw(Canvas canvas){
-        //画布背景
+        try {
+            //画布背景
 //        canvas.drawColor(backColor);
-        if(Constacts.DEBUG) {
-            drawDebug(canvas);
-        }
-        drawDefult(canvas);
-        if(isLoading){
-            drawLoading(canvas);
-            return;
-        }
-        if(!startDraw){
-            startDraw = true;
-            startAnimation(canvas);
-        }else{
-            drawChart(canvas);
+            if (Constacts.DEBUG) {
+                drawDebug(canvas);
+            }
+            drawDefult(canvas);
+            if (isLoading) {
+                drawLoading(canvas);
+                return;
+            }
+            if (!startDraw) {
+                startDraw = true;
+                startAnimation(canvas);
+            } else {
+                drawChart(canvas);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 

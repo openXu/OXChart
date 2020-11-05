@@ -454,7 +454,6 @@ public class StandLinesChart extends BaseChart {
                 PointF point = ((DataPoint)line.linePointList.get(i)).point;
                 //下一个点
 //                nextPoint = i+1<line.dataNumCount?((DataPoint)line.linePointList.get(i+1)).point:point;
-
                 if(i == 0){
                     if(line.animType == AnimType.LEFT_TO_RIGHT){
                         path.moveTo(rectChart.left+(point.x-rectChart.left)*animPro, point.y);
@@ -474,9 +473,7 @@ public class StandLinesChart extends BaseChart {
                         //     * @param x2 The x-coordinate of the end point on a quadratic curve
                         //     * @param y2 The y-coordinate of the end point on a quadratic curve
                         //cubicTo : 三阶
-
                         diffx = (int) ((point.x - prePoint.x) * smoothness);
-
                         if (line.animType == AnimType.LEFT_TO_RIGHT) {
                             path.cubicTo(rectChart.left + (prePoint.x + diffx - rectChart.left) * animPro,
                                     prePoint.y,

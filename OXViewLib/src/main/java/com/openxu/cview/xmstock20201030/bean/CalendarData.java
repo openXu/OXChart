@@ -15,6 +15,14 @@ public class CalendarData {
     private String week;
     private List<CalendarDataStock> stock_list;
 
+    @Override
+    public String toString() {
+        return "CalendarData{" +
+                "date='" + date + '\'' +
+                ", week='" + week + '\'' +
+                '}';
+    }
+
     public String getDate() {
         return date;
     }

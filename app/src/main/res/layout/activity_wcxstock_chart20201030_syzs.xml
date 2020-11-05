@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+    android:orientation="vertical">
+    <com.openxu.cview.TitleLayout
+        android:id="@+id/title_layout"
+        style="@style/TitleDefStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:iconBack="@mipmap/btn_back"
+        app:textcenter="收益走势"/>
+
+
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+        <com.openxu.cview.xmstock20201030.SyzsLinesChart
+            android:id="@+id/syzsLinesChart"
+            android:layout_marginTop="20dp"
+            android:paddingLeft="12dip"
+            android:paddingRight="12dip"
+            android:paddingBottom="10dip"
+            android:paddingTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="200dip" />
+    </LinearLayout>
+</ScrollView>
+</LinearLayout>

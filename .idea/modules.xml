@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/OXChart.iml" filepath="$PROJECT_DIR$/.idea/OXChart.iml" group="OXChart" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/OXViewLib/OXViewLib.iml" filepath="$PROJECT_DIR$/.idea/modules/OXViewLib/OXViewLib.iml" group="OXChart/OXViewLib" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="OXChart/app" />
+      <module fileurl="file://$PROJECT_DIR$/OXChart.iml" filepath="$PROJECT_DIR$/OXChart.iml" />
+      <module fileurl="file://$PROJECT_DIR$/OXViewLib/OXViewLib.iml" filepath="$PROJECT_DIR$/OXViewLib/OXViewLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
 </project>

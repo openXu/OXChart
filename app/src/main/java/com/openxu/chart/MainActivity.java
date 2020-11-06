@@ -45,7 +45,8 @@ public class MainActivity extends AppCompatActivity {
         datas.add("股票信息");
         datas.add("股票信息20201031");
         datas.add("Base64TBitmap");
-
+        datas.add("大图加载");
+        datas.add("法之运");
         recyclerView.setAdapter(new CommandRecyclerAdapter<String>(this, R.layout.list_item, datas) {
             @Override
             public void convert(ViewHolder holder, String str) {
@@ -80,6 +81,12 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case 8:
                         startActivity(new Intent(MainActivity.this, Base64ToBitmapActivity.class));
+                        break;
+                    case 9:
+                        startActivity(new Intent(MainActivity.this, BigBitmapActivity.class));
+                        break;
+                    case 10:
+                        startActivity(new Intent(MainActivity.this, FpcActivity.class));
                         break;
                 }
             }

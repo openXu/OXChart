@@ -406,19 +406,22 @@ public class MyCalendar extends View {
         int action = event.getAction() & MotionEvent.ACTION_MASK;
         switch (action) {
             case MotionEvent.ACTION_DOWN:
+                Log.i(TAG, "========onTouchEvent按下");
                 downPoint.set(event.getX(), event.getY());
-                break;
+                return true;
             case MotionEvent.ACTION_MOVE:
+                Log.i(TAG, "========onTouchEvent滑动");
                 break;
             case MotionEvent.ACTION_OUTSIDE:
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:
+                Log.i(TAG, "========onTouchEvent抬起");
                 upPoint.set(event.getX(), event.getY());
                 if(Math.abs(upPoint.x - downPoint.x)<20 && Math.abs(upPoint.y - downPoint.y)<20 )
                     touchFocus(upPoint);
                 break;
         }
-        return true;
+        return false;
     }
 
     public void touchFocus(final PointF point) {

@@ -21,11 +21,6 @@ import com.openxu.cview.chart.anim.AngleEvaluator;
 import com.openxu.utils.FontUtil;
 import com.openxu.utils.LogUtil;
 
-import static com.openxu.cview.chart.BaseChart.TOUCH_EVENT_TYPE.EVENT_NULL;
-import static com.openxu.cview.chart.BaseChart.TOUCH_EVENT_TYPE.EVENT_X;
-import static com.openxu.cview.chart.BaseChart.TOUCH_EVENT_TYPE.EVENT_XY;
-import static com.openxu.cview.chart.BaseChart.TOUCH_EVENT_TYPE.EVENT_Y;
-
 
 /**
  * autour : openXu
@@ -140,7 +135,7 @@ public abstract class BaseChart extends View {
     }
 
 
-    protected TOUCH_EVENT_TYPE touchEventType = EVENT_NULL;
+    protected TOUCH_EVENT_TYPE touchEventType = TOUCH_EVENT_TYPE.EVENT_NULL;
     /**需要拦截的事件方向*/
     public enum TOUCH_EVENT_TYPE{
         EVENT_NULL,  /*不处理事件*/
@@ -160,9 +155,9 @@ public abstract class BaseChart extends View {
         LogUtil.d(TAG, "dispatchTouchEvent  "+touchEventType);
         if(!touchEnable){
             LogUtil.w(TAG, "没超界");
-        }else if(EVENT_NULL == touchEventType){
+        }else if(TOUCH_EVENT_TYPE.EVENT_NULL == touchEventType){
             LogUtil.w(TAG, "不需要处理事件");
-        }else if(EVENT_XY == touchEventType){
+        }else if(TOUCH_EVENT_TYPE.EVENT_XY == touchEventType){
             LogUtil.w(TAG, "需要拦截XY方向的事件");
             getParent().requestDisallowInterceptTouchEvent(true);
         }else{
@@ -175,7 +170,7 @@ public abstract class BaseChart extends View {
                     getParent().requestDisallowInterceptTouchEvent(true);//ACTION_DOWN的时候，赶紧把事件hold住
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    if(EVENT_X == touchEventType){
+                    if(TOUCH_EVENT_TYPE.EVENT_X == touchEventType){
                         if(Math.abs(event.getY()-mDownY)> Math.abs(event.getX() - mDownX)) {
                             getParent().requestDisallowInterceptTouchEvent(false);
                             LogUtil.i(TAG, "竖直滑动的距离大于水平的时候，将事件还给父控件");
@@ -184,7 +179,7 @@ public abstract class BaseChart extends View {
                             LogUtil.i(TAG, "正常请求事件");
                             dispatchTouchEvent1(event);
                         }
-                    }else if(EVENT_Y == touchEventType){
+                    }else if(TOUCH_EVENT_TYPE.EVENT_Y == touchEventType){
                         if(Math.abs(event.getX() - mDownX)> Math.abs(event.getY()-mDownY)) {
                             getParent().requestDisallowInterceptTouchEvent(false);
                             LogUtil.i(TAG, "水平滑动的距离大于竖直的时候，将事件还给父控件");
@@ -220,9 +215,9 @@ public abstract class BaseChart extends View {
                 return true;
             case MotionEvent.ACTION_MOVE:
                 int move = 0;
-                if(EVENT_X == touchEventType){
+                if(TOUCH_EVENT_TYPE.EVENT_X == touchEventType){
                     move = (int)(event.getX() - lastTouchPoint.x);
-                }else if(EVENT_Y == touchEventType){
+                }else if(TOUCH_EVENT_TYPE.EVENT_Y == touchEventType){
                     move = (int)(event.getY() - lastTouchPoint.y);
                 }
                 LogUtil.i(TAG, "MotionEvent.ACTION_MOVE"+move);
@@ -345,9 +340,9 @@ public abstract class BaseChart extends View {
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             LogUtil.e(TAG,"onFling------------>velocityX="+velocityX+"    velocityY="+velocityY);
-            if(EVENT_X == touchEventType){
+            if(TOUCH_EVENT_TYPE.EVENT_X == touchEventType){
                 startFlingAnimation(velocityX);
-            }else if(EVENT_Y == touchEventType){
+            }else if(TOUCH_EVENT_TYPE.EVENT_Y == touchEventType){
                 startFlingAnimation(velocityY);
             }
             return false;

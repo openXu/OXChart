@@ -1,24 +1,26 @@
 package com.openxu.chart.bar;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PathEffect;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.openxu.chart.BaseChart;
-import com.openxu.cview.R;
-import com.openxu.cview.chart.anim.AngleEvaluator;
+import com.openxu.chart.element.XAxisMark;
+import com.openxu.chart.element.YAxisMark;
 import com.openxu.cview.chart.bean.BarBean;
+import com.openxu.cview.xmstock20201030.build.Orientation;
 import com.openxu.utils.DensityUtil;
 import com.openxu.utils.FontUtil;
 import com.openxu.utils.LogUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,64 +32,21 @@ import java.util.List;
  */
 public class BarChart extends BaseChart {
 
-    private List<List<BarBean>> dataList;
-    private List<String> strList;
+    private List<List<Bar>> barData;
+    private YAxisMark yAxisMark;
+    private XAxisMark xAxisMark;
 
-    /**
-     * 可以设置的属性
-     */
+    private int groupWidth;
+    private boolean scroll = true;  //是否支持滚动
+    private int scrollXMax, scrollx;      //最大滚动距离
 
-    private boolean showLable = true;   //是否显示下面的lable
-
-    private boolean showEnd = true;    //当数据超出一屏宽度时，实现最后的数据
-
-    private int barNum = 2;   //柱子数量
-    private int YMARK_NUM = 5;    //Y轴刻度数量
+    private boolean showBegin = true;    //当数据超出一屏宽度时，实现最后的数据
 
     private int barWidth = DensityUtil.dip2px(getContext(), 15);    //柱宽度
     private int barSpace = DensityUtil.dip2px(getContext(), 1);    //双柱间的间距
-    private int barItemSpace = DensityUtil.dip2px(getContext(), 25);//一组柱之间的间距
-    private int[] barColor = new int[]{Color.BLUE, Color.YELLOW};               //柱颜色
+    private int groupSpace = DensityUtil.dip2px(getContext(), 25);//一组柱之间的间距
+    private int[] barColor = new int[]{Color.BLUE, Color.YELLOW, Color.RED};               //柱颜色
 
-    private int rectW = DensityUtil.dip2px(getContext(), 10);   //lable矩形宽高
-    private int rectH = DensityUtil.dip2px(getContext(), 10);
-
-    private int textSizeCoordinate = (int) getResources().getDimension(R.dimen.text_size_level_small); //坐标文字大小
-    private int textColorCoordinate = getResources().getColor(R.color.text_color_light_gray);
-    private int textSizeTag = (int) getResources().getDimension(R.dimen.text_size_level_small); //数值字体
-    private int textColorTag = getResources().getColor(R.color.text_color_light_gray);
-    private int textSizeLable = (int) getResources().getDimension(R.dimen.text_size_level_small); //lable字体
-    private int textColorLable = getResources().getColor(R.color.text_color_light_gray);
-
-    private int textSpace = DensityUtil.dip2px(getContext(), 3);         //默认的字与其他的间距
-    private int textLableSpace = DensityUtil.dip2px(getContext(), 10);   //默认的lable字与其他的间距
-    private int lableItemSpace = DensityUtil.dip2px(getContext(), 30);   //默认的lable字与其他的间距
-    private int lableTopSpace = DensityUtil.dip2px(getContext(), 20);   //默认的lable字与其他的间距
-
-    /**
-     * 需要计算相关值
-     */
-    private int oneBarW;            //单个宽度,需要计算
-    private int YMARK_MAX_WIDTH;    //Y轴刻度最大值的宽度
-    private int YMARK_H, YMARK_ALL_H;            //Y轴刻度间距值
-    private int leftStartPointX;    //从左侧开始绘制的X坐标
-    private int minLeftPointX;      //滑动到最右侧时的X坐标
-
-    private PointF zeroPoint = new PointF();    //柱状图图体圆点坐标
-
-    private RectF lableRect;
-
-    /*字体绘制相关*/
-    private int YMARK = 1;    //Y轴刻度最大值（根据设置的数据自动赋值）
-    private int YMARK_MAX = 1;    //Y轴刻度最大值（根据设置的数据自动赋值）
-
-    private int heightCoordinate;
-    private int leadCoordinate;
-    private int heightTag;
-    private int leadTag;
-    private int heightLable;
-    private int leadLable;
-    private float animPro;       //动画计算的占比数量
 
     public BarChart(Context context) {
         this(context, null);
@@ -103,11 +62,96 @@ public class BarChart extends BaseChart {
 
     @Override
     public void init(Context context, AttributeSet attrs, int defStyleAttr) {
-        dataList = new ArrayList<>();
-        strList = new ArrayList<>();
     }
 
+
+
+    /***********************************设置属性set方法start**********************************/
+    public void setYAxisMark(YAxisMark yAxisMark) {
+        this.yAxisMark = yAxisMark;
+    }
+
+    public void setXAxisMark(XAxisMark xAxisMark) {
+        this.xAxisMark = xAxisMark;
+    }
+    public void setBarWidth(int barWidth) {
+        this.barWidth = barWidth;
+    }
+    public void setBarSpace(int barSpace) {
+        this.barSpace = barSpace;
+    }
+    public void setGroupSpace(int groupSpace) {
+        this.groupSpace = groupSpace;
+    }
+
+    public void setData(List<List<Bar>> barData) {
+        this.barData = barData;
+        calculate();
+        setLoading(false);
+    }
     /***********************************设置属性set方法over**********************************/
+    private void calculate() {
+        paintText.setTextSize(xAxisMark.textSize);
+        xAxisMark.textHeight = (int)FontUtil.getFontHeight(paintText);
+        xAxisMark.textLead = (int)FontUtil.getFontLeading(paintText);
+        //确定图表最下放绘制位置
+        rectChart.bottom = getMeasuredHeight() - getPaddingBottom() - xAxisMark.textHeight - xAxisMark.textSpace;
+        xAxisMark.drawPointY = rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead;
+
+
+        calculateYMark();
+        paintText.setTextSize(yAxisMark.textSize);
+        yAxisMark.textHeight = FontUtil.getFontHeight(paintText);
+        yAxisMark.textLead = FontUtil.getFontLeading(paintText);
+        String maxLable = yAxisMark.getMarkText(yAxisMark.cal_mark_max);
+        rectChart.left =  (int)(getPaddingLeft() + yAxisMark.textSpace + FontUtil.getFontlength(paintText, maxLable));
+
+
+        int barNum = barData.get(0).size();
+        if(scroll) {
+            groupWidth = barWidth * barNum + barSpace * (barNum - 1) + groupSpace;
+            int allWidth = groupWidth * barData.size();   //总宽度
+//            setScrollX(allWidth - rectChart.width());
+        }else{
+            groupSpace = (rectChart.width() - (barData.size() * (barWidth * barNum + barSpace * (barNum - 1))))/barData.size();
+            groupWidth = barWidth * barNum + barSpace * (barNum - 1) + groupSpace;
+        }
+        int allWidth = groupWidth * barData.size();   //总宽度
+        scrollXMax = -(allWidth - rectChart.width());
+        if(scroll && !showBegin){
+            scrollx = scrollXMax;
+        }
+        for(int i = 0; i<barData.size(); i++){
+            List<Bar> group = barData.get(i);
+            //一组
+            for(int j = 0; j <group.size(); j++){
+                Bar bar = group.get(j);
+                int left = rectChart.left + i*groupWidth + groupSpace/2 + j*(barSpace+barWidth);
+                bar.setRect(new Rect(left,
+                        (int)(rectChart.bottom - rectChart.height()/(yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (bar.getValuey()-yAxisMark.cal_mark_min)),
+                        left+barWidth, rectChart.bottom));
+            }
+        }
+    }
+    private void calculateYMark() {
+        float redundance = 1.01f;  //y轴最大和最小值冗余
+        yAxisMark.cal_mark_max =  Float.MIN_VALUE;    //Y轴刻度最大值
+        yAxisMark.cal_mark_min =  Float.MAX_VALUE;    //Y轴刻度最小值
+        for(List<Bar> data : barData){
+            for(Bar bar : data){
+                yAxisMark.cal_mark_max = Math.max(yAxisMark.cal_mark_max, bar.getValuey());
+                yAxisMark.cal_mark_min = Math.min(yAxisMark.cal_mark_min, bar.getValuey());
+            }
+        }
+        LogUtil.i(TAG, "Y轴真实cal_mark_min="+yAxisMark.cal_mark_min+"  cal_mark_max="+yAxisMark.cal_mark_max);
+        yAxisMark.cal_mark_max *= redundance;
+        yAxisMark.cal_mark_min /= redundance;
+        yAxisMark.cal_mark = (yAxisMark.cal_mark_max-yAxisMark.cal_mark_min)/(yAxisMark.lableNum - 1);
+        LogUtil.i(TAG, "  cal_mark_min="+yAxisMark.cal_mark_min+"   cal_mark_max="+yAxisMark.cal_mark_max+"  yAxisMark.cal_mark="+yAxisMark.cal_mark);
+    }
+
+
+    /*********************************************************************/
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -121,6 +165,53 @@ public class BarChart extends BaseChart {
     @Override
     public void drawChart(Canvas canvas) {
 
+        //绘制横向线
+        float yMarkSpace = (rectChart.bottom - rectChart.top)/(yAxisMark.lableNum-1);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setStrokeWidth(yAxisMark.lineWidth);
+        paint.setColor(yAxisMark.lineColor);
+        paintEffect.setStyle(Paint.Style.STROKE);
+        paintEffect.setStrokeWidth(yAxisMark.lineWidth);
+        paintEffect.setColor(yAxisMark.lineColor);
+        paintText.setTextSize(yAxisMark.textSize);
+        paintText.setColor(yAxisMark.textColor);
+        canvas.drawLine(rectChart.left, rectChart.top, rectChart.left, rectChart.bottom, paint);
+//        canvas.drawLine(rectChart.right, rectChart.top, rectChart.right, rectChart.bottom, paint);
+        PathEffect effects = new DashPathEffect(new float[]{15,6,15,6},0);
+        Path path = new Path();
+        for (int i = 0; i < yAxisMark.lableNum; i++) {
+            path.reset();
+            path.moveTo(rectChart.left, rectChart.bottom-yMarkSpace*i);
+            path.lineTo(rectChart.right,rectChart.bottom-yMarkSpace*i);
+            paintEffect.setPathEffect(effects);
+            canvas.drawPath(path, paintEffect);
+
+            String text = yAxisMark.getMarkText(yAxisMark.cal_mark_min + i * yAxisMark.cal_mark);
+            canvas.drawText(text,
+                    rectChart.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, text),
+                    rectChart.bottom - yMarkSpace * i - yAxisMark.textHeight/2 + yAxisMark.textLead, paintText);
+        }
+
+
+        for(int i = 0; i<barData.size(); i++){
+            List<Bar> group = barData.get(i);
+            //一组
+            //绘制X
+            paintText.setTextSize(xAxisMark.textSize);
+            paintText.setColor(xAxisMark.textColor);
+            canvas.drawText(group.get(0).getValuex(),
+                    scrollx + rectChart.left + i*groupWidth + groupWidth/2,
+                    xAxisMark.drawPointY,paintText);
+//            LogUtil.i(TAG, "绘制X刻度：leftX="+leftX   +"    "+(leftX + oneBarW/2-tw/2)+"*"+(zeroPoint.y+textSpace + leadCoordinate));
+//            LogUtil.i(TAG, "leftStartPointX="+leftStartPointX+"  leftStart="+leftStart+ "   oneBarW="+oneBarW   +"    barWidth="+barWidth+"   barSpace="+barSpace);
+            for(int j = 0; j <group.size(); j++){
+                paint.setColor(barColor[j]);
+//                float top = (zeroPoint.y - YMARK_ALL_H * (bean.getNum() / YMARK_MAX) * animPro);
+                Rect rect = new Rect(group.get(j).getRect().left + scrollx,
+                        group.get(j).getRect().top, group.get(j).getRect().left + scrollx + barWidth, group.get(j).getRect().bottom);
+                canvas.drawRect(rect, paint);
+            }
+        }
     }
 
 

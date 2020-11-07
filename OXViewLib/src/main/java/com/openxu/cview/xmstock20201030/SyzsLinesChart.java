@@ -9,7 +9,6 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathEffect;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Shader;
@@ -17,6 +16,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
+import com.openxu.chart.element.YAxisMark;
 import com.openxu.cview.R;
 import com.openxu.cview.chart.anim.AngleEvaluator;
 import com.openxu.cview.xmstock.BaseChart;

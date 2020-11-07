@@ -1,27 +1,28 @@
 package com.openxu.chart;
 
-import android.animation.ValueAnimator;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
+import android.widget.Toast;
 
+import com.openxu.chart.loading.BallPulseIndicator;
+import com.openxu.chart.loading.LoadingIndicator;
 import com.openxu.cview.BuildConfig;
-import com.openxu.cview.chart.anim.AngleEvaluator;
 import com.openxu.utils.DensityUtil;
 import com.openxu.utils.LogUtil;
+
 
 /**
  * Author: openXu
@@ -39,29 +40,23 @@ public abstract class BaseChart extends View {
     protected int axisLineWidth = DensityUtil.dip2px(getContext(), 0.8f);
     //画笔
     protected Paint paint;
-    protected Paint textPaint;
-    protected Paint effectPaint;
+    protected Paint paintText;
+    protected Paint paintEffect;
 
     /**正在加载*/
     protected boolean loading = true;
     /**计算*/
     protected int screenWidth, screenHeight;  //屏幕宽高
-    protected RectF rectChart;                //图表矩形
-    protected PointF centerPoint;             //chart中心点坐标
+    protected Rect rectChart;                //图表矩形
+    protected Point centerPoint;             //chart中心点坐标
     /**动画*/
 //    protected long animDuration = 1000;
 //    protected ValueAnimator anim;
 //    protected boolean startDraw = false;
-    //加载中的状态
-    private int[] loadCircleColors = new int[]{Color.parseColor("#DB4528")
-                            ,Color.parseColor("#5f93e7")
-                            ,Color.parseColor("#fda33c")};
-    private float loadRadius = DensityUtil.dip2px(getContext(), 5);
-    private float loadCircleSpace = DensityUtil.dip2px(getContext(), 4);
-    private float loadingAnimValue;
-    private float loadingAnimValueMax = 1;
-    private float loadingAnimValueMin = 0.4f;
-    private ValueAnimator loadingAnim;
+
+    //加载动画
+    private LoadingIndicator loadingIndicator;
+
 
     protected GestureDetector mGestureDetector;
 
@@ -81,51 +76,90 @@ public abstract class BaseChart extends View {
         screenWidth = dm.widthPixels;
         paint = new Paint();
         paint.setAntiAlias(true);
-        textPaint = new Paint();
-        textPaint.setAntiAlias(true);
-        effectPaint = new Paint();
-        effectPaint.setAntiAlias(true);
+        paintText = new Paint();
+        paintText.setAntiAlias(true);
+        paintEffect = new Paint();
+        paintEffect.setAntiAlias(true);
         mGestureDetector = new GestureDetector(getContext(), new MyOnGestureListener());
         //加载动画
-        loadingAnim = ValueAnimator.ofObject(new AngleEvaluator(), loadingAnimValueMin, loadingAnimValueMax);
-        loadingAnim.setInterpolator(new DecelerateInterpolator());   //越来越慢
-        loadingAnim.setRepeatMode(ValueAnimator.REVERSE);
-        loadingAnim.setRepeatCount(ValueAnimator.INFINITE);
-        loadingAnim.addUpdateListener((ValueAnimator animation)->{
-            loadingAnimValue = (float)animation.getAnimatedValue();
-//            Log.i(TAG, "动画："+loadingAnimValue);
-            invalidate();
-        });
-        loadingAnim.setDuration(800);
+        loadingIndicator = new BallPulseIndicator(getContext());
+        loadingIndicator.setCallback(this);
 
         init(context, attrs, defStyle);
+
+//        setClickable(true);
+//        setOnClickListener(v->{
+//            Toast.makeText(getContext(), "dianji",Toast.LENGTH_LONG).show();
+//            setLoading(!loading);
+//        });
     }
     public void init(Context context, AttributeSet attrs, int defStyleAttr){}
+
+
+    /******************************************************/
+    public void setLoading(boolean loading) {
+        this.loading = loading;
+        if(loading) {
+            loadingIndicator.start();
+        } else {
+            loadingIndicator.stop();
+            postInvalidate();
+        }
+    }
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if(loading)
+            loadingIndicator.start();
+    }
+    @Override
+    protected void onDetachedFromWindow() {
+        loadingIndicator.stop();
+        super.onDetachedFromWindow();
+    }
+    @Override
+    protected boolean verifyDrawable(Drawable who) {
+        return who == loadingIndicator || super.verifyDrawable(who);
+    }
+    @Override
+    public void invalidateDrawable(Drawable dr) {
+        if (verifyDrawable(dr)) {
+            final Rect dirty = dr.getBounds();
+            invalidate(dirty);
+        } else {
+            super.invalidateDrawable(dr);
+        }
+    }
+    /****************************************************/
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        centerPoint = new PointF(getMeasuredWidth()/2, getMeasuredHeight()/2);
-        rectChart = new RectF(getPaddingLeft(),getPaddingTop(),getMeasuredWidth()-getPaddingRight(),
+        centerPoint = new Point(getMeasuredWidth()/2, getMeasuredHeight()/2);
+        rectChart = new Rect(getPaddingLeft(),getPaddingTop(),getMeasuredWidth()-getPaddingRight(),
                 getMeasuredHeight()-getPaddingBottom());
+        loadingIndicator.setBounds((int)rectChart.left, (int)rectChart.top,
+                (int)rectChart.right, (int)rectChart.bottom);
+        Log.w(TAG, "测量："+rectChart);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+//        Log.e(TAG, "=================绘制图表");
         if(debug)
             drawDebug(canvas);
         if(loading){
-            if(!loadingAnim.isStarted()) {
-                Log.i(TAG, "开启正在加载动画...");
-                loadingAnim.start();
-            }
-            drawLoading(canvas);
+            final int saveCount = canvas.save();
+//            canvas.translate(getPaddingLeft(), getPaddingTop());
+            loadingIndicator.draw(canvas);
+            canvas.restoreToCount(saveCount);
             return;
         }
+        drawChart(canvas);
     }
+
     /**绘制debug辅助线*/
-    public void drawDebug(Canvas canvas){
+    private void drawDebug(Canvas canvas){
         paint.setStyle(Paint.Style.STROKE);//设置空心
         paint.setStrokeWidth(axisLineWidth);
         //绘制边界--chart区域
@@ -134,19 +168,6 @@ public abstract class BaseChart extends View {
         canvas.drawRect(r, paint);
         paint.setColor(Color.RED);
         canvas.drawRect(rectChart, paint);
-    }
-    public void drawLoading(Canvas canvas) {
-        float diff = (loadingAnimValueMax - loadingAnimValueMin)/3;
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(loadCircleColors[0]);
-        canvas.drawCircle(centerPoint.x - loadRadius*2 - loadCircleSpace, centerPoint.y,
-                loadRadius*loadingAnimValue,paint);
-        paint.setColor(loadCircleColors[1]);
-        canvas.drawCircle(centerPoint.x, centerPoint.y,
-                loadRadius * loadingAnimValue, paint);
-        paint.setColor(loadCircleColors[2]);
-        canvas.drawCircle(centerPoint.x + loadRadius*2 + loadCircleSpace, centerPoint.y,
-                loadRadius*(loadingAnimValueMin+loadingAnimValueMax-loadingAnimValue),paint);
     }
     /**绘制图表*/
     public abstract void drawChart(Canvas canvas);

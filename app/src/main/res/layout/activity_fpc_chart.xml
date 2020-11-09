@@ -21,7 +21,7 @@ android:layout_height="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical">
-        <com.openxu.chart.bar.BarChart
+        <com.openxu.hkchart.bar.BarChart
             android:id="@+id/bartChart1"
             android:visibility="visible"
             android:layout_marginTop="20dp"
@@ -31,19 +31,19 @@ android:layout_height="match_parent"
             android:paddingTop="10dp"
             android:layout_width="match_parent"
             android:layout_height="200dip" />
-        <com.openxu.chart.bar.BarChart
+        <com.openxu.hkchart.bar.BarChart
             android:id="@+id/bartChart2"
             android:visibility="visible"
             android:layout_marginTop="20dp"
             android:layout_width="match_parent"
             android:layout_height="200dip" />
-        <com.openxu.chart.bar.BarChart
+        <com.openxu.hkchart.bar.BarChart
             android:id="@+id/bartChart3"
             android:visibility="visible"
             android:layout_marginTop="20dp"
             android:layout_width="match_parent"
             android:layout_height="200dip" />
-        <com.openxu.chart.bar.BarChart
+        <com.openxu.hkchart.bar.BarChart
             android:id="@+id/bartChart4"
             android:visibility="visible"
             android:layout_marginTop="20dp"

@@ -16,7 +16,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
-import com.openxu.chart.element.YAxisMark;
+import com.openxu.hkchart.element.YAxisMark;
 import com.openxu.cview.R;
 import com.openxu.cview.chart.anim.AngleEvaluator;
 import com.openxu.cview.xmstock.BaseChart;
@@ -214,16 +214,20 @@ public class SyzsLinesChart extends BaseChart {
             List<String> onePart = dataList.get(i);
             try {
                 //第一条线的数据
-                float valueY = Float.parseFloat(onePart.get(1));
-                PointF point = new PointF(rectChart.left + i * oneSpace,
-                        rectChart.bottom - (rectChart.bottom-rectChart.top)/(yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (valueY-yAxisMark.cal_mark_min));
-                linePointList.get(0).add(new DataPoint(onePart.get(0), valueY, point));
+                if(onePart!=null && onePart.size()>=2&& onePart.get(1)!=null && onePart.get(1).length()>0) {
+                    float valueY = Float.parseFloat(onePart.get(1));
+                    PointF point = new PointF(rectChart.left + i * oneSpace,
+                            rectChart.bottom - (rectChart.bottom - rectChart.top) / (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (valueY - yAxisMark.cal_mark_min));
+                    linePointList.get(0).add(new DataPoint(onePart.get(0), valueY, point));
+                }
                 //第二条线的数据
-                valueY = Float.parseFloat(onePart.get(2));
+                if(onePart!=null && onePart.size()>=3&& onePart.get(2)!=null && onePart.get(2).length()>0) {
+                    float valueY = Float.parseFloat(onePart.get(2));
 //                Log.w(TAG, i+"计算右侧y值"+valueY);
-                point = new PointF(rectChart.left + i * oneSpace,
-                        rectChart.bottom - (rectChart.bottom-rectChart.top)/(yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (valueY-yAxisMark.cal_mark_min));
-                linePointList.get(1).add(new DataPoint(onePart.get(0), valueY, point));
+                    PointF point = new PointF(rectChart.left + i * oneSpace,
+                            rectChart.bottom - (rectChart.bottom - rectChart.top) / (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (valueY - yAxisMark.cal_mark_min));
+                    linePointList.get(1).add(new DataPoint(onePart.get(0), valueY, point));
+                }
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -238,10 +242,12 @@ public class SyzsLinesChart extends BaseChart {
         onFocus = (null != point);
         if(null != point && null!=dataList && dataList.size()>0) {
             //避免滑出
-            if(point.x > linePointList.get(0).get(dataList.size()-1).getPoint().x)
-                point.x = linePointList.get(0).get(dataList.size()-1).getPoint().x;
-            if(point.x < linePointList.get(0).get(0).getPoint().x)
-                point.x = linePointList.get(0).get(0).getPoint().x;
+//            if(point.x > linePointList.get(0).get(dataList.size()-1).getPoint().x)
+//                point.x = linePointList.get(0).get(dataList.size()-1).getPoint().x;
+//            if(point.x < linePointList.get(0).get(0).getPoint().x)
+//                point.x = linePointList.get(0).get(0).getPoint().x;
+            point.x = Math.max(point.x, rectChart.left);
+            point.x = Math.min(point.x, rectChart.right);
             //获取焦点对应的数据的索引
             int index = (int) ((point.x - rectChart.left) * dataList.size() / (rectChart.right - rectChart.left));
             LogUtil.e(getClass().getSimpleName(), "========焦点索引："+index+"   数据总数："+dataList.size()+"  线条数量："+linePointList.size());
@@ -249,8 +255,16 @@ public class SyzsLinesChart extends BaseChart {
             focusData = new FocusData();
             focusData.setData(dataList.get(index));
             focusData.setPoints(new ArrayList<>());
-            focusData.getPoints().add(linePointList.get(0).get(index));
-            focusData.getPoints().add(linePointList.get(1).get(index));
+            if(index<linePointList.get(0).size()) {
+                focusData.getPoints().add(linePointList.get(0).get(index));
+            }else{
+                focusData.getPoints().add(new DataPoint(null, 0, null));
+            }
+            if(index<linePointList.get(1).size()) {
+                focusData.getPoints().add(linePointList.get(1).get(index));
+            }else{
+                focusData.getPoints().add(new DataPoint(null, 0, null));
+            }
             if(null!=onFocusChangeListener)
                 onFocusChangeListener.onfocus(focusData);
         }
@@ -468,7 +482,7 @@ public class SyzsLinesChart extends BaseChart {
         float lableLead = FontUtil.getFontLeading(paintLabel);
         float top = rect.top + foucsRectSpace;
         float left = rect.left + foucsRectSpace;
-        canvas.drawText(formatDate(focusData.getPoints().get(0).getValueX()), left, top + lableLead, paintLabel);
+        canvas.drawText(formatDate(focusData.getData().get(0)), left, top + lableLead, paintLabel);
         top += (lableHeight+foucsRectTextSpace);
         paintLabel.setTextSize(yAxisMark.textSize);
         paintLabel.setColor(lineColor[0]);
@@ -476,18 +490,30 @@ public class SyzsLinesChart extends BaseChart {
         lableHeight = FontUtil.getFontHeight(paintLabel);
         lableLead = FontUtil.getFontLeading(paintLabel);
         canvas.drawCircle(left + dotRadius, top + lableHeight/2, dotRadius, paint);
-        String dzf = NumberFormatUtil.formattedDecimal(focusData.getPoints().get(0).getValueY());
-        canvas.drawText("实际累计涨跌幅："+(focusData.getPoints().get(0).getValueY()>0?"+":"")+dzf+"%",
-                left+dotRadius*2+foucsRectTextSpace, top + lableLead, paintLabel);
+        if(focusData.getPoints().get(0).getValueX() == null){
+            canvas.drawText("实际累计涨跌幅：",
+                    left+dotRadius*2+foucsRectTextSpace, top + lableLead, paintLabel);
+        }else{
+            String dzf = NumberFormatUtil.formattedDecimal(focusData.getPoints().get(0).getValueY());
+            canvas.drawText("实际累计涨跌幅："+(focusData.getPoints().get(0).getValueY()>0?"+":"")+dzf+"%",
+                    left+dotRadius*2+foucsRectTextSpace, top + lableLead, paintLabel);
+        }
         top += (lableHeight+foucsRectTextSpace);
         paintLabel.setTextSize(yAxisMark.textSize);
         paintLabel.setColor(lineColor[1]);
         paint.setColor(lineColor[1]);
         lableLead = FontUtil.getFontLeading(paintLabel);
         canvas.drawCircle(left + dotRadius, top + lableHeight/2, dotRadius, paint);
-        dzf = NumberFormatUtil.formattedDecimal(focusData.getPoints().get(1).getValueY());
-        canvas.drawText("历史累计涨跌幅："+(focusData.getPoints().get(1).getValueY()>0?"+":"")+dzf+"%",
-                left+dotRadius*2+foucsRectTextSpace, top + lableLead, paintLabel);
+
+        if(focusData.getPoints().get(1).getValueX() == null){
+            canvas.drawText("历史累计涨跌幅：",
+                    left+dotRadius*2+foucsRectTextSpace, top + lableLead, paintLabel);
+        }else{
+            String dzf = NumberFormatUtil.formattedDecimal(focusData.getPoints().get(1).getValueY());
+            canvas.drawText("历史累计涨跌幅："+(focusData.getPoints().get(1).getValueY()>0?"+":"")+dzf+"%",
+                    left+dotRadius*2+foucsRectTextSpace, top + lableLead, paintLabel);
+        }
+
     }
 
     private float animPro;       //动画计算的占比数量
@@ -537,10 +563,14 @@ public class SyzsLinesChart extends BaseChart {
         axisMark.cal_mark_min =  Float.MAX_VALUE;    //Y轴刻度最小值
         for(List<String> data : dataList){
             try {
-                axisMark.cal_mark_max = Math.max(axisMark.cal_mark_max, Float.parseFloat(data.get(1)));
-                axisMark.cal_mark_max = Math.max(axisMark.cal_mark_max, Float.parseFloat(data.get(2)));
-                axisMark.cal_mark_min = Math.min(axisMark.cal_mark_min, Float.parseFloat(data.get(1)));
-                axisMark.cal_mark_min = Math.min(axisMark.cal_mark_min, Float.parseFloat(data.get(2)));
+                if(data!=null && data.size()>=2&& data.get(1)!=null && data.get(1).length()>0) {
+                    axisMark.cal_mark_max = Math.max(axisMark.cal_mark_max, Float.parseFloat(data.get(1)));
+                    axisMark.cal_mark_min = Math.min(axisMark.cal_mark_min, Float.parseFloat(data.get(1)));
+                }
+                if(data!=null && data.size()>=3 && data.get(2)!=null && data.get(2).length()>0) {
+                    axisMark.cal_mark_max = Math.max(axisMark.cal_mark_max, Float.parseFloat(data.get(2)));
+                    axisMark.cal_mark_min = Math.min(axisMark.cal_mark_min, Float.parseFloat(data.get(2)));
+                }
             }catch (Exception e){
             }
         }

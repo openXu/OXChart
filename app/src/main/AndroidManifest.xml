@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.openxu.chart">
+    package="com.openxu.hkchart">
     <!--震动-->
     <uses-permission android:name="android.permission.VIBRATE" />
     <application
@@ -10,25 +10,25 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/OXViewAppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name="com.openxu.hkchart.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".RoseActivity"/>
-        <activity android:name=".PieActivity"/>
-        <activity android:name=".VerticalBarActivity"/>
-        <activity android:name=".HorizontalBarActivity"/>
-        <activity android:name=".ProgressPieActivity"/>
-        <activity android:name=".XmStockChartActivity"/>
-        <activity android:name=".XmStockChartActivity191205"/>
-        <activity android:name=".XmStockChartActivity20201030"/>
-        <activity android:name=".XmStockChartActivity202010301"/>
-        <activity android:name=".Base64ToBitmapActivity"/>
-        <activity android:name=".BigBitmapActivity"/>
-        <activity android:name=".FpcActivity"/>
+        <activity android:name="com.openxu.hkchart.RoseActivity"/>
+        <activity android:name="com.openxu.hkchart.PieActivity"/>
+        <activity android:name="com.openxu.hkchart.VerticalBarActivity"/>
+        <activity android:name="com.openxu.hkchart.HorizontalBarActivity"/>
+        <activity android:name="com.openxu.hkchart.ProgressPieActivity"/>
+        <activity android:name="com.openxu.hkchart.XmStockChartActivity"/>
+        <activity android:name="com.openxu.hkchart.XmStockChartActivity191205"/>
+        <activity android:name="com.openxu.hkchart.XmStockChartActivity20201030"/>
+        <activity android:name="com.openxu.hkchart.XmStockChartActivity202010301"/>
+        <activity android:name="com.openxu.hkchart.Base64ToBitmapActivity"/>
+        <activity android:name="com.openxu.hkchart.BigBitmapActivity"/>
+        <activity android:name="com.openxu.hkchart.FpcActivity"/>
     </application>
 
 </manifest>

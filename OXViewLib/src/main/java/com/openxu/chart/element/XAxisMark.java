@@ -15,30 +15,28 @@ import java.util.List;
  */
 public class XAxisMark {
 
-    public Context context;
     /**可设置*/
     public int textSize;   //设置坐标文字大小
     public int textColor;  //设置坐标文字颜色
     public int textSpace;  //设置坐标字体与横轴的距离
     public int lableNum = 5;
 
-    public int lineWidth;
-    public int lineColor;
+//    public int lineWidth;
+//    public int lineColor;
 
     /**计算*/
-    public int textHeight, textLead, drawPointY;
+    public float textHeight, textLead, drawPointY;
     private XAxisMark() {
     }
     public static class Builder{
         private XAxisMark axisMark;
         public Builder(Context context) {
             axisMark = new XAxisMark();
-            axisMark.context = context;
             axisMark.textSize = DensityUtil.sp2px(context, 10);
-            axisMark.textColor = Color.parseColor("#939393");
-            axisMark.textSpace = DensityUtil.dip2px(axisMark.context, 5);
-            axisMark.lineWidth = DensityUtil.dip2px(context, 0.7f);
-            axisMark.lineColor = Color.parseColor("#5E5E5E");
+            axisMark.textColor = Color.parseColor("#333333");
+            axisMark.textSpace = DensityUtil.dip2px(context, 5);
+//            axisMark.lineWidth = DensityUtil.dip2px(context, 0.7f);
+//            axisMark.lineColor = Color.parseColor("#5E5E5E");
 
         }
         public Builder textSize(int textSize) {

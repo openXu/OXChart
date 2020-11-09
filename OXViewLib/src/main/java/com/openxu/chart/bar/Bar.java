@@ -1,6 +1,5 @@
 package com.openxu.chart.bar;
 
-import android.graphics.Rect;
 import android.graphics.Region;
 
 public class Bar {
@@ -8,7 +7,7 @@ public class Bar {
     private float valuey;
     private String valuex;
     //bar绘制矩形
-    private Rect rect;
+//    private Rect rect;
     //触摸相关
     private Region region;     //扇形区域--用于判断手指触摸点是否在此范围
 
@@ -33,13 +32,13 @@ public class Bar {
         this.valuex = valuex;
     }
 
-    public Rect getRect() {
-        return rect;
-    }
+//    public Rect getRect() {
+//        return rect;
+//    }
 
-    public void setRect(Rect rect) {
-        this.rect = rect;
-    }
+//    public void setRect(Rect rect) {
+//        this.rect = rect;
+//    }
 
     public Region getRegion() {
         return region;

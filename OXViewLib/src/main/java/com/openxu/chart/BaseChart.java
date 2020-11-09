@@ -1,28 +1,26 @@
 package com.openxu.chart;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
+import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.openxu.chart.loading.BallPulseIndicator;
 import com.openxu.chart.loading.LoadingIndicator;
-import com.openxu.cview.BuildConfig;
+import com.openxu.cview.chart.anim.AngleEvaluator;
 import com.openxu.utils.DensityUtil;
 import com.openxu.utils.LogUtil;
-
 
 /**
  * Author: openXu
@@ -33,9 +31,8 @@ import com.openxu.utils.LogUtil;
 public abstract class BaseChart extends View {
 
     protected String TAG = getClass().getSimpleName();
-    protected boolean debug = BuildConfig.DEBUG;
-
-    /**可设置属性*/
+//    protected boolean debug = BuildConfig.DEBUG;
+    protected boolean debug = false;
     //坐标轴辅助线宽度
     protected int axisLineWidth = DensityUtil.dip2px(getContext(), 0.8f);
     //画笔
@@ -47,19 +44,15 @@ public abstract class BaseChart extends View {
     protected boolean loading = true;
     /**计算*/
     protected int screenWidth, screenHeight;  //屏幕宽高
-    protected Rect rectChart;                //图表矩形
+    protected RectF rectChart;                //图表矩形
     protected Point centerPoint;             //chart中心点坐标
     /**动画*/
-//    protected long animDuration = 1000;
-//    protected ValueAnimator anim;
-//    protected boolean startDraw = false;
-
+    protected boolean showAnim = true;
+    protected ValueAnimator chartAnim;
+    protected float chartAnimValue = 1;       //动画值
+    protected boolean chartAnimStarted = false;
     //加载动画
     private LoadingIndicator loadingIndicator;
-
-
-    protected GestureDetector mGestureDetector;
-
 
     public BaseChart(Context context) {
         this(context, null);
@@ -80,10 +73,9 @@ public abstract class BaseChart extends View {
         paintText.setAntiAlias(true);
         paintEffect = new Paint();
         paintEffect.setAntiAlias(true);
-        mGestureDetector = new GestureDetector(getContext(), new MyOnGestureListener());
+
         //加载动画
-        loadingIndicator = new BallPulseIndicator(getContext());
-        loadingIndicator.setCallback(this);
+        setLoadingIndicator("BallPulseIndicator");
 
         init(context, attrs, defStyle);
 
@@ -95,8 +87,20 @@ public abstract class BaseChart extends View {
     }
     public void init(Context context, AttributeSet attrs, int defStyleAttr){}
 
+    /***************************动画start***************************/
+    public void setLoadingIndicator(String indicatorName){
+        if (TextUtils.isEmpty(indicatorName))
+            return;
+        loadingIndicator = new BallPulseIndicator(getContext());
+        indicatorName = "com.openxu.chart.loading."+indicatorName;
+        try {
+            loadingIndicator = (LoadingIndicator)Class.forName(indicatorName).getConstructor(Context.class).newInstance(getContext());
+            loadingIndicator.setCallback(this);
+        } catch (Exception e) {
+            Log.e(TAG,"Didn't find your class , check the name again !");
+        }
+    }
 
-    /******************************************************/
     public void setLoading(boolean loading) {
         this.loading = loading;
         if(loading) {
@@ -115,6 +119,9 @@ public abstract class BaseChart extends View {
     @Override
     protected void onDetachedFromWindow() {
         loadingIndicator.stop();
+        if(chartAnim!=null) {
+            chartAnim.cancel();
+        }
         super.onDetachedFromWindow();
     }
     @Override
@@ -130,13 +137,27 @@ public abstract class BaseChart extends View {
             super.invalidateDrawable(dr);
         }
     }
-    /****************************************************/
 
+    private void startChartAnimation(Canvas canvas) {
+        if(chartAnim == null){
+            chartAnim = ValueAnimator.ofObject(new AngleEvaluator(), 0f, 1f);
+            chartAnim.setDuration(1000);
+            chartAnim.setInterpolator(new AccelerateDecelerateInterpolator());
+            chartAnim.addUpdateListener((ValueAnimator animation)->{
+                chartAnimValue = (float)animation.getAnimatedValue();
+                postInvalidate();
+            });
+        }
+        chartAnim.reverse();
+        chartAnim.start();
+        LogUtil.w(TAG, "开始绘制动画");
+    }
+    /**************************动画end**************************/
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         centerPoint = new Point(getMeasuredWidth()/2, getMeasuredHeight()/2);
-        rectChart = new Rect(getPaddingLeft(),getPaddingTop(),getMeasuredWidth()-getPaddingRight(),
+        rectChart = new RectF(getPaddingLeft(),getPaddingTop(),getMeasuredWidth()-getPaddingRight(),
                 getMeasuredHeight()-getPaddingBottom());
         loadingIndicator.setBounds((int)rectChart.left, (int)rectChart.top,
                 (int)rectChart.right, (int)rectChart.bottom);
@@ -155,7 +176,13 @@ public abstract class BaseChart extends View {
             canvas.restoreToCount(saveCount);
             return;
         }
-        drawChart(canvas);
+
+        if(showAnim && !chartAnimStarted){
+            chartAnimStarted = true;
+            startChartAnimation(canvas);
+        }else{
+            drawChart(canvas);
+        }
     }
 
     /**绘制debug辅助线*/
@@ -171,80 +198,6 @@ public abstract class BaseChart extends View {
     }
     /**绘制图表*/
     public abstract void drawChart(Canvas canvas);
-
-//    protected boolean touchEnable = false;      //是否超界，控件的大小是否足以显示内容，是否需要滑动来展示。子控件根据计算赋值
-//    protected float mDownX, mDownY;
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-//        if(!touchEnable){
-//            getParent().requestDisallowInterceptTouchEvent(true);
-//        }else{
-//            switch (event.getAction()) {
-//                case MotionEvent.ACTION_DOWN:
-//                    mDownX = event.getX();
-//                    mDownY = event.getY();
-//                    if(null!=touchAnim && touchAnim.isRunning())
-//                        touchAnim.cancel();
-//                    getParent().requestDisallowInterceptTouchEvent(true);//ACTION_DOWN的时候，赶紧把事件hold住
-//                    break;
-//                case MotionEvent.ACTION_MOVE:
-//                    break;
-//                case MotionEvent.ACTION_CANCEL:
-//                case MotionEvent.ACTION_UP:
-//                    break;
-//            }
-//        }
-        return super.dispatchTouchEvent(event);
-    }
-
-  /*  protected PointF lastTouchPoint;
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if(!touchEnable)
-            return false;
-        boolean result = mGestureDetector.onTouchEvent(event);
-        switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                lastTouchPoint = new PointF(event.getX(), event.getY());
-                onTouchMoved(lastTouchPoint);
-                return true;
-            case MotionEvent.ACTION_MOVE:
-                int move = 0;
-                LogUtil.i(TAG, "MotionEvent.ACTION_MOVE"+move);
-                lastTouchPoint.x = (int)event.getX();
-                lastTouchPoint.y = (int)event.getY();
-                onTouchMoved(lastTouchPoint);
-                evaluatorFling(move);
-                invalidate();
-                return true;
-            case MotionEvent.ACTION_UP:
-                lastTouchPoint.x = 0;
-                lastTouchPoint.y = 0;
-                onTouchMoved(null);
-                return true;
-        }
-        return result;
-    }
-
-    protected void onTouchMoved(PointF point){
-    }
-
-
-*/
-  class MyOnGestureListener extends GestureDetector.SimpleOnGestureListener {
-      @Override
-      public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-          LogUtil.e(TAG,"onFling------------>velocityX="+velocityX+"    velocityY="+velocityY);
-          return false;
-      }
-  }
-
-
-
-
-
-
-
 
 
 

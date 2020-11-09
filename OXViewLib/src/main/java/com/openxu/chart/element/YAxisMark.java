@@ -29,15 +29,11 @@ public class YAxisMark {
     public int lineWidth;
     public int lineColor;
 
-
     public int lableNum;
-
-
     public MarkType markType;
 
-
     /**自动计算*/
-    public List<MarkPoint> markPointList = new ArrayList<>();
+//    public List<MarkPoint> markPointList = new ArrayList<>();
 
     public float textHeight, textLead;
 
@@ -58,10 +54,10 @@ public class YAxisMark {
         public Builder(Context context) {
             axisMark = new YAxisMark();
             axisMark.textSize = DensityUtil.sp2px(context, 10);
-            axisMark.textColor = Color.parseColor("#939393");
+            axisMark.textColor = Color.parseColor("#bcbcbc");
             axisMark.textSpace = DensityUtil.dip2px(context, 5);
             axisMark.lineWidth = DensityUtil.dip2px(context, 0.7f);
-            axisMark.lineColor = Color.parseColor("#5E5E5E");
+            axisMark.lineColor = Color.parseColor("#dcdcdc");
 
             axisMark.lableNum = 5;
             axisMark.markType = MarkType.Integer;
@@ -76,6 +72,10 @@ public class YAxisMark {
         }
         public Builder lableNum(int lableNum) {
             axisMark.lableNum = lableNum;
+            return this;
+        }
+        public Builder markType(MarkType markType) {
+            axisMark.markType = markType;
             return this;
         }
         public YAxisMark build(){

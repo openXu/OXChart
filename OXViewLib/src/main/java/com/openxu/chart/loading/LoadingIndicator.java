@@ -1,6 +1,7 @@
 package com.openxu.chart.loading;
 
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -31,7 +32,7 @@ public abstract class LoadingIndicator extends Drawable implements Animatable {
 
     private Paint mPaint;
 
-    public LoadingIndicator() {
+    public LoadingIndicator(Context context) {
         mUpdateListeners = new HashMap<>();
 //        drawBounds = new Rect();
         mPaint=new Paint();

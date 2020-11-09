@@ -24,11 +24,10 @@ public class BallPulseIndicator extends LoadingIndicator {
     private float[] scaleFloats = new float[]{loadingAnimValueMax, loadingAnimValueMax, loadingAnimValueMax};
 
     public BallPulseIndicator(Context context) {
-        super();
+        super(context);
         loadRadius = DensityUtil.dip2px(context, 5);
         loadCircleSpace = DensityUtil.dip2px(context, 4);
     }
-
 
     @Override
     public void draw(Canvas canvas, Paint paint) {

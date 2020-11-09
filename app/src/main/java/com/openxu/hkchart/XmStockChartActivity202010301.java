@@ -14,7 +14,7 @@ public class XmStockChartActivity202010301 extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wcxstock_chart20201030_syzs);
-        SyzsLinesChart   syzsLinesChart = (SyzsLinesChart)findViewById(R.id.syzsLinesChart);
+        syzsLinesChart = (SyzsLinesChart)findViewById(R.id.syzsLinesChart);
         getData();
     }
 

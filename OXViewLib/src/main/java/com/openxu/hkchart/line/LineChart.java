@@ -181,9 +181,16 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
         int indexSpace = (int)(markSpace/pointWidth);
         indexSpace = Math.max(indexSpace, 1);
 //        List<List<LinePoint>> lineData;
-        for(int i =0; i< lineData.get(0).size(); i++){
-            if(i%indexSpace==0)
-                xlables.add(lineData.get(0).get(i).getValuex());
+        if(showBegin){
+            for(int i =0; i< lineData.get(0).size(); i++){
+                if(i%indexSpace==0)
+                    xlables.add(lineData.get(0).get(i).getValuex());
+            }
+        }else{
+            for(int i =lineData.get(0).size()-1; i>=0 ; i--){
+                if((i-(lineData.get(0).size()-1))%indexSpace==0)
+                    xlables.add(lineData.get(0).get(i).getValuex());
+            }
         }
         Log.w(TAG, "矩形区域需要展示"+xAxisMark.lableNum+"个标签，单个标签间距"+markSpace+"  每隔"+indexSpace+"个数据展示一个:"+xlables.size()+"   "+xlables);
     }
@@ -388,7 +395,7 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
                     getParent().requestDisallowInterceptTouchEvent(true);//ACTION_DOWN的时候，赶紧把事件hold住
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    if(Math.abs(event.getY()-mDownY) > Math.abs(event.getX() - mDownX)*1.5) {
+                    if(!scaleing && Math.abs(event.getY()-mDownY) > Math.abs(event.getX() - mDownX)*1.5) {
                         //竖直滑动的距离大于水平的时候，将事件还给父控件
                         getParent().requestDisallowInterceptTouchEvent(false);
                     }

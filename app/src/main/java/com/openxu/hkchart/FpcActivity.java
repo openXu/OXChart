@@ -43,7 +43,7 @@ public class FpcActivity extends AppCompatActivity {
 //                    .lables(new String[]{"00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00", "24:00"})
                     .build());
             lineChart1.setShowAnim(false);
-            lineChart1.setShowBegin(true);
+            lineChart1.setShowBegin(false);
 //            lineChart1.setPageShowNum(400);
         }
         lineChart2 = (LineChart)findViewById(R.id.lineChart2);

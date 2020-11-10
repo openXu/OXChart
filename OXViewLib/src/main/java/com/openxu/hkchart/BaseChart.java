@@ -87,6 +87,10 @@ public abstract class BaseChart extends View {
     }
     public void init(Context context, AttributeSet attrs, int defStyleAttr){}
 
+    public void setShowAnim(boolean showAnim) {
+        this.showAnim = showAnim;
+    }
+
     /***************************动画start***************************/
     public void setLoadingIndicator(String indicatorName){
         if (TextUtils.isEmpty(indicatorName))

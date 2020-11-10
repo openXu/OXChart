@@ -2,25 +2,27 @@ package com.openxu.hkchart.bar;
 
 import android.graphics.Region;
 
+import java.util.List;
+
 public class Bar {
 
-    private float valuey;
+    private List<Float> valuey ;
     private String valuex;
     //bar绘制矩形
 //    private Rect rect;
     //触摸相关
     private Region region;     //扇形区域--用于判断手指触摸点是否在此范围
 
-    public Bar(String valuex, float valuey) {
+    public Bar(String valuex, List<Float> valuey) {
         this.valuey = valuey;
         this.valuex = valuex;
     }
 
-    public float getValuey() {
+    public List<Float> getValuey() {
         return valuey;
     }
 
-    public void setValuey(float valuey) {
+    public void setValuey(List<Float> valuey) {
         this.valuey = valuey;
     }
 

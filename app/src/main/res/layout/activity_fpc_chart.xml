@@ -21,6 +21,36 @@ android:layout_height="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical">
+        <com.openxu.hkchart.line.LineChart
+            android:id="@+id/lineChart1"
+            android:visibility="visible"
+            android:layout_marginTop="20dp"
+            android:paddingLeft="12dip"
+            android:paddingRight="12dip"
+            android:paddingBottom="10dip"
+            android:paddingTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="200dip" />
+        <com.openxu.hkchart.line.LineChart
+            android:id="@+id/lineChart2"
+            android:visibility="gone"
+            android:layout_marginTop="20dp"
+            android:paddingLeft="12dip"
+            android:paddingRight="12dip"
+            android:paddingBottom="10dip"
+            android:paddingTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="200dip" />
+        <com.openxu.hkchart.line.LineChart
+            android:id="@+id/lineChart3"
+            android:visibility="gone"
+            android:layout_marginTop="20dp"
+            android:paddingLeft="12dip"
+            android:paddingRight="12dip"
+            android:paddingBottom="10dip"
+            android:paddingTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="200dip" />
         <com.openxu.hkchart.bar.BarChart
             android:id="@+id/bartChart1"
             android:visibility="visible"

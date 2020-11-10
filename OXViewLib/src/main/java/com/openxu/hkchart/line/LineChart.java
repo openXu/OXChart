@@ -7,13 +7,18 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathEffect;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.view.View;
 import android.widget.Scroller;
 
+import com.openxu.cview.xmstock20201030.build.AxisMark;
+import com.openxu.cview.xmstock20201030.build.Line;
 import com.openxu.hkchart.BaseChart;
 import com.openxu.hkchart.bar.Bar;
 import com.openxu.hkchart.element.XAxisMark;
@@ -22,6 +27,8 @@ import com.openxu.utils.DensityUtil;
 import com.openxu.utils.FontUtil;
 import com.openxu.utils.LogUtil;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -30,30 +37,34 @@ import java.util.List;
  * className : LineChart
  * version : 1.0
  * description : 曲线、折线图
+ *
  */
-public class LineChart extends BaseChart {
+public class LineChart extends BaseChart implements View.OnTouchListener {
 
     /**设置*/
-    private List<List<Bar>> barData;
+    private List<List<LinePoint>> lineData;
     private YAxisMark yAxisMark;
     private XAxisMark xAxisMark;
+    private boolean scaleAble = true;  //是否支持放大
     private boolean scrollAble = true;  //是否支持滚动
     private boolean showBegin = true;    //当数据超出一屏宽度时，实现最后的数据
-    private int barWidth = DensityUtil.dip2px(getContext(), 15);    //柱宽度
-    private int barSpace = DensityUtil.dip2px(getContext(), 1);    //双柱间的间距
-    private int groupSpace = DensityUtil.dip2px(getContext(), 25);//一组柱之间的间距（只有scrollAble==true时才生效）
-    private int[] barColor = new int[]{
+    private int[] lineColor = new int[]{
             Color.parseColor("#f46763"),
             Color.parseColor("#3cd595"),
-            Color.parseColor("#4d7bff"),};               //柱颜色
+            Color.parseColor("#4d7bff"),
+            Color.parseColor("#4d7bff")};
     /**计算*/
-    private float groupWidth;
+    private int pageShowNum;       //第一次页面总数据量
+    private int maxPointNum;
+    private float pointWidthMin;   //最初的每个点占据的宽度，最小缩放值
+    private float pointWidthMax;   //最初的每个点占据的宽度，最大放大值
+    private float pointWidth;      //每个点占据的宽度
     private float scrollXMax;      //最大滚动距离，是一个负值
-    private float scrollx;      //当前滚动距离，默认从第一条数据绘制（scrollx==0），如果从最后一条数据绘制（scrollx==scrollXMax）
+    private float scrollx;         //当前滚动距离，默认从第一条数据绘制（scrollx==0），如果从最后一条数据绘制（scrollx==scrollXMax）
 
     protected GestureDetector mGestureDetector;
+    private ScaleGestureDetector scaleGestureDetector;
     protected Scroller mScroller;
-
 
     public LineChart(Context context) {
         this(context, null);
@@ -69,8 +80,11 @@ public class LineChart extends BaseChart {
 
     @Override
     public void init(Context context, AttributeSet attrs, int defStyleAttr) {
+        setOnTouchListener(this);
         mGestureDetector = new GestureDetector(getContext(), new MyOnGestureListener());
+        scaleGestureDetector = new ScaleGestureDetector(context, new MyOnScaleGestureListener());
         mScroller = new Scroller(context);
+//        showAnim = false;
     }
 
     /***********************************1. setting👇**********************************/
@@ -80,27 +94,24 @@ public class LineChart extends BaseChart {
     public void setXAxisMark(XAxisMark xAxisMark) {
         this.xAxisMark = xAxisMark;
     }
-    public void setBarColor(int[] barColor) {
-        this.barColor = barColor;
+    public void setShowBegin(boolean showBegin) {
+        this.showBegin = showBegin;
     }
-    public void setBarWidth(int barWidth) {
-        this.barWidth = barWidth;
+    public void setPageShowNum(int pageShowNum) {
+        this.pageShowNum = pageShowNum;
     }
-    public void setBarSpace(int barSpace) {
-        this.barSpace = barSpace;
-    }
-    public void setGroupSpace(int groupSpace) {
-        this.groupSpace = groupSpace;
+    public void setScaleAble(boolean scaleAble) {
+        this.scaleAble = scaleAble;
+        if(scaleAble)   //支持缩放的一定支持滚动
+            this.scrollAble = true;
     }
     public void setScrollAble(boolean scrollAble) {
         this.scrollAble = scrollAble;
     }
-    public void setShowBegin(boolean showBegin) {
-        this.showBegin = showBegin;
-    }
 
-    public void setData(List<List<Bar>> barData) {
-        this.barData = barData;
+    public void setData(List<List<LinePoint>> lineData) {
+        Log.w(TAG, "设置数据，总共"+lineData.size()+"条线，每条线"+lineData.get(0).size()+"个点");
+        this.lineData = lineData;
         if(showAnim)
             chartAnimStarted = false;
         calculate();
@@ -124,28 +135,67 @@ public class LineChart extends BaseChart {
         rectChart.left =  (int)(getPaddingLeft() + yAxisMark.textSpace + FontUtil.getFontlength(paintText, maxLable));
         rectChart.top = rectChart.top + yAxisMark.textHeight/2;
 
-        int barNum = barData.get(0).size();
-        if(scrollAble) {
-            groupWidth = barWidth * barNum + barSpace * (barNum - 1) + groupSpace;
-            float allWidth = groupWidth * barData.size();   //总宽度
-            scrollXMax = -(allWidth - rectChart.width());
-            scrollx = showBegin?0:scrollXMax;
-        }else{
-            groupSpace = (int)(rectChart.width() - (barData.size() * (barWidth * barNum + barSpace * (barNum - 1))))/barData.size();
-            groupWidth = barWidth * barNum + barSpace * (barNum - 1) + groupSpace;
-            scrollx = scrollXMax = 0;
+        for(List<LinePoint> list :lineData)
+            maxPointNum = Math.max(maxPointNum, list.size());
+        //没有设置展示数据量，则默认为全部展示
+        if(pageShowNum<=0){
+            pageShowNum = maxPointNum;
         }
-        Log.w(TAG, "计算groupWidth="+groupWidth+"   barWidth="+barWidth+"   scrollx="+scrollx);
+        Log.w(TAG, "计算pageShowNum="+pageShowNum);
+        pointWidthMin = rectChart.width() / (pageShowNum-1);
+        pointWidth = pointWidthMin;
+        pointWidthMax = rectChart.width() / (xAxisMark.lableNum-1);
+        //数据没有展示完，说明可以滚动
+        if(pageShowNum<maxPointNum)
+            scrollXMax = -(pointWidth*(maxPointNum-1) - rectChart.width());      //最大滚动距离，是一个负值
+        scrollx = showBegin?0:scrollXMax;
+
+        caculateXMark();
+        /**计算点坐标*/
+      /*  for (int i = 0; i < lineData.size(); i++) {
+            List<LinePoint> linePoints = lineData.get(i);
+            for (int j = 0; j < linePoints.size(); j++) {
+                if (linePoints.get(j).getValuey() == null)
+                    continue;
+                linePoints.get(j).setPoint(new PointF(
+                        rectChart.left + j * pointWidth,
+                        rectChart.bottom - (rectChart.bottom - rectChart.top) /
+                                (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (linePoints.get(j).getValuey() - yAxisMark.cal_mark_min)
+                ));
+            }
+        }*/
+
+        Log.w(TAG, "计算scrollXMax="+scrollXMax+"   scrollx="+scrollx);
+    }
+    public List<String> xlables = new ArrayList<>();
+
+    private void caculateXMark(){
+        xlables.clear();
+        if(xAxisMark.lables!=null){
+            xlables.addAll(Arrays.asList(xAxisMark.lables));
+            return;
+        }
+//        float markSpace = (-scrollXMax+rectChart.width())/(xAxisMark.lableNum-1);
+        float markSpace = rectChart.width()/(xAxisMark.lableNum-1);
+        //每隔多少展示一个标签
+        int indexSpace = (int)(markSpace/pointWidth);
+        indexSpace = Math.max(indexSpace, 1);
+//        List<List<LinePoint>> lineData;
+        for(int i =0; i< lineData.get(0).size(); i++){
+            if(i%indexSpace==0)
+                xlables.add(lineData.get(0).get(i).getValuex());
+        }
+        Log.w(TAG, "矩形区域需要展示"+xAxisMark.lableNum+"个标签，单个标签间距"+markSpace+"  每隔"+indexSpace+"个数据展示一个:"+xlables.size()+"   "+xlables);
     }
 
     private void calculateYMark() {
         float redundance = 1.01f;  //y轴最大和最小值冗余
         yAxisMark.cal_mark_max =  Float.MIN_VALUE;    //Y轴刻度最大值
         yAxisMark.cal_mark_min =  Float.MAX_VALUE;    //Y轴刻度最小值
-        for(List<Bar> data : barData){
-            for(Bar bar : data){
-                yAxisMark.cal_mark_max = Math.max(yAxisMark.cal_mark_max, bar.getValuey());
-                yAxisMark.cal_mark_min = Math.min(yAxisMark.cal_mark_min, bar.getValuey());
+        for(List<LinePoint> linePoints : lineData){
+            for(LinePoint point : linePoints){
+                yAxisMark.cal_mark_max = Math.max(yAxisMark.cal_mark_max, point.getValuey());
+                yAxisMark.cal_mark_min = Math.min(yAxisMark.cal_mark_min, point.getValuey());
             }
         }
         LogUtil.i(TAG, "Y轴真实cal_mark_min="+yAxisMark.cal_mark_min+"  cal_mark_max="+yAxisMark.cal_mark_max);
@@ -198,7 +248,8 @@ public class LineChart extends BaseChart {
 
     @Override
     public void drawChart(Canvas canvas) {
-        float yMarkSpace = (rectChart.bottom - rectChart.top)/(yAxisMark.lableNum-1);
+        long startTime =System.currentTimeMillis();
+        float yMarkSpace = (rectChart.bottom - rectChart.top) / (yAxisMark.lableNum - 1);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(yAxisMark.lineColor);
         paint.setColor(yAxisMark.lineColor);
@@ -208,81 +259,111 @@ public class LineChart extends BaseChart {
         paintText.setTextSize(yAxisMark.textSize);
         paintText.setColor(yAxisMark.textColor);
 //        canvas.drawLine(rectChart.left, rectChart.top, rectChart.left, rectChart.bottom, paint);
-        PathEffect effects = new DashPathEffect(new float[]{15,6,15,6},0);
+        PathEffect effects = new DashPathEffect(new float[]{15, 6, 15, 6}, 0);
         paintEffect.setPathEffect(effects);
         for (int i = 0; i < yAxisMark.lableNum; i++) {
             /**绘制横向线*/
-            canvas.drawLine(rectChart.left, rectChart.bottom-yMarkSpace*i,
-                    rectChart.right,rectChart.bottom-yMarkSpace*i, paint);
+            canvas.drawLine(rectChart.left, rectChart.bottom - yMarkSpace * i,
+                    rectChart.right, rectChart.bottom - yMarkSpace * i, paint);
             /**绘制y刻度*/
             String text = yAxisMark.getMarkText(yAxisMark.cal_mark_min + i * yAxisMark.cal_mark);
             canvas.drawText(text,
                     rectChart.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, text),
-                    rectChart.bottom - yMarkSpace * i - yAxisMark.textHeight/2 + yAxisMark.textLead, paintText);
+                    rectChart.bottom - yMarkSpace * i - yAxisMark.textHeight / 2 + yAxisMark.textLead, paintText);
         }
-        /**绘制柱状*/
-        paint.setStyle(Paint.Style.FILL);
-        RectF rect = new RectF();
-        RectF rectArc = new RectF();
-        Path path = new Path();
-        for(int i = 0; i<barData.size(); i++){
-            List<Bar> group = barData.get(i);
-            //一组
-            /**绘制X刻度*/
-            paintText.setTextSize(xAxisMark.textSize);
-            paintText.setColor(xAxisMark.textColor);
-            rect.left = scrollx + rectChart.left + i*groupWidth;
-            rect.right = rect.left + groupWidth;
-            //过滤掉绘制区域外的组
-            if(rect.right < rectChart.left || rect.left > rectChart.right) {
-//                Log.w(TAG, "第"+i+"组超界了 "+rect.left+" "+rect.right);
-                continue;
-            }
-            //裁剪画布，避免x刻度超出
-            int restoreCount = canvas.save();
-            canvas.clipRect(new RectF(rectChart.left, rectChart.bottom,
-                    rectChart.right, rectChart.bottom+xAxisMark.textSpace+xAxisMark.textHeight));
-            canvas.drawText(group.get(0).getValuex(),
-                    rect.left+groupWidth/2-FontUtil.getFontlength(paintText, group.get(0).getValuex())/2,
-                    xAxisMark.drawPointY,paintText);
-            canvas.restoreToCount(restoreCount);
-            /**绘制柱状*/
-            // 记录当前画布信息
-            restoreCount = canvas.save();
-            /**使用Canvas的clipRect和clipPath方法限制View的绘制区域*/
-            canvas.clipRect(rectChart);   //裁剪画布，只绘制rectChart的范围
-            for(int j = 0; j <group.size(); j++){
-                paint.setColor(barColor[j]);
-//                float top = (zeroPoint.y - YMARK_ALL_H * (bean.getNum() / YMARK_MAX) * animPro);
-                rect.left = rectChart.left + i*groupWidth + groupSpace/2 + j*(barSpace+barWidth)+ scrollx;
-                rect.right =  rect.left + barWidth;
-                //过滤掉绘制区域外的柱
-                if( rect.right < rectChart.left ||  rect.left > rectChart.right)
-                    continue;
-                rect.top = (int)(rectChart.bottom - rectChart.height() /(yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (group.get(j).getValuey()-yAxisMark.cal_mark_min) * chartAnimValue);
-                rect.bottom = rectChart.bottom;
-                rectArc.left = rect.left;
-                rectArc.top = rect.top;
-                rectArc.right = rect.right;
-                rectArc.bottom = rect.top + barWidth;
 
-                path.reset();
-                path.moveTo(rect.left, rectChart.bottom);
-                path.lineTo(rectArc.left, rectArc.bottom-rectArc.height()/2);
-                path.arcTo(rectArc, 180, 180);
-                path.lineTo(rect.right, rect.bottom);
-                path.close();
-//                Log.w(TAG, "---绘制"+i+"*"+j+" = "+group.get(j).getValuey()+" " +rect.top +"  "+rectChart.bottom);
-                canvas.drawPath(path, paint);
-                /**绘制y值*/
-                canvas.drawText(yAxisMark.getMarkText(group.get(j).getValuey()),
-                        rectArc.left+barWidth/2-FontUtil.getFontlength(paintText, yAxisMark.getMarkText(group.get(j).getValuey()))/2,
-                        rectArc.top-yAxisMark.textSpace-yAxisMark.textHeight+yAxisMark.textLead,paintText);
+        /**绘制x轴刻度*/
+//        if(xAxisMark.lables!=null){
+//            //绘制固定的
+//            drawFixedXLable(canvas);
+//            lables = xAxisMark.lables;
+//        }else{
+//            drawXLable(canvas);
+//        }
+
+        /**绘制折线*/
+        paint.setStyle(Paint.Style.STROKE);
+        paintText.setTextSize(xAxisMark.textSize);
+        paintText.setColor(xAxisMark.textColor);
+        Path path = new Path();
+        PointF lastPoint = new PointF();
+        PointF currentPoint = new PointF();
+        int startIndex = (int)(-scrollx/pointWidth);
+        int endIndex = (int)((-scrollx+rectChart.width())/pointWidth+1);
+        endIndex = Math.min(endIndex, maxPointNum-1);
+//        Log.w(TAG, "绘制索引："+startIndex+" 至  "+endIndex+"   scrollx="+scrollx);
+        int restorePath = canvas.save();
+        for (int i = 0; i < lineData.size(); i++) {
+            path.reset();
+            List<LinePoint> linePoints = lineData.get(i);
+            for(int j = startIndex; j<=endIndex; j++){
+//            for (int j = 0; j < linePoints.size(); j++) {
+                if(j>startIndex+(endIndex - startIndex)*chartAnimValue)
+                    break;
+                if (linePoints.get(j).getValuey() == null)
+                    continue;
+                currentPoint.x = scrollx + rectChart.left + j * pointWidth;
+                currentPoint.y = rectChart.bottom - (rectChart.bottom - rectChart.top) /
+                        (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (linePoints.get(j).getValuey() - yAxisMark.cal_mark_min);
+                if (path.isEmpty()) {
+                    path.moveTo(currentPoint.x, currentPoint.y);
+                } else {
+                    path.lineTo(currentPoint.x, currentPoint.y);
+                }
+                if(j % 50 == 0){
+                    canvas.drawCircle(currentPoint.x, currentPoint.y, 10, paint);
+                }
+                if(i==0 && xlables.contains(linePoints.get(j).getValuex())){
+                    int restoreText = canvas.save();
+                    canvas.clipRect(new RectF(rectChart.left, rectChart.top, rectChart.right,
+                            rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead));   //裁剪画布，只绘制rectChart的范围
+//                    Log.v(TAG, "绘制x轴刻度"+linePoints.get(j).getValuex());
+                    float x;
+                    if(j==0){
+                        x = currentPoint.x;
+                    }else if(j == maxPointNum-1){
+                        x = currentPoint.x - FontUtil.getFontlength(paintText, linePoints.get(j).getValuex());
+                    }else {
+                        x = currentPoint.x - FontUtil.getFontlength(paintText, linePoints.get(j).getValuex()) / 2;
+                    }
+                    canvas.drawText(linePoints.get(j).getValuex(), x,
+                            rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead, paintText);
+                    canvas.restoreToCount(restoreText);
+                }
             }
+            canvas.clipRect(rectChart);   //裁剪画布，只绘制rectChart的范围
+            paint.setColor(lineColor[i]);
+            canvas.drawPath(path, paint);
             //恢复到裁切之前的画布
-            canvas.restoreToCount(restoreCount);
+            canvas.restoreToCount(restorePath);
         }
+//        Log.w(TAG, "绘制一次需要："+(System.currentTimeMillis() - startTime)+ " ms");
     }
+
+    /**绘制 XAxisMark.lables 设置的固定x刻度，*/
+    private void drawFixedXLable(Canvas canvas){
+        float oneWidth = (-scrollXMax+rectChart.width())/(xAxisMark.lables.length-1);
+        Log.w(TAG, "最大滚动："+scrollXMax+ "  图表宽度"+rectChart.width()+"  lable数量"+xAxisMark.lables.length+"   单个跨度："+oneWidth);
+        paintText.setTextSize(xAxisMark.textSize);
+        paintText.setColor(xAxisMark.textColor);
+        float x ;
+        int restoreCount = canvas.save();
+        canvas.clipRect(new RectF(rectChart.left, rectChart.bottom, rectChart.right, rectChart.bottom+ xAxisMark.textSpace+ xAxisMark.textHeight));
+        for(int i = 0; i< xAxisMark.lables.length; i++){
+            String text = xAxisMark.lables[i];
+            if(i==0){
+                x = scrollx + rectChart.left + i * oneWidth;
+            }else if(i == xAxisMark.lables.length-1){
+                x = scrollx + rectChart.left + i * oneWidth - FontUtil.getFontlength(paintText, text);
+            }else {
+                x = scrollx + rectChart.left + i * oneWidth - FontUtil.getFontlength(paintText, text) / 2;
+            }
+            canvas.drawText(text, x,
+                    rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead, paintText);
+        }
+        canvas.restoreToCount(restoreCount);
+    }
+
     /**********************************3. 测量和绘制👆***********************************/
 
     /**************************4. 事件👇******************************/
@@ -307,7 +388,7 @@ public class LineChart extends BaseChart {
                     getParent().requestDisallowInterceptTouchEvent(true);//ACTION_DOWN的时候，赶紧把事件hold住
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    if(Math.abs(event.getY()-mDownY) > Math.abs(event.getX() - mDownX)) {
+                    if(Math.abs(event.getY()-mDownY) > Math.abs(event.getX() - mDownX)*1.5) {
                         //竖直滑动的距离大于水平的时候，将事件还给父控件
                         getParent().requestDisallowInterceptTouchEvent(false);
                     }
@@ -319,9 +400,19 @@ public class LineChart extends BaseChart {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return mGestureDetector.onTouchEvent(event);
+        return super.onTouchEvent(event);
     }
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        if(scaleAble) {
+            scaleGestureDetector.onTouchEvent(event);
+            mGestureDetector.onTouchEvent(event);
+        }else if(scrollAble) {
+            mGestureDetector.onTouchEvent(event);
+        }
+        return true;
+    }
     class MyOnGestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onDown(MotionEvent e) {
@@ -331,11 +422,13 @@ public class LineChart extends BaseChart {
         }
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            //          Log.d(TAG, "滚动："+distanceX+"   "+distanceY);
-            scrollx -= distanceX;    //distanceX左正右负
-            scrollx = Math.min(scrollx, 0);
-            scrollx = Math.max(scrollXMax, scrollx);
-            postInvalidate();
+            if(!scaleing) {
+                scrollx -= distanceX;    //distanceX左正右负
+                scrollx = Math.min(scrollx, 0);
+                scrollx = Math.max(scrollXMax, scrollx);
+//                Log.d(TAG, "滚动：" + distanceX + "   " + scrollx);
+                postInvalidate();
+            }
             return false;
         }
         @Override
@@ -358,14 +451,56 @@ public class LineChart extends BaseChart {
     @Override
     public void computeScroll() {
         super.computeScroll();
-        if(mScroller.isFinished())
-            return;
-        if(mScroller.computeScrollOffset()){
-//            Log.d(TAG, "滚动后计算："+mScroller.getCurrX());
-            scrollx = mScroller.getCurrX();
-            postInvalidate();
+        if(scrollAble) {
+            if (mScroller.isFinished())
+                return;
+            if (mScroller.computeScrollOffset()) {
+                Log.d(TAG, "滚动后计算：" + mScroller.getCurrX());
+                scrollx = mScroller.getCurrX();
+                postInvalidate();
+            }
         }
     }
+
+    boolean scaleing = false;
+    class MyOnScaleGestureListener implements ScaleGestureDetector.OnScaleGestureListener {
+        private float focusIndex;
+        private float beginScrollx;
+        private float beginPointWidth;
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            pointWidth *= detector.getScaleFactor();
+            //缩放范围约束
+            pointWidth = Math.min(pointWidth, pointWidthMax);
+            pointWidth = Math.max(pointWidth, pointWidthMin);
+            //重新计算最大偏移量
+            scrollXMax = -(pointWidth*(maxPointNum-1) - rectChart.width());      //最大滚动距离，是一个负值
+            //计算当前偏移量
+//            Log.i(TAG, "当前偏移："+scrollx+"    缩放中心数据索引 = " +index);
+            //为了保证焦点对应的点位置不变，是使用公式： beginScrollx + rectChart.left + focusIndex*beginPointWidth = scrollx + rectChart.left + focusIndex*pointWidth
+            scrollx = beginScrollx + focusIndex*(beginPointWidth - pointWidth);
+            scrollx = Math.min(scrollx, 0);
+            scrollx = Math.max(scrollXMax, scrollx);
+            caculateXMark();
+//            Log.i(TAG, "缩放后偏移："+scrollx);
+            postInvalidate();
+            return true;
+        }
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            focusIndex = (int)((-scrollx + (detector.getFocusX()-rectChart.left))/pointWidth);
+            beginScrollx = scrollx;
+            beginPointWidth = pointWidth;
+            Log.i(TAG, "缩放开始了，焦点索引为"+ focusIndex);   // 缩放因子
+            scaleing = true;
+            return true;
+        }
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector) {
+            scaleing = false;
+        }
+    }
+
     /**************************4. 事件👆******************************/
 
 }

@@ -33,7 +33,7 @@ import java.util.List;
 public class BarChart extends BaseChart {
 
     /**设置*/
-    private List<List<Bar>> barData;
+    private List<Bar> barData;
     private YAxisMark yAxisMark;
     private XAxisMark xAxisMark;
     private boolean scrollAble = true;  //是否支持滚动
@@ -98,7 +98,7 @@ public class BarChart extends BaseChart {
         this.showBegin = showBegin;
     }
 
-    public void setData(List<List<Bar>> barData) {
+    public void setData(List<Bar> barData) {
         this.barData = barData;
         if(showAnim)
             chartAnimStarted = false;
@@ -123,7 +123,7 @@ public class BarChart extends BaseChart {
         rectChart.left =  (int)(getPaddingLeft() + yAxisMark.textSpace + FontUtil.getFontlength(paintText, maxLable));
         rectChart.top = rectChart.top + yAxisMark.textHeight/2;
 
-        int barNum = barData.get(0).size();
+        int barNum = barData.get(0).getValuey().size();
         if(scrollAble) {
             groupWidth = barWidth * barNum + barSpace * (barNum - 1) + groupSpace;
             float allWidth = groupWidth * barData.size();   //总宽度
@@ -141,10 +141,10 @@ public class BarChart extends BaseChart {
         float redundance = 1.01f;  //y轴最大和最小值冗余
         yAxisMark.cal_mark_max =  Float.MIN_VALUE;    //Y轴刻度最大值
         yAxisMark.cal_mark_min =  Float.MAX_VALUE;    //Y轴刻度最小值
-        for(List<Bar> data : barData){
-            for(Bar bar : data){
-                yAxisMark.cal_mark_max = Math.max(yAxisMark.cal_mark_max, bar.getValuey());
-                yAxisMark.cal_mark_min = Math.min(yAxisMark.cal_mark_min, bar.getValuey());
+        for(Bar data : barData){
+            for(Float valuey : data.getValuey()){
+                yAxisMark.cal_mark_max = Math.max(yAxisMark.cal_mark_max, valuey);
+                yAxisMark.cal_mark_min = Math.min(yAxisMark.cal_mark_min, valuey);
             }
         }
         LogUtil.i(TAG, "Y轴真实cal_mark_min="+yAxisMark.cal_mark_min+"  cal_mark_max="+yAxisMark.cal_mark_max);
@@ -224,8 +224,13 @@ public class BarChart extends BaseChart {
         RectF rect = new RectF();
         RectF rectArc = new RectF();
         Path path = new Path();
-        for(int i = 0; i<barData.size(); i++){
-            List<Bar> group = barData.get(i);
+        //预算需要绘制的组的开始和结尾index，避免不必要的计算浪费性能
+        int startIndex = (int)(-scrollx/groupWidth);
+        int endIndex = (int)((-scrollx+rectChart.width())/groupWidth);
+        endIndex = Math.min(endIndex, barData.size()-1);
+//        for(int i = 0; i<barData.size(); i++){
+        for(int i = startIndex; i<=endIndex; i++){
+            Bar group = barData.get(i);
             //一组
             /**绘制X刻度*/
             paintText.setTextSize(xAxisMark.textSize);
@@ -233,16 +238,16 @@ public class BarChart extends BaseChart {
             rect.left = scrollx + rectChart.left + i*groupWidth;
             rect.right = rect.left + groupWidth;
             //过滤掉绘制区域外的组
-            if(rect.right < rectChart.left || rect.left > rectChart.right) {
+//            if(rect.right < rectChart.left || rect.left > rectChart.right) {
 //                Log.w(TAG, "第"+i+"组超界了 "+rect.left+" "+rect.right);
-                continue;
-            }
+//                continue;
+//            }
             //裁剪画布，避免x刻度超出
             int restoreCount = canvas.save();
             canvas.clipRect(new RectF(rectChart.left, rectChart.bottom,
                     rectChart.right, rectChart.bottom+xAxisMark.textSpace+xAxisMark.textHeight));
-            canvas.drawText(group.get(0).getValuex(),
-                    rect.left+groupWidth/2-FontUtil.getFontlength(paintText, group.get(0).getValuex())/2,
+            canvas.drawText(group.getValuex(),
+                    rect.left+groupWidth/2-FontUtil.getFontlength(paintText, group.getValuex())/2,
                     xAxisMark.drawPointY,paintText);
             canvas.restoreToCount(restoreCount);
             /**绘制柱状*/
@@ -250,7 +255,7 @@ public class BarChart extends BaseChart {
             restoreCount = canvas.save();
             /**使用Canvas的clipRect和clipPath方法限制View的绘制区域*/
             canvas.clipRect(rectChart);   //裁剪画布，只绘制rectChart的范围
-            for(int j = 0; j <group.size(); j++){
+            for(int j = 0; j <group.getValuey().size(); j++){
                 paint.setColor(barColor[j]);
 //                float top = (zeroPoint.y - YMARK_ALL_H * (bean.getNum() / YMARK_MAX) * animPro);
                 rect.left = rectChart.left + i*groupWidth + groupSpace/2 + j*(barSpace+barWidth)+ scrollx;
@@ -258,7 +263,12 @@ public class BarChart extends BaseChart {
                 //过滤掉绘制区域外的柱
                 if( rect.right < rectChart.left ||  rect.left > rectChart.right)
                     continue;
-                rect.top = (int)(rectChart.bottom - rectChart.height() /(yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (group.get(j).getValuey()-yAxisMark.cal_mark_min) * chartAnimValue);
+                if(group.getValuey().get(j)==null){
+                    rect.top = rectChart.bottom;
+                }else{
+                    rect.top = (int)(rectChart.bottom - rectChart.height() /(yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) *
+                            (group.getValuey().get(j)-yAxisMark.cal_mark_min) * chartAnimValue);
+                }
                 rect.bottom = rectChart.bottom;
                 rectArc.left = rect.left;
                 rectArc.top = rect.top;
@@ -273,10 +283,13 @@ public class BarChart extends BaseChart {
                 path.close();
 //                Log.w(TAG, "---绘制"+i+"*"+j+" = "+group.get(j).getValuey()+" " +rect.top +"  "+rectChart.bottom);
                 canvas.drawPath(path, paint);
+
                 /**绘制y值*/
-                canvas.drawText(yAxisMark.getMarkText(group.get(j).getValuey()),
-                        rectArc.left+barWidth/2-FontUtil.getFontlength(paintText, yAxisMark.getMarkText(group.get(j).getValuey()))/2,
-                        rectArc.top-yAxisMark.textSpace-yAxisMark.textHeight+yAxisMark.textLead,paintText);
+                if(group.getValuey().get(j)!=null){
+                    canvas.drawText(yAxisMark.getMarkText(group.getValuey().get(j)),
+                            rectArc.left+barWidth/2-FontUtil.getFontlength(paintText, yAxisMark.getMarkText(group.getValuey().get(j)))/2,
+                            rectArc.top-yAxisMark.textSpace-yAxisMark.textHeight+yAxisMark.textLead,paintText);
+                }
             }
             //恢复到裁切之前的画布
             canvas.restoreToCount(restoreCount);

@@ -14,8 +14,9 @@ public class XAxisMark {
     public int textSize;   //设置坐标文字大小
     public int textColor;  //设置坐标文字颜色
     public int textSpace;  //设置坐标字体与横轴的距离
+    //2选1设置
     public int lableNum = 5;
-
+    public String[] lables;
 //    public int lineWidth;
 //    public int lineColor;
 
@@ -40,6 +41,11 @@ public class XAxisMark {
         }
         public Builder textColor(int textColor) {
             axisMark.textColor = textColor;
+            return this;
+        }
+        public Builder lables(String[] lables) {
+            axisMark.lables = lables;
+            axisMark.lableNum = lables.length;
             return this;
         }
         public Builder lableNum(int lableNum) {

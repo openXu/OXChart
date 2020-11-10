@@ -11,6 +11,7 @@ import android.graphics.PathEffect;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
@@ -424,9 +425,9 @@ public class LinesChart extends BaseChart {
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeWidth(lineSize);
-
+        long startTime =System.currentTimeMillis();
         int lineNum = LINE_NUM==0?(dataList.get(0).size()-1):LINE_NUM;
-
+        Log.w(TAG, "总共："+lineNum+ " 条线，每条线"+linePointList.get(0).size()+"个数据");
         for(int j = 0; j < lineNum; j++){
 //        for(int j = 0; j < linePointList.size(); j++){
             List<DataPoint> lineList = linePointList.get(j);
@@ -464,6 +465,7 @@ public class LinesChart extends BaseChart {
             }
             canvas.drawPath(path, paint);
         }
+        Log.w(TAG, "绘制一次需要："+(System.currentTimeMillis() - startTime)+ " ms");
     }
 
     /**绘制焦点*/

@@ -69,7 +69,7 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
             Color.parseColor("#4d7bff")};
     //设置焦点线颜色 及 粗细
     private FocusPanelText[] focusPanelText;
-    private int focusLineColor = Color.parseColor("#5E5E5E");
+    private int focusLineColor = Color.parseColor("#319A5A");
     private int focusLineSize = DensityUtil.dip2px(getContext(), 1f);
     private int foucsRectTextSpace = DensityUtil.dip2px(getContext(), 3);
     private int foucsRectSpace = DensityUtil.dip2px(getContext(), 6);
@@ -462,7 +462,7 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
         if(null==focusData)
             return;
         //绘制竖直虚线
-        PathEffect effects = new DashPathEffect(new float[]{15,10,15,10},0);
+        PathEffect effects = new DashPathEffect(new float[]{8,5,8,5},0);
         paintEffect.setStyle(Paint.Style.STROKE);
         paintEffect.setStrokeWidth(focusLineSize);
         paintEffect.setColor(focusLineColor);

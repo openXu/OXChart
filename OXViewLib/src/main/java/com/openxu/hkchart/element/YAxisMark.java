@@ -25,6 +25,7 @@ public class YAxisMark {
 
     public int lableNum;
     public MarkType markType;
+    public String unit = "";   //单位 KW
 
     /**自动计算*/
 //    public List<MarkPoint> markPointList = new ArrayList<>();
@@ -70,6 +71,10 @@ public class YAxisMark {
         }
         public Builder markType(MarkType markType) {
             axisMark.markType = markType;
+            return this;
+        }
+        public Builder unit(String unit) {
+            axisMark.unit = unit;
             return this;
         }
         public YAxisMark build(){

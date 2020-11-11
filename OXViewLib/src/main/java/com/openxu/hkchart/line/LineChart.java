@@ -4,11 +4,17 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathEffect;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Region;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -17,15 +23,22 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.Scroller;
 
+import com.openxu.cview.R;
+import com.openxu.cview.xmstock.bean.DataPoint;
+import com.openxu.cview.xmstock20201030.SyzsLinesChart;
 import com.openxu.cview.xmstock20201030.build.AxisMark;
 import com.openxu.cview.xmstock20201030.build.Line;
 import com.openxu.hkchart.BaseChart;
 import com.openxu.hkchart.bar.Bar;
+import com.openxu.hkchart.element.FocusPanelText;
 import com.openxu.hkchart.element.XAxisMark;
 import com.openxu.hkchart.element.YAxisMark;
 import com.openxu.utils.DensityUtil;
 import com.openxu.utils.FontUtil;
 import com.openxu.utils.LogUtil;
+import com.openxu.utils.NumberFormatUtil;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,11 +61,22 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
     private boolean scaleAble = true;  //是否支持放大
     private boolean scrollAble = true;  //是否支持滚动
     private boolean showBegin = true;    //当数据超出一屏宽度时，实现最后的数据
+    private float lineWidth = DensityUtil.dip2px(getContext(), 1.5f);
     private int[] lineColor = new int[]{
             Color.parseColor("#f46763"),
             Color.parseColor("#3cd595"),
             Color.parseColor("#4d7bff"),
             Color.parseColor("#4d7bff")};
+    //设置焦点线颜色 及 粗细
+    private FocusPanelText[] focusPanelText;
+    private int focusLineColor = Color.parseColor("#5E5E5E");
+    private int focusLineSize = DensityUtil.dip2px(getContext(), 1f);
+    private int foucsRectTextSpace = DensityUtil.dip2px(getContext(), 3);
+    private int foucsRectSpace = DensityUtil.dip2px(getContext(), 6);
+    //焦点面板矩形宽高
+    private float foucsRectWidth;
+    private float foucsRectHeight;
+
     /**计算*/
     private int pageShowNum;       //第一次页面总数据量
     private int maxPointNum;
@@ -109,6 +133,13 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
         this.scrollAble = scrollAble;
     }
 
+    public void setLineColor(int[] lineColor) {
+        this.lineColor = lineColor;
+    }
+    public void setFocusPanelText(FocusPanelText[] focusPanelText) {
+        this.focusPanelText = focusPanelText;
+    }
+
     public void setData(List<List<LinePoint>> lineData) {
         Log.w(TAG, "设置数据，总共"+lineData.size()+"条线，每条线"+lineData.get(0).size()+"个点");
         this.lineData = lineData;
@@ -133,7 +164,8 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
         yAxisMark.textLead = FontUtil.getFontLeading(paintText);
         String maxLable = yAxisMark.getMarkText(yAxisMark.cal_mark_max);
         rectChart.left =  (int)(getPaddingLeft() + yAxisMark.textSpace + FontUtil.getFontlength(paintText, maxLable));
-        rectChart.top = rectChart.top + yAxisMark.textHeight/2;
+        rectChart.top = rectChart.top + yAxisMark.textHeight/2 +
+                (TextUtils.isEmpty(yAxisMark.unit)?0:(yAxisMark.textHeight+yAxisMark.textSpace));
 
         for(List<LinePoint> list :lineData)
             maxPointNum = Math.max(maxPointNum, list.size());
@@ -144,13 +176,43 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
         Log.w(TAG, "计算pageShowNum="+pageShowNum);
         pointWidthMin = rectChart.width() / (pageShowNum-1);
         pointWidth = pointWidthMin;
-        pointWidthMax = rectChart.width() / (xAxisMark.lableNum-1);
+        pointWidthMax = rectChart.width() / (xAxisMark.lableNum-1) / 5;   //最大只能放大到每个标签显示5个点
         //数据没有展示完，说明可以滚动
         if(pageShowNum<maxPointNum)
             scrollXMax = -(pointWidth*(maxPointNum-1) - rectChart.width());      //最大滚动距离，是一个负值
         scrollx = showBegin?0:scrollXMax;
 
         caculateXMark();
+
+        if(focusPanelText!=null){
+            //计算焦点面板
+            //2020-10-16 06：00
+            //零序电流:15.2KW
+            //A相电流:15.2KW
+            //A相电流:15.2KW
+            //A相电流:15.2KW
+            foucsRectWidth = 0;
+            foucsRectHeight = foucsRectSpace * 2;
+            String text;
+            for(int i = 0; i< focusPanelText.length; i++){
+                if(focusPanelText[i].show){
+                    paintText.setTextSize(focusPanelText[i].textSize);
+                    if(i == 0){
+                        //x轴数据
+//                        foucsRectWidth = Math.max(foucsRectWidth, FontUtil.getFontlength(paintText, lineData.get(0).get(0).getValuex()));
+                        foucsRectHeight += FontUtil.getFontHeight(paintText);
+                    }else{
+//                        text = focusPanelText[i].text+maxLable+ yAxisMark.unit;
+                        text = focusPanelText[i].text+maxLable+ yAxisMark.unit;
+                        foucsRectWidth = Math.max(foucsRectWidth, FontUtil.getFontlength(paintText, text));
+                        Log.w(TAG, "计算面板："+text+"    "+foucsRectWidth);
+                        foucsRectHeight += foucsRectTextSpace+FontUtil.getFontHeight(paintText);
+                    }
+                }
+            }
+            foucsRectWidth += foucsRectSpace * 4;
+        }
+
         /**计算点坐标*/
       /*  for (int i = 0; i < lineData.size(); i++) {
             List<LinePoint> linePoints = lineData.get(i);
@@ -255,11 +317,9 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
 
     @Override
     public void drawChart(Canvas canvas) {
+
         long startTime =System.currentTimeMillis();
         float yMarkSpace = (rectChart.bottom - rectChart.top) / (yAxisMark.lableNum - 1);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(yAxisMark.lineColor);
-        paint.setColor(yAxisMark.lineColor);
         paintEffect.setStyle(Paint.Style.STROKE);
         paintEffect.setStrokeWidth(yAxisMark.lineWidth);
         paintEffect.setColor(yAxisMark.lineColor);
@@ -268,6 +328,10 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
 //        canvas.drawLine(rectChart.left, rectChart.top, rectChart.left, rectChart.bottom, paint);
         PathEffect effects = new DashPathEffect(new float[]{15, 6, 15, 6}, 0);
         paintEffect.setPathEffect(effects);
+
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(yAxisMark.lineWidth);
+        paint.setColor(yAxisMark.lineColor);
         for (int i = 0; i < yAxisMark.lableNum; i++) {
             /**绘制横向线*/
             canvas.drawLine(rectChart.left, rectChart.bottom - yMarkSpace * i,
@@ -277,6 +341,12 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
             canvas.drawText(text,
                     rectChart.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, text),
                     rectChart.bottom - yMarkSpace * i - yAxisMark.textHeight / 2 + yAxisMark.textLead, paintText);
+        }
+        //绘制Y轴单位
+        if(!TextUtils.isEmpty(yAxisMark.unit)){
+            canvas.drawText(yAxisMark.unit,
+                    rectChart.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, yAxisMark.unit),
+                    rectChart.top - yAxisMark.textSpace - yAxisMark.textHeight + yAxisMark.textLead, paintText);
         }
 
         /**绘制x轴刻度*/
@@ -289,9 +359,11 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
 //        }
 
         /**绘制折线*/
-        paint.setStyle(Paint.Style.STROKE);
         paintText.setTextSize(xAxisMark.textSize);
         paintText.setColor(xAxisMark.textColor);
+        paint.setStrokeWidth(lineWidth);
+        float radius = DensityUtil.dip2px(getContext(), 3);
+
         Path path = new Path();
         PointF lastPoint = new PointF();
         PointF currentPoint = new PointF();
@@ -299,7 +371,12 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
         int endIndex = (int)((-scrollx+rectChart.width())/pointWidth+1);
         endIndex = Math.min(endIndex, maxPointNum-1);
 //        Log.w(TAG, "绘制索引："+startIndex+" 至  "+endIndex+"   scrollx="+scrollx);
-        int restorePath = canvas.save();
+
+        RectF clipRect = new RectF(rectChart.left-radius-lineWidth/2, rectChart.top, rectChart.right+radius+lineWidth/2,
+                rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead);
+//        int restorePath = canvas.save();
+//        canvas.clipRect(clipRect);
+        canvas.saveLayer(clipRect.left, clipRect.top, clipRect.right, clipRect.bottom, paint, Canvas.ALL_SAVE_FLAG);
         for (int i = 0; i < lineData.size(); i++) {
             path.reset();
             List<LinePoint> linePoints = lineData.get(i);
@@ -317,35 +394,130 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
                 } else {
                     path.lineTo(currentPoint.x, currentPoint.y);
                 }
-                if(j % 50 == 0){
-                    canvas.drawCircle(currentPoint.x, currentPoint.y, 10, paint);
-                }
-                if(i==0 && xlables.contains(linePoints.get(j).getValuex())){
-                    int restoreText = canvas.save();
-                    canvas.clipRect(new RectF(rectChart.left, rectChart.top, rectChart.right,
-                            rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead));   //裁剪画布，只绘制rectChart的范围
+               if(xlables.contains(linePoints.get(j).getValuex())){
+                    if(i==0) {
 //                    Log.v(TAG, "绘制x轴刻度"+linePoints.get(j).getValuex());
-                    float x;
-                    if(j==0){
-                        x = currentPoint.x;
-                    }else if(j == maxPointNum-1){
-                        x = currentPoint.x - FontUtil.getFontlength(paintText, linePoints.get(j).getValuex());
-                    }else {
-                        x = currentPoint.x - FontUtil.getFontlength(paintText, linePoints.get(j).getValuex()) / 2;
+                        float x;
+                        if (j == 0) {
+                            x = currentPoint.x;
+                        } else if (j == maxPointNum - 1) {
+                            x = currentPoint.x - FontUtil.getFontlength(paintText, linePoints.get(j).getValuex());
+                        } else {
+                            x = currentPoint.x - FontUtil.getFontlength(paintText, linePoints.get(j).getValuex()) / 2;
+                        }
+                        canvas.drawText(linePoints.get(j).getValuex(), x,
+                                rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead, paintText);
                     }
-                    canvas.drawText(linePoints.get(j).getValuex(), x,
-                            rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead, paintText);
-                    canvas.restoreToCount(restoreText);
+                    paint.setStyle(Paint.Style.STROKE);
+                    paint.setColor(lineColor[i]);
+                    canvas.drawCircle(currentPoint.x, currentPoint.y, radius, paint);
+                    paint.setStyle(Paint.Style.FILL);
+                    paint.setColor(Color.WHITE);
+                    canvas.drawCircle(currentPoint.x, currentPoint.y, radius - lineWidth/2, paint);
                 }
             }
-            canvas.clipRect(rectChart);   //裁剪画布，只绘制rectChart的范围
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(lineWidth);
             paint.setColor(lineColor[i]);
+            /**
+             * Xfermode 有三个实现类: AvoidXfermode,PixelXorXfermode,PorterDuffXfermode
+             *
+             * 1. AvoidXfermode：对原来的像素进行处理，AvoidXfermode不支持硬件加速，使用它需要关闭硬件加速。其次，最好在新建图层上绘制. 构造方法参数分别代表:
+             * opColor被处理的像素颜色
+             * 容差值（原像素在一定范围内与传入的像素相似则处理）
+             * 模式: TARGET模式判断画布上是否有与opColor相似（容差）的颜色，如果有，则把该区域“染”上一层我们”画笔的颜色“，
+             *      AVOID与TARGET相反，将画布上与传入opColor不相似的染上画笔颜色
+             * 比如下面的代码中首先绘制一个图片，然后对图片上的白色像素进行处理，染色为画笔的红色
+             * canvas.drawBitmap(mBmp,null,new Rect(0,0,width,height),mPaint);
+             * mPaint.setXfermode(new AvoidXfermode(Color.WHITE,100, AvoidXfermode.Mode.TARGET));
+             * mPaint.setColor(Color.RED)
+             * canvas.drawRect(0,0,width,height,mPaint);
+             *
+             * 2. PixelXofXermode 没设么用，不支持硬件加速
+             *
+             * 3. PorterDuffXfermode是最常用的，它用于描述2D图像图像合成的模式，一共有12中模式描述数字图像合成的基本手法，包括
+             * Clear、Source Only、Destination Only、Source Over、Source In、Source
+             * Out、Source Atop、Destination Over、Destination In、Destination
+             * Out、Destination Atop、XOR。通过组合使用 Porter-Duff 操作，可完成任意 2D
+             * 图像的合成。在绘图时会先检查该画笔Paint对象有没有设置Xfermode，如果没有设置Xfermode，那么直接将绘制的图形覆盖Canvas对应位置原有的像素；
+             * 如果设置了Xfermode，那么会按照Xfermode具体的规则来更新Canvas中对应位置的像素颜色。
+             *
+             * 使用时通常结合canvas.saveLayer(clipRect.left, clipRect.top, clipRect.right, clipRect.bottom, paint, Canvas.ALL_SAVE_FLAG)创建一个全透明的layer层，否则会产生不可预期的结果
+             *
+             * 使用它时要搞清楚两个概念，DST表示在画笔设置它之前画布上已经绘制的内容，SRC表示设置之后绘制的内容，PorterDuffXfermode就是将两个部分的像素按照一定的模式进行合并
+             */
+            //这里设置DST_OVER，目的是将绘制path之前已经绘制的线上的点显示的线之上，要不然线会遮住小圆点
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OVER));
             canvas.drawPath(path, paint);
-            //恢复到裁切之前的画布
-            canvas.restoreToCount(restorePath);
+            paint.setXfermode(null);
         }
+//        canvas.restore();
 //        Log.w(TAG, "绘制一次需要："+(System.currentTimeMillis() - startTime)+ " ms");
+
+        drawFocus(canvas);
     }
+
+    /**绘制焦点*/
+    private void drawFocus(Canvas canvas){
+        if(null==focusData)
+            return;
+        //绘制竖直虚线
+        PathEffect effects = new DashPathEffect(new float[]{15,10,15,10},0);
+        paintEffect.setStyle(Paint.Style.STROKE);
+        paintEffect.setStrokeWidth(focusLineSize);
+        paintEffect.setColor(focusLineColor);
+        paintEffect.setPathEffect(effects);
+        Path path = new Path();
+        path.moveTo(focusData.getPoint().x, rectChart.bottom);
+        path.lineTo(focusData.getPoint().x, rectChart.top);
+        canvas.drawPath(path , paintEffect);
+        //绘制焦点
+//        paint.setAntiAlias(true);
+//        paint.setStyle(Paint.Style.STROKE);
+//        paint.setStrokeWidth(lineSize);
+//        paint.setColor(lineColor[0]);
+//        canvas.drawCircle(point1.x, point1.y, dotRadius, paint);
+//        paint.setColor(lineColor[1]);
+//        canvas.drawCircle(point2.x, point2.y, dotRadius, paint);
+        //面板
+        boolean showLeft = focusData.getPoint().x-rectChart.left > (rectChart.right - rectChart.left)/2;
+        RectF rect = new RectF(
+                showLeft?focusData.getPoint().x - foucsRectWidth - 30:focusData.getPoint().x + 30,
+                rectChart.top /*+ (rectChart.bottom - rectChart.top)/2 - foucsRectHeight/2*/,
+                showLeft? focusData.getPoint().x - 30 : focusData.getPoint().x + foucsRectWidth + 30,
+                rectChart.top  + foucsRectHeight/*+ (rectChart.bottom - rectChart.top)/2 + foucsRectHeight/2*/
+        );
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.WHITE);
+        paint.setAlpha(230);
+        canvas.drawRect(rect , paint);
+        //面板中的文字
+        //2020-10-16 06：00
+        //零序电流:15.2KW
+        //A相电流:15.2KW
+        //A相电流:15.2KW
+        //A相电流:15.2KW
+        String text;
+        float top = rect.top+foucsRectSpace;
+        for(int i = 0; i< focusPanelText.length; i++){
+            if(focusPanelText[i].show){
+                paintText.setTextSize(focusPanelText[i].textSize);
+                paintText.setColor(focusPanelText[i].textColor);
+                if(i == 0){
+                    //x轴数据
+                    text = focusData.getData().get(0).getValuex();
+                }else{
+                    top += foucsRectTextSpace;
+                    text = focusPanelText[i].text+focusData.getData().get(i-1).getValuey() + yAxisMark.unit;
+                }
+                canvas.drawText(text,
+                        rect.left+foucsRectSpace,
+                        top + FontUtil.getFontLeading(paintText), paintText);
+                top += FontUtil.getFontHeight(paintText);
+            }
+        }
+    }
+
 
     /**绘制 XAxisMark.lables 设置的固定x刻度，*/
     private void drawFixedXLable(Canvas canvas){
@@ -410,6 +582,7 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
         return super.onTouchEvent(event);
     }
 
+    PointF focusPoint = new PointF();
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         if(scaleAble) {
@@ -417,6 +590,24 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
             mGestureDetector.onTouchEvent(event);
         }else if(scrollAble) {
             mGestureDetector.onTouchEvent(event);
+        }
+        if(focusPanelText!=null) {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    focusPoint.x = event.getX();
+                    focusPoint.y = event.getY();
+                    onFocusTouch(focusPoint);
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    focusPoint.x = event.getX();
+                    focusPoint.y = event.getY();
+                    onFocusTouch(focusPoint);
+                    break;
+                case MotionEvent.ACTION_CANCEL:
+                case MotionEvent.ACTION_UP:
+                    onFocusTouch(null);
+                    break;
+            }
         }
         return true;
     }
@@ -509,5 +700,54 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
     }
 
     /**************************4. 事件👆******************************/
+
+
+    /*****************************焦点*******************************/
+
+    private FocusData focusData;
+    protected void onFocusTouch(PointF point) {
+        if(null == point){
+            focusData = null;
+        }else if(null!=lineData && lineData.size()>0){
+            //避免滑出
+            point.x = Math.max(point.x, rectChart.left);
+            point.x = Math.min(point.x, rectChart.right);
+            //获取焦点对应的数据的索引
+            int focusIndex = (int)((-scrollx + (point.x-rectChart.left))/pointWidth);
+//            LogUtil.e(getClass().getSimpleName(), "========焦点索引："+focusIndex);
+            focusIndex = Math.max(0, Math.min(focusIndex, maxPointNum - 1));
+            point.x = rectChart.left+(focusIndex*pointWidth + scrollx);
+            focusData = new FocusData();
+            focusData.setPoint(point);
+            List<LinePoint> data = new ArrayList<>();
+            focusData.setData(data);
+            for(List<LinePoint> line : lineData){
+                data.add(line.get(focusIndex));
+            }
+        }
+        postInvalidate();
+    }
+
+    /**焦点数据*/
+    public static class FocusData {
+        private List<LinePoint> data;
+        private PointF point;
+
+        public List<LinePoint> getData() {
+            return data;
+        }
+
+        public void setData(List<LinePoint> data) {
+            this.data = data;
+        }
+
+        public PointF getPoint() {
+            return point;
+        }
+
+        public void setPoint(PointF point) {
+            this.point = point;
+        }
+    }
 
 }

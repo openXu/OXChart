@@ -1,5 +1,6 @@
 package com.openxu.hkchart;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +11,7 @@ import com.openxu.cview.xmstock20201030.build.Line;
 import com.openxu.hkchart.bar.Bar;
 import com.openxu.hkchart.bar.BarChart;
 import com.openxu.hkchart.element.DataTransform;
+import com.openxu.hkchart.element.FocusPanelText;
 import com.openxu.hkchart.element.XAxisMark;
 import com.openxu.hkchart.element.YAxisMark;
 import com.openxu.hkchart.line.LineChart;
@@ -37,14 +39,39 @@ public class FpcActivity extends AppCompatActivity {
 
         lineChart1 = (LineChart)findViewById(R.id.lineChart1);
         if(lineChart1.getVisibility() == View.VISIBLE) {
-            lineChart1.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(YAxisMark.MarkType.Integer).build());
+            lineChart1.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(YAxisMark.MarkType.Integer).unit("(KW)").build());
             lineChart1.setXAxisMark(new XAxisMark.Builder(this)
                     .lableNum(5)
 //                    .lables(new String[]{"00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00", "24:00"})
                     .build());
-            lineChart1.setShowAnim(false);
-            lineChart1.setShowBegin(false);
-//            lineChart1.setPageShowNum(400);
+            lineChart1.setShowAnim(true);   //是否显示动画
+            lineChart1.setShowBegin(false);  //是否从开头显示，默认true
+            lineChart1.setScaleAble(true);   //是否支持缩放
+            lineChart1.setPageShowNum(100);  //默认一页显示的数据量
+            lineChart1.setLineColor(new int[]{
+                    Color.parseColor("#000000"),
+                    Color.parseColor("#3cd595"),
+                    Color.parseColor("#4d7bff"),
+                    Color.parseColor("#4d7bff")});
+            //设置焦点面板上的文字信息
+            lineChart1.setFocusPanelText(new FocusPanelText[]{
+                    new FocusPanelText(true,
+                            DensityUtil.sp2px(this, 12),
+                            Color.parseColor("#000000"),
+                            ""),
+                    new FocusPanelText(true,
+                            DensityUtil.sp2px(this, 10),
+                            Color.parseColor("#333333"),
+                            "零序电流："),
+                    new FocusPanelText(true,
+                            DensityUtil.sp2px(this, 10),
+                            Color.parseColor("#333333"),
+                            "222222A相电流："),
+                    new FocusPanelText(true,
+                            DensityUtil.sp2px(this, 10),
+                            Color.parseColor("#333333"),
+                            "B相电流：")
+            });
         }
         lineChart2 = (LineChart)findViewById(R.id.lineChart2);
         if(lineChart2.getVisibility() == View.VISIBLE) {
@@ -182,10 +209,10 @@ public class FpcActivity extends AppCompatActivity {
                             //时间格式,HH是24小时制，hh是AM PM12小时制
                             //比如timestamp=1449210225945；  绘制x轴刻度1603564200000
                             String date_string = sdf.format(new Date(Long.valueOf(point.getTimestamp()) * 1000L));
-                            line1.add(new LinePoint(date_string, point.getValue()-10));
-                            line2.add(new LinePoint(point.getTimestamp(), point.getValue() + 2));
-                            line3.add(new LinePoint(point.getTimestamp(), point.getValue()+5));
-                            line4.add(new LinePoint(point.getTimestamp(), point.getValue()-20));
+                            line1.add(new LinePoint(date_string, point.getValue()));
+                            line2.add(new LinePoint(date_string, point.getValue() + 30));
+                            line3.add(new LinePoint(date_string, point.getValue()+20));
+                            line4.add(new LinePoint(date_string, point.getValue()+10));
                         }
                         return lines;
                     }

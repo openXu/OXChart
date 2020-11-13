@@ -518,7 +518,6 @@ public class LineChart extends BaseChart implements View.OnTouchListener {
         }
     }
 
-
     /**绘制 XAxisMark.lables 设置的固定x刻度，*/
     private void drawFixedXLable(Canvas canvas){
         float oneWidth = (-scrollXMax+rectChart.width())/(xAxisMark.lables.length-1);

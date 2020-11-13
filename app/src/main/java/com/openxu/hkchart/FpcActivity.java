@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import com.google.gson.Gson;
 import com.openxu.cview.xmstock20201030.build.Line;
@@ -16,6 +18,8 @@ import com.openxu.hkchart.element.XAxisMark;
 import com.openxu.hkchart.element.YAxisMark;
 import com.openxu.hkchart.line.LineChart;
 import com.openxu.hkchart.line.LinePoint;
+import com.openxu.hkchart.view.EchartOptionUtil;
+import com.openxu.hkchart.view.EchartView;
 import com.openxu.utils.DensityUtil;
 
 import org.json.JSONObject;
@@ -28,6 +32,9 @@ import java.util.List;
 public class FpcActivity extends AppCompatActivity {
 
     private String TAG = "FpcActivity";
+
+    WebView webview;
+    private EchartView lineChart;
     LineChart lineChart1, lineChart2, lineChart3;
     BarChart bartChart1, bartChart2,bartChart3, bartChart4;
     @Override
@@ -36,6 +43,41 @@ public class FpcActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fpc_chart);
         //Android自带的主题有些会有个纯色背景，如果我们程序有自己的背景，那么这个window的背景是不需要的。去掉window的背景可以在onCreate()中setContentView()之后调用
 //        getWindow().setBackgroundDrawable(null);
+
+        webview = (WebView)findViewById(R.id.webview);
+        webview.getSettings().setAllowFileAccess(true);
+        webview.getSettings().setJavaScriptEnabled(true);
+        /**
+         * js方法的调用必须在html页面加载完成之后才能调用。
+         * 用webview加载html还是需要耗时间的，必须等待加载完，在执行代用js方法的代码。
+         */
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    Thread.sleep(2000);
+                } catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        webview.loadUrl("file:///android_asset/echarts1.html");
+
+        lineChart = (EchartView)findViewById(R.id.lineChart);
+        lineChart.setWebViewClient(new WebViewClient(){
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                //最好在h5页面加载完毕后再加载数据，防止html的标签还未加载完成，不能正常显示
+                Object[] x = new Object[]{
+                        "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+                };
+                Object[] y = new Object[]{
+                        820, 932, 901, 934, 1290, 1330, 1320
+                };
+                lineChart.refreshEchartsWithOption(EchartOptionUtil.getLineChartOptions(x, y));
+            }
+        });
 
         lineChart1 = (LineChart)findViewById(R.id.lineChart1);
         if(lineChart1.getVisibility() == View.VISIBLE) {

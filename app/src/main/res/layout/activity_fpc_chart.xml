@@ -12,7 +12,6 @@ android:layout_height="match_parent"
         app:iconBack="@mipmap/btn_back"
         app:textcenter="法之运"/>
 
-
 <ScrollView
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -21,6 +20,19 @@ android:layout_height="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical">
+
+        <WebView
+            android:id="@+id/webview"
+            android:layout_width="match_parent"
+            android:layout_height="500dp"/>
+
+        <com.openxu.hkchart.view.EchartView
+            android:id="@+id/lineChart"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:layout_gravity="center">
+        </com.openxu.hkchart.view.EchartView>
+
         <com.openxu.hkchart.line.LineChart
             android:id="@+id/lineChart1"
             android:visibility="visible"

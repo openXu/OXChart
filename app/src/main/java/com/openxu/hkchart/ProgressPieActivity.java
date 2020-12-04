@@ -2,7 +2,6 @@ package com.openxu.hkchart;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 
 import com.openxu.cview.chart.ProgressPieChart;
 import com.openxu.cview.chart.bean.ChartLable;
@@ -10,6 +9,8 @@ import com.openxu.utils.DensityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class ProgressPieActivity extends AppCompatActivity {
 

@@ -160,12 +160,16 @@ public abstract class BaseChart extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
         centerPoint = new Point(getMeasuredWidth()/2, getMeasuredHeight()/2);
         rectChart = new RectF(getPaddingLeft(),getPaddingTop(),getMeasuredWidth()-getPaddingRight(),
                 getMeasuredHeight()-getPaddingBottom());
         loadingIndicator.setBounds((int)rectChart.left, (int)rectChart.top,
                 (int)rectChart.right, (int)rectChart.bottom);
-        Log.w(TAG, "测量："+rectChart);
     }
 
     @Override

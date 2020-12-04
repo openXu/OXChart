@@ -3,8 +3,9 @@ package com.openxu.hkchart;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 
 public class Base64ToBitmapActivity extends AppCompatActivity {

@@ -2,7 +2,6 @@ package com.openxu.hkchart;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 
 import com.openxu.cview.chart.barchart.BarHorizontalChart;
 import com.openxu.cview.chart.bean.BarBean;
@@ -11,6 +10,8 @@ import com.openxu.utils.DensityUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class HorizontalBarActivity extends AppCompatActivity {
 

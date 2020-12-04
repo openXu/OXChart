@@ -25,7 +25,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:appcompat-v7:25.3.1'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
 }
 
 // must be applied after your artifact generating plugin (eg. java / com.android.library)

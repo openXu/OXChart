@@ -4,7 +4,6 @@ package com.openxu.hkchart;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 
 import com.google.gson.Gson;
@@ -17,6 +16,8 @@ import com.openxu.cview.xmstock20191205.bean.NorthSouth;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class XmStockChartActivity191205 extends AppCompatActivity {
     Button btn_d_north, btn_d_south, btn_y_north, btn_y_south;

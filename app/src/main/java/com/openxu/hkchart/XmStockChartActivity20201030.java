@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -35,6 +34,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class XmStockChartActivity20201030 extends AppCompatActivity {
 
@@ -252,14 +253,6 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
                 }
             }
         }, 500);
-
-
-
-
-
-
-
-
 
 
         new Handler().postDelayed(new Runnable() {

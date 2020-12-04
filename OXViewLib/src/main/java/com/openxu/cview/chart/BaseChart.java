@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.AttributeSet;
@@ -129,11 +130,15 @@ public abstract class BaseChart extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
         centerPoint = new PointF(getMeasuredWidth()/2, getMeasuredHeight()/2);
         rectChart = new RectF(getPaddingLeft(),getPaddingTop(),getMeasuredWidth()-getPaddingRight(),
                 getMeasuredHeight()-getPaddingBottom());
     }
-
 
     protected TOUCH_EVENT_TYPE touchEventType = TOUCH_EVENT_TYPE.EVENT_NULL;
     /**需要拦截的事件方向*/

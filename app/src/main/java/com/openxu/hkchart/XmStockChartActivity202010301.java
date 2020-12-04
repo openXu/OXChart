@@ -1,10 +1,11 @@
 package com.openxu.hkchart;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import com.openxu.cview.xmstock20201030.SyzsLinesChart;
 import com.openxu.cview.xmstock20201030.bean.CalendarDataStock;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class XmStockChartActivity202010301 extends AppCompatActivity {
 

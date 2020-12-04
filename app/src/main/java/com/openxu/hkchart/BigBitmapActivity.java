@@ -1,11 +1,12 @@
 package com.openxu.hkchart;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import com.openxu.view.BigBitmapView;
 
 import java.io.IOException;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class BigBitmapActivity extends AppCompatActivity {
     @Override

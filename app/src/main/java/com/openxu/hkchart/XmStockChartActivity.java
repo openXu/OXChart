@@ -3,7 +3,6 @@ package com.openxu.hkchart;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 
 import com.google.gson.Gson;
 import com.openxu.cview.xmstock.BarChart;
@@ -19,6 +18,8 @@ import org.json.JSONObject;
 
 import java.util.Collections;
 import java.util.List;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class XmStockChartActivity extends AppCompatActivity {
     ChartData data;

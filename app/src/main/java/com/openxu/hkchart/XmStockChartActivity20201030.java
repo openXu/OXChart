@@ -270,7 +270,7 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
                         datas.add(new LinesData(random.nextInt(10)+i, random.nextInt(30)+i, "2020-"+i));
                     }
                     //绑定
-//                    bindChartData(datas);
+                    bindChartData(datas);
                 }catch (Exception e){
                     e.printStackTrace();
                 }

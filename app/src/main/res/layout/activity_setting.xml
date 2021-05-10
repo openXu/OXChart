@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+
+    <data>
+        <import type="android.view.View"/>
+
+    </data>
+
+    <LinearLayout  android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <com.openxu.cview.TitleLayout
+            android:id="@+id/title_layout"
+            style="@style/TitleDefStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:iconBack="@mipmap/btn_back"
+            app:textcenter="设置"/>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+                <include
+                    android:id="@+id/debugOnOff"
+                    layout="@layout/setting_item_layout_checkbox"
+                    app:title="@{`开启Debug模式(绘制辅助线)`}"
+                    app:lineVisible="@{View.VISIBLE}"/>
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</layout>

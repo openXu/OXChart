@@ -3,6 +3,7 @@
 
 
     <!--白色内容区域按下时的背景色-->
+    <color name="color_white">#ffffff</color>
     <color name="white_press_bg">#16000000</color>
     <!--线条色-->
     <color name="line_bg_color">#f3f3f3</color>

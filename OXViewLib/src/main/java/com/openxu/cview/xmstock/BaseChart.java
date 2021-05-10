@@ -22,6 +22,7 @@ import com.openxu.cview.xmstock.bean.Constacts;
 import com.openxu.utils.DensityUtil;
 import com.openxu.utils.FontUtil;
 import com.openxu.utils.LogUtil;
+import com.openxu.utils.SharedData;
 
 import static android.content.Context.VIBRATOR_SERVICE;
 
@@ -45,6 +46,7 @@ public abstract class BaseChart extends View {
     protected Paint paint;
     protected Paint paintEffect;
     protected Paint paintLabel;
+    protected boolean debug = SharedData.getInstance().getData(SharedData.KEY_DEBUG, Boolean.class);
 
     /**可设置属性*/
     protected int backColor = Color.WHITE;
@@ -208,7 +210,7 @@ public abstract class BaseChart extends View {
         try {
             //画布背景
 //        canvas.drawColor(backColor);
-            if (Constacts.DEBUG) {
+            if (debug) {
                 drawDebug(canvas);
             }
             drawDefult(canvas);

@@ -1,6 +1,7 @@
 package com.openxu.hkchart;
 
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -11,8 +12,15 @@ import com.google.gson.Gson;
 import com.openxu.cview.xmstock20201030.build.Line;
 import com.openxu.hkchart.bar.Bar;
 import com.openxu.hkchart.bar.BarChart;
+import com.openxu.hkchart.bar.HBar;
+import com.openxu.hkchart.bar.HorizontalBarChart;
+import com.openxu.hkchart.bar.MultipartBarChart;
+import com.openxu.hkchart.bar.MultipartBarData;
+import com.openxu.hkchart.config.DisplayScheme;
+import com.openxu.hkchart.config.MultipartBarConfig;
 import com.openxu.hkchart.element.DataTransform;
 import com.openxu.hkchart.element.FocusPanelText;
+import com.openxu.hkchart.element.MarkType;
 import com.openxu.hkchart.element.XAxisMark;
 import com.openxu.hkchart.element.YAxisMark;
 import com.openxu.hkchart.line.LineChart;
@@ -27,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -37,6 +46,8 @@ public class FpcActivity extends AppCompatActivity {
     WebView webview;
     private EchartView lineChart;
     LineChart lineChart1, lineChart2, lineChart3;
+    HorizontalBarChart horizontalBarChart;
+    MultipartBarChart multipartBarChart, multipartBarChart1, multipartBarChart2, multipartBarChart3;
     BarChart bartChart1, bartChart2,bartChart3, bartChart4;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,7 +93,7 @@ public class FpcActivity extends AppCompatActivity {
 
         lineChart1 = (LineChart)findViewById(R.id.lineChart1);
         if(lineChart1.getVisibility() == View.VISIBLE) {
-            lineChart1.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(YAxisMark.MarkType.Integer).unit("(KW)").build());
+            lineChart1.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(MarkType.Integer).unit("(KW)").build());
             lineChart1.setXAxisMark(new XAxisMark.Builder(this)
                     .lableNum(5)
 //                    .lables(new String[]{"00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00", "24:00"})
@@ -91,6 +102,7 @@ public class FpcActivity extends AppCompatActivity {
             lineChart1.setShowBegin(false);  //是否从开头显示，默认true
             lineChart1.setScaleAble(true);   //是否支持缩放
             lineChart1.setPageShowNum(100);  //默认一页显示的数据量
+            lineChart1.setLineType(LineChart.LineType.CURVE);   //曲线图
             lineChart1.setLineColor(new int[]{
                     Color.parseColor("#000000"),
                     Color.parseColor("#3cd595"),
@@ -118,24 +130,116 @@ public class FpcActivity extends AppCompatActivity {
         }
         lineChart2 = (LineChart)findViewById(R.id.lineChart2);
         if(lineChart2.getVisibility() == View.VISIBLE) {
-            lineChart2.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(YAxisMark.MarkType.Integer).build());
+            lineChart2.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(MarkType.Integer).build());
             lineChart2.setXAxisMark(new XAxisMark.Builder(this).lableNum(4).build());
         }
         lineChart3 = (LineChart)findViewById(R.id.lineChart3);
         if(lineChart3.getVisibility() == View.VISIBLE) {
-            lineChart3.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(YAxisMark.MarkType.Integer).build());
+            lineChart3.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(MarkType.Integer).build());
             lineChart3.setXAxisMark(new XAxisMark.Builder(this).lableNum(4).build());
         }
+        horizontalBarChart = (HorizontalBarChart)findViewById(R.id.horizontalBarChart);
+        Typeface typeface = Typeface.createFromAsset(getResources().getAssets(), "hk_number_text_type.ttf");
+        horizontalBarChart.setYAxisMark(new YAxisMark.Builder(this)
+                .lableNum(5)
+                .numberTypeface(typeface)
+                .markType(MarkType.Float)
+                .unit("元")
+                .build());
+        horizontalBarChart.setXAxisMark(new XAxisMark.Builder(this)
+                .textSize(DensityUtil.sp2px(this, 12))
+                .build());
+
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                multipartBarChart = findViewById(R.id.multipartBarChart);
+                multipartBarChart1 = findViewById(R.id.multipartBarChart1);
+                multipartBarChart2 = findViewById(R.id.multipartBarChart2);
+                multipartBarChart3 = findViewById(R.id.multipartBarChart3);
+                MultipartBarConfig config = new MultipartBarConfig();
+                config.setDisplayScheme(DisplayScheme.SHOW_ALL);
+                config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 20));
+                config.setSpacingRatio(1.5f);
+                multipartBarChart.setDisplayConfig(config);
+                multipartBarChart1.setDisplayConfig(config);
+                config = new MultipartBarConfig();
+                config.setDisplayScheme(DisplayScheme.SHOW_BEGIN);
+                config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 15));
+                config.setSpacingRatio(0.5f);
+                multipartBarChart2.setDisplayConfig(config);
+                config = new MultipartBarConfig();
+                config.setDisplayScheme(DisplayScheme.SHOW_END);
+                config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 15));
+                config.setSpacingRatio(0.5f);
+                multipartBarChart3.setDisplayConfig(config);
+                YAxisMark yAxisMark = new YAxisMark.Builder(FpcActivity.this)
+                        .lableNum(5)   //y刻度数量
+                        .numberTypeface(typeface)
+                        .markType(MarkType.Float)
+                        .digits(1)
+                        .unit("元")
+                        .build();
+                XAxisMark xAxisMark = new XAxisMark.Builder(FpcActivity.this)
+                        .lableNum(10)   //最多显示的x刻度，并非一定显示10个，图表会自动根据x刻度文字长短适配
+                        .textSize(DensityUtil.sp2px(FpcActivity.this, 12))
+                        .build();
+                multipartBarChart.setYAxisMark(yAxisMark);
+                multipartBarChart.setXAxisMark(xAxisMark);
+                multipartBarChart.setShowAnim(true);
+                multipartBarChart1.setYAxisMark(yAxisMark);
+                multipartBarChart1.setXAxisMark(xAxisMark);
+                multipartBarChart1.setShowAnim(true);
+                multipartBarChart2.setYAxisMark(yAxisMark);
+                multipartBarChart2.setXAxisMark(xAxisMark);
+                multipartBarChart2.setShowAnim(false);
+                multipartBarChart3.setYAxisMark(yAxisMark);
+                multipartBarChart3.setXAxisMark(xAxisMark);
+                multipartBarChart3.setShowAnim(false);
+                List<MultipartBarData> datas = new ArrayList<>();
+                for(int i = 1; i<=3; i++){
+                    List<Float> valueys = new ArrayList<>();
+                    valueys.add(10f*i);
+                    valueys.add(10f*i + 5);
+                    valueys.add(10f*i+10);
+                    datas.add(new MultipartBarData(valueys,
+                            "2010-"+i));
+                }
+                multipartBarChart.setDatas(datas);
+                datas = new ArrayList<>();
+                for(int i = 1; i<=10; i++){
+                    List<Float> valueys = new ArrayList<>();
+                    valueys.add(10f*i);
+                    valueys.add(10f*i + 5);
+                    valueys.add(10f*i+10);
+                    datas.add(new MultipartBarData(valueys,
+                            "2010-"+i));
+                }
+                for(int i = 11; i>0; i--){
+                    List<Float> valueys = new ArrayList<>();
+                    valueys.add(10f*i);
+                    valueys.add(10f*i + 5);
+                    valueys.add(10f*i+10);
+                    datas.add(new MultipartBarData(valueys,
+                            "2010-"+i));
+                }
+                multipartBarChart1.setDatas(datas);
+                multipartBarChart2.setDatas(datas);
+                multipartBarChart3.setDatas(datas);
+            }
+        },1000);
+
         bartChart1 = (BarChart)findViewById(R.id.bartChart1);
         if(bartChart1.getVisibility() == View.VISIBLE) {
-            bartChart1.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(YAxisMark.MarkType.Integer).build());
+            bartChart1.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(MarkType.Integer).build());
             bartChart1.setXAxisMark(new XAxisMark.Builder(this).lableNum(4).build());
             bartChart1.setScrollAble(false);
         }
 
         bartChart2 = (BarChart)findViewById(R.id.bartChart2);
         if(bartChart2.getVisibility() == View.VISIBLE) {
-            bartChart2.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(YAxisMark.MarkType.Integer).build());
+            bartChart2.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(MarkType.Integer).build());
             bartChart2.setXAxisMark(new XAxisMark.Builder(this).lableNum(4).build());
             bartChart2.setBarWidth(DensityUtil.dip2px(this, 16));
             bartChart2.setBarSpace(DensityUtil.dip2px(this, 5));
@@ -145,18 +249,19 @@ public class FpcActivity extends AppCompatActivity {
         }
         bartChart3 = (BarChart)findViewById(R.id.bartChart3);
         if(bartChart3.getVisibility() == View.VISIBLE) {
-            bartChart3.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(YAxisMark.MarkType.Integer).build());
+            bartChart3.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(MarkType.Integer).build());
             bartChart3.setXAxisMark(new XAxisMark.Builder(this).lableNum(4).build());
             bartChart3.setScrollAble(true);
             bartChart3.setShowBegin(false);
         }
         bartChart4 = (BarChart)findViewById(R.id.bartChart4);
         if(bartChart4.getVisibility() == View.VISIBLE) {
-            bartChart4.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(YAxisMark.MarkType.Float).build());
+            bartChart4.setYAxisMark(new YAxisMark.Builder(this).lableNum(6).markType(MarkType.Float).build());
             bartChart4.setXAxisMark(new XAxisMark.Builder(this).lableNum(4).build());
             bartChart4.setScrollAble(false);
         }
         getLineData();
+        getHorizontalBarData();
         getBarData();
     }
 
@@ -224,6 +329,21 @@ public class FpcActivity extends AppCompatActivity {
                     bartChart3.setData(dataTransform.transform(datas2));
                 if(bartChart4.getVisibility() == View.VISIBLE)
                     bartChart4.setData(dataTransform.transform(datas1));
+            }
+        },2000);
+
+    }
+
+    private void getHorizontalBarData(){
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                List<HBar> lists = new ArrayList<>();
+                lists.add(new HBar("电量电费", 100f));
+                lists.add(new HBar("基本电费", -30f));
+                lists.add(new HBar("力调电费", 25.89f));
+                lists.add(new HBar("附加费", 73.1f));
+                horizontalBarChart.setData(lists);
             }
         },2000);
 

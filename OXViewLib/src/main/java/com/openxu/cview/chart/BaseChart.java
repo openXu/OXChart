@@ -21,6 +21,7 @@ import com.openxu.cview.R;
 import com.openxu.cview.chart.anim.AngleEvaluator;
 import com.openxu.utils.FontUtil;
 import com.openxu.utils.LogUtil;
+import com.openxu.utils.SharedData;
 
 
 /**
@@ -61,7 +62,7 @@ public abstract class BaseChart extends View {
     protected boolean isLoading = true;
     protected boolean drawLine = true;
     protected boolean drawBottomLine = true;
-    protected boolean debug = BuildConfig.DEBUG;
+    protected boolean debug = SharedData.getInstance().getData(SharedData.KEY_DEBUG, Boolean.class);
 
 
     /**手指抬起后，动画*/

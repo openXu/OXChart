@@ -1,16 +1,18 @@
 buildscript {
+    ext.kotlin_version = '1.4.20'
     dependencies {
         repositories {
             google()
             jcenter()
         }
-        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath "com.android.tools.build:gradle:4.1.1"
 
         //发布到jcenter
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.+'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
 
         classpath 'com.novoda:bintray-release:0.8.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" // add plugin
 //        classpath 'com.novoda:bintray-release:0.4.0'
     }
 
@@ -19,14 +21,17 @@ buildscript {
         options.addStringOption('Xdoclint:none', '-quiet')
         options.addStringOption('encoding', 'UTF-8')
     }
-  /*  tasks.withType(Javadoc) {
-        options {
-            encoding "UTF-8"
-            charSet 'UTF-8'
-            links "http://docs.oracle.com/javase/7/docs/api"
-            failOnError false
-        }
-    }*/
+    repositories {
+        mavenCentral()
+    }
+    /*  tasks.withType(Javadoc) {
+          options {
+              encoding "UTF-8"
+              charSet 'UTF-8'
+              links "http://docs.oracle.com/javase/7/docs/api"
+              failOnError false
+          }
+      }*/
 }
 //tasks.getByPath(":OXViewLib:releaseAndroidJavadocs").enabled = false
 

@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.View;
 
+import com.openxu.cview.TitleLayout;
 import com.openxu.hkchart.adapter.CommandRecyclerAdapter;
 import com.openxu.hkchart.adapter.ViewHolder;
 
@@ -32,9 +34,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        TitleLayout titleLayout = findViewById(R.id.recyclerView);
+        titleLayout.setOnMenuClickListener(new TitleLayout.OnMenuClickListener() {
+            @Override
+            public void onClick(TitleLayout.MENU_NAME menu, View view) {
+                if(menu== TitleLayout.MENU_NAME.MENU_RIGHT_TEXT){
+                   startActivity(new Intent(MainActivity.this, SettingActivity.class));
+                }
+            }
+        });
+
         recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         datas = new ArrayList<>();
+        datas.add("法之运");
         datas.add("南丁格尔玫瑰图");
         datas.add("饼状图");
         datas.add("进度环形图");
@@ -45,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
         datas.add("股票信息20201031");
         datas.add("Base64TBitmap");
         datas.add("大图加载");
-        datas.add("法之运");
         recyclerView.setAdapter(new CommandRecyclerAdapter<String>(this, R.layout.list_item, datas) {
             @Override
             public void convert(ViewHolder holder, String str) {

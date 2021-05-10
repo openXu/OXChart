@@ -210,7 +210,7 @@ public class XmStockChartActivity extends AppCompatActivity {
                 String[] newZhabanLables = new String[1];
                 List<DataPoint> datas = focusInfo.getFocusData();
                 newZhabanLables[0] = zhabanLables[0] + (" "+(int)datas.get(0).getValueY()+"家"+
-                        "   炸板数"+ NumberFormatUtil.formattedDecimalToPercentage(datas.get(1).getValueY()));
+                        "   炸板数"+ NumberFormatUtil.formattedDecimalToPercentage(datas.get(1).getValueY(), 2));
                 zhabanLableChart.setData(newZhabanLables, "03-13 15：00");
             }
         });
@@ -229,7 +229,7 @@ public class XmStockChartActivity extends AppCompatActivity {
                 List<DataPoint> datas = focusInfo.getFocusData();
                 for(int i = 0; i<datas.size() ; i++){
                     newZhangfuLables[i] = zhangfuLables[i]+  " "+
-                            NumberFormatUtil.formattedDecimalToPercentage(datas.get(i).getValueY());
+                            NumberFormatUtil.formattedDecimalToPercentage(datas.get(i).getValueY(), 2);
                 }
                 zhangfuLableChart.setData(newZhangfuLables, "03-13 15：00");
             }
@@ -249,7 +249,7 @@ public class XmStockChartActivity extends AppCompatActivity {
                 String[] newWeightLables = new String[4];
                 for(int i = 0; i<weightLables.length ; i++){
                     newWeightLables[i] = weightLables[i]+ " "+
-                            (i>datas.size()-1?"0":NumberFormatUtil.formattedDecimalToPercentage(datas.get(i).getValueY()));
+                            (i>datas.size()-1?"0":NumberFormatUtil.formattedDecimalToPercentage(datas.get(i).getValueY(), 2));
                 }
                 weightLableChart.setData(newWeightLables, "03-13 15：00");
             }

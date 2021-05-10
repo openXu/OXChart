@@ -1,13 +1,15 @@
 apply plugin: 'com.android.application'
-
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.openxu.chart"
-        minSdkVersion 16
+        minSdkVersion 18
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     lintOptions {
         abortOnError false
@@ -22,14 +24,15 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    dataBinding {  // android gradle 5.0弃用
+        enabled = true
+    }
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.0.2'
-    implementation 'com.google.android.material:material:1.0.0'
     implementation 'com.google.code.gson:gson:2.8.0'
     implementation project(':OXViewLib')
-
     implementation 'com.github.abel533:ECharts:3.0.0.2'
     //    implementation 'com.openxu.viewlib:OXViewLib:1.0.2'
 }

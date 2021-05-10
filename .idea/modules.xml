@@ -2,12 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/OXChart.iml" filepath="$PROJECT_DIR$/OXChart.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/OXViewLib/OXChart-OXViewLib.iml" filepath="$PROJECT_DIR$/.idea/modules/OXViewLib/OXChart-OXViewLib.iml" group="OXChart/OXViewLib" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/OXChart-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/OXChart-app.iml" group="OXChart/app" />
-      <module fileurl="file://$PROJECT_DIR$/OXViewLib/OXViewLib.iml" filepath="$PROJECT_DIR$/OXViewLib/OXViewLib.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/workspace-OXChart.iml" filepath="$PROJECT_DIR$/.idea/modules/workspace-OXChart.iml" group="OXChart" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/OXChart.iml" filepath="$PROJECT_DIR$/.idea/modules/OXChart.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/OXViewLib/OXChart.OXViewLib.iml" filepath="$PROJECT_DIR$/.idea/modules/OXViewLib/OXChart.OXViewLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/OXChart.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/OXChart.app.iml" />
     </modules>
   </component>
 </project>

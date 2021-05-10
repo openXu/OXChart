@@ -97,7 +97,7 @@ public class ChartCalUtil {
             if(axisMark.lableType == AxisMark.LABLE_TYPE.INTEGER){
                 axisMark.lables[i] = ((int)num)+"";
             }else if(axisMark.lableType == AxisMark.LABLE_TYPE.PERCENTAGE){
-                axisMark.lables[i] = NumberFormatUtil.formattedDecimalToPercentage(num);
+                axisMark.lables[i] = NumberFormatUtil.formattedDecimalToPercentage(num, 2);
             }else if(axisMark.lableType == AxisMark.LABLE_TYPE.FLOAT){
                 axisMark.lables[i] = NumberFormatUtil.formattedDecimal(num);
             }

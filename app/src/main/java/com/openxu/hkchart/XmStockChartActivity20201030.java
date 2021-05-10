@@ -301,6 +301,7 @@ public class XmStockChartActivity20201030 extends AppCompatActivity {
                         .lineType(Line.LineType.CURVE)
                         .orientation(Orientation.LEFT)
 //                        .orientation(Orientation.RIGHT)
+                        .datas(datas)
                         .animType(AnimType.NONE)  //BOTTOM_TO_TOP
                         .field_x("xlable")
                         .field_y("num2").build())

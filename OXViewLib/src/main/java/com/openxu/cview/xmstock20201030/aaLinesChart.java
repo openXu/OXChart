@@ -412,7 +412,7 @@ public class aaLinesChart extends BaseChart {
                 canvas.drawText((int) (YMARK_MIN + i * YMARK) + "", rectChart.left,
                         rectChart.bottom - yMarkSpace * i - lableHeight - textSpaceY + lableLead, paintLabel);
             }else if(yMarkType == YMARK_TYPE.PERCENTAGE){
-                canvas.drawText(NumberFormatUtil.formattedDecimalToPercentage((YMARK_MIN + i * YMARK)), rectChart.left,
+                canvas.drawText(NumberFormatUtil.formattedDecimalToPercentage((YMARK_MIN + i * YMARK), 2), rectChart.left,
                         rectChart.bottom - yMarkSpace * i - lableHeight - textSpaceY + lableLead, paintLabel);
             }
         }

@@ -15,6 +15,7 @@ import android.view.MotionEvent;
 import android.widget.Scroller;
 
 import com.openxu.hkchart.BaseChart;
+import com.openxu.hkchart.element.MarkType;
 import com.openxu.hkchart.element.XAxisMark;
 import com.openxu.hkchart.element.YAxisMark;
 import com.openxu.utils.DensityUtil;
@@ -148,7 +149,7 @@ public class BarChart extends BaseChart {
             }
         }
         LogUtil.i(TAG, "Y轴真实cal_mark_min="+yAxisMark.cal_mark_min+"  cal_mark_max="+yAxisMark.cal_mark_max);
-        if(yAxisMark.markType == YAxisMark.MarkType.Integer){
+        if(yAxisMark.markType == MarkType.Integer){
             int min = 0;
             int max = (int)yAxisMark.cal_mark_max;
             int mark = (max-min)/(yAxisMark.lableNum - 1)+((max-min)%(yAxisMark.lableNum - 1)>0?1:0);

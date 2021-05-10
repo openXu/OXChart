@@ -21,6 +21,7 @@ import com.openxu.hkchart.loading.LoadingIndicator;
 import com.openxu.cview.chart.anim.AngleEvaluator;
 import com.openxu.utils.DensityUtil;
 import com.openxu.utils.LogUtil;
+import com.openxu.utils.SharedData;
 
 /**
  * Author: openXu
@@ -32,7 +33,8 @@ public abstract class BaseChart extends View {
 
     protected String TAG = getClass().getSimpleName();
 //    protected boolean debug = BuildConfig.DEBUG;
-    protected boolean debug = false;
+    protected boolean debug = SharedData.getInstance().getData(SharedData.KEY_DEBUG, Boolean.class);
+
     //坐标轴辅助线宽度
     protected int axisLineWidth = DensityUtil.dip2px(getContext(), 0.8f);
     //画笔
@@ -198,10 +200,13 @@ public abstract class BaseChart extends View {
         paint.setStyle(Paint.Style.STROKE);//设置空心
         paint.setStrokeWidth(axisLineWidth);
         //绘制边界--chart区域
-        paint.setColor(Color.BLUE);
+        paint.setColor(Color.BLACK);
         RectF r = new RectF(0,0,getMeasuredWidth(), getMeasuredHeight());
         canvas.drawRect(r, paint);
         paint.setColor(Color.RED);
+        r = new RectF(getPaddingLeft(),getPaddingTop(),getMeasuredWidth()-getPaddingRight(), getMeasuredHeight()-getPaddingBottom());
+        canvas.drawRect(r, paint);
+        paint.setColor(Color.GREEN);
         canvas.drawRect(rectChart, paint);
     }
     /**绘制图表*/

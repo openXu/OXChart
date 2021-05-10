@@ -11,6 +11,7 @@
         style="@style/TitleDefStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:textRight="设置"
         app:textcenter="自定义控件-图表"/>
 
 

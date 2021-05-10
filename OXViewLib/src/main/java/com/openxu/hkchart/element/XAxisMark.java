@@ -16,6 +16,7 @@ public class XAxisMark {
     public int textSpace;  //设置坐标字体与横轴的距离
     //2选1设置
     public int lableNum = 5;
+    public int splitSubLen = -1;
     public String[] lables;
 //    public int lineWidth;
 //    public int lineColor;
@@ -34,6 +35,10 @@ public class XAxisMark {
 //            axisMark.lineWidth = DensityUtil.dip2px(context, 0.7f);
 //            axisMark.lineColor = Color.parseColor("#5E5E5E");
 
+        }
+        public Builder splitSubLen(int splitSubLen) {
+            axisMark.splitSubLen = splitSubLen;
+            return this;
         }
         public Builder textSize(int textSize) {
             axisMark.textSize = textSize;

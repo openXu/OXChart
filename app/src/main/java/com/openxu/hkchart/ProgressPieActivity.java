@@ -23,7 +23,6 @@ public class ProgressPieActivity extends AppCompatActivity {
 
         chart1 = (ProgressPieChart)findViewById(R.id.chart1);
         chart1.setProSize(DensityUtil.dip2px(this, 5));  //圆环宽度
-        chart1.setDebug(false);
         chart1.setLoading(false);
         chart1.setProColor(Color.parseColor("#ff0000"));  //进度颜色
         //环形中间显示的lable
@@ -40,7 +39,6 @@ public class ProgressPieActivity extends AppCompatActivity {
                 DensityUtil.sp2px(this, 12), Color.parseColor("#ff0000")));
         chart2 = (ProgressPieChart)findViewById(R.id.chart2);
         chart2.setProSize(DensityUtil.dip2px(this, 20));  //圆环宽度
-        chart2.setDebug(false);
         chart2.setLoading(false);
         chart2.setProColor(Color.parseColor("#F28D02"));  //进度颜色
         chart2.setData(100, 60, lables);

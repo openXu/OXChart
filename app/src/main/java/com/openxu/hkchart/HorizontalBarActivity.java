@@ -27,7 +27,6 @@ public class HorizontalBarActivity extends AppCompatActivity {
         chart1 = (BarHorizontalChart)findViewById(R.id.chart1);
         chart1.setBarSpace(DensityUtil.dip2px(this, 1));  //双柱间距
         chart1.setBarItemSpace(DensityUtil.dip2px(this, 20));  //柱间距
-        chart1.setDebug(false);
         chart1.setBarNum(3);
         chart1.setBarColor(new int[]{Color.parseColor("#5F93E7"),Color.parseColor("#F28D02")});
         //X轴
@@ -48,7 +47,6 @@ public class HorizontalBarActivity extends AppCompatActivity {
 
         chart2 = (BarHorizontalChart)findViewById(R.id.chart2);
         chart2.setLoading(true);
-        chart2.setDebug(false);
         chart2.setBarNum(1);
         chart2.setBarColor(new int[]{Color.parseColor("#5F93E7")});
         strXList.clear();

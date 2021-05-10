@@ -74,9 +74,6 @@ public abstract class BaseChart extends View {
         isLoading = loading;
         invalidate();
     }
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
 
     public void setLineWidth(int lineWidth) {
         this.lineWidth = lineWidth;

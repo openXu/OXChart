@@ -158,6 +158,7 @@ public class FpcActivity extends AppCompatActivity {
                 multipartBarChart1 = findViewById(R.id.multipartBarChart1);
                 multipartBarChart2 = findViewById(R.id.multipartBarChart2);
                 multipartBarChart3 = findViewById(R.id.multipartBarChart3);
+
                 MultipartBarConfig config = new MultipartBarConfig();
                 config.setDisplayScheme(DisplayScheme.SHOW_ALL);
                 config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 20));
@@ -197,33 +198,64 @@ public class FpcActivity extends AppCompatActivity {
                 multipartBarChart3.setYAxisMark(yAxisMark);
                 multipartBarChart3.setXAxisMark(xAxisMark);
                 multipartBarChart3.setShowAnim(false);
+
                 List<MultipartBarData> datas = new ArrayList<>();
                 for(int i = 1; i<=3; i++){
                     List<Float> valueys = new ArrayList<>();
                     valueys.add(10f*i);
                     valueys.add(10f*i + 5);
                     valueys.add(10f*i+10);
-                    datas.add(new MultipartBarData(valueys,
-                            "2010-"+i));
+                    datas.add(new MultipartBarData(valueys, "2010-"+i));
                 }
+                multipartBarChart.setFocusPanelText(new FocusPanelText[]{
+                        new FocusPanelText(true,
+                                DensityUtil.sp2px(FpcActivity.this, 12),
+                                Color.parseColor("#000000"),
+                                ""),
+                        new FocusPanelText(true,
+                                DensityUtil.sp2px(FpcActivity.this, 10),
+                                Color.parseColor("#333333"),
+                                "A值："),
+                        new FocusPanelText(true,
+                                DensityUtil.sp2px(FpcActivity.this, 10),
+                                Color.parseColor("#333333"),
+                                "BBB值："),
+                        new FocusPanelText(true,
+                                DensityUtil.sp2px(FpcActivity.this, 10),
+                                Color.parseColor("#333333"),
+                                "C值值：")
+                });
                 multipartBarChart.setDatas(datas);
                 datas = new ArrayList<>();
                 for(int i = 1; i<=10; i++){
                     List<Float> valueys = new ArrayList<>();
                     valueys.add(10f*i);
                     valueys.add(10f*i + 5);
-                    valueys.add(10f*i+10);
-                    datas.add(new MultipartBarData(valueys,
-                            "2010-"+i));
+                    datas.add(new MultipartBarData(valueys, "2010-"+i));
                 }
                 for(int i = 11; i>0; i--){
                     List<Float> valueys = new ArrayList<>();
-                    valueys.add(10f*i);
                     valueys.add(10f*i + 5);
                     valueys.add(10f*i+10);
-                    datas.add(new MultipartBarData(valueys,
-                            "2010-"+i));
+                    datas.add(new MultipartBarData(valueys, "2010-"+i));
                 }
+                FocusPanelText[] fp = new FocusPanelText[]{
+                        new FocusPanelText(true,
+                                DensityUtil.sp2px(FpcActivity.this, 12),
+                                Color.parseColor("#000000"),
+                                ""),
+                        new FocusPanelText(true,
+                                DensityUtil.sp2px(FpcActivity.this, 10),
+                                Color.parseColor("#333333"),
+                                "A值："),
+                        new FocusPanelText(true,
+                                DensityUtil.sp2px(FpcActivity.this, 10),
+                                Color.parseColor("#333333"),
+                                "BBB值：")
+                };
+                multipartBarChart1.setFocusPanelText(fp);
+                multipartBarChart2.setFocusPanelText(fp);
+                multipartBarChart3.setFocusPanelText(fp);
                 multipartBarChart1.setDatas(datas);
                 multipartBarChart2.setDatas(datas);
                 multipartBarChart3.setDatas(datas);

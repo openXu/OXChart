@@ -11,6 +11,7 @@ import com.openxu.cview.chart.bean.ChartLable;
 import com.openxu.cview.chart.bean.PieChartBean;
 import com.openxu.utils.DensityUtil;
 import com.openxu.utils.LogUtil;
+import com.openxu.utils.SharedData;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class PieChartLayout extends LinearLayout {
     private String TAG = "PieChartLayout";
 
     protected boolean isLoading = true;
-    protected boolean debug = true;
+    protected boolean debug = SharedData.getInstance().getData(SharedData.KEY_DEBUG, Boolean.class);
     protected List<PieChartBean> dataList;
     protected List<ChartLable> lableList;
 
@@ -155,7 +156,6 @@ public class PieChartLayout extends LinearLayout {
     private void setConfig(){
         if(chartView!=null) {
             chartView.setLoading(isLoading);
-            chartView.setDebug(debug);
             chartView.setArrColorRgb(arrColorRgb);
             chartView.setTagType(tagType);
             chartView.setTagModul(tagModul);
@@ -171,7 +171,6 @@ public class PieChartLayout extends LinearLayout {
         }
         if(lableView!=null) {
             lableView.setLoading(isLoading);
-            lableView.setDebug(debug);
             lableView.setTagType(tagType);
             lableView.setTagModul(tagModul);
             lableView.setShowZeroPart(showZeroPart);
@@ -195,9 +194,6 @@ public class PieChartLayout extends LinearLayout {
     public void setLoading(boolean loading) {
         this.isLoading = loading;
         setConfig();
-    }
-    public void setDebug(boolean debug) {
-        this.debug = debug;
     }
 
     public void setShowZeroPart(boolean showZeroPart) {

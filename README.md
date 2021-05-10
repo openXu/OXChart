@@ -89,7 +89,6 @@ roseChartSmall.setLoading(false);//是否正在加载，数据加载完毕后置
 pieChart1.setRingWidth(DensityUtil.dip2px(this, 15));
 pieChart1.setLineLenth(DensityUtil.dip2px(this, 8)); // //指示线长度
 pieChart1.setTagModul(PieChartLayout.TAG_MODUL.MODUL_CHART);       //在扇形图上显示tag
-pieChart1.setDebug(false);
 pieChart1.setLoading(true);
 //请求数据
 List<PieChartBean> datalist = new ArrayList<>();
@@ -119,7 +118,6 @@ pieChart1.setChartData(PieChartBean.class, "Numner", "Name",datalist ,tableList)
 ```Java
 ProgressPieChart chart1 = (ProgressPieChart)findViewById(R.id.chart1);
 chart1.setProSize(DensityUtil.dip2px(this, 5));  //圆环宽度
-chart1.setDebug(false);
 chart1.setLoading(false);
 chart1.setProColor(Color.parseColor("#ff0000"));  //进度颜色
 //环形中间显示的lable
@@ -148,7 +146,6 @@ chart1.setData(100, 60, lables);
 BarVerticalChart chart1 = (BarVerticalChart)findViewById(R.id.chart1);
 chart1.setBarSpace(DensityUtil.dip2px(this, 1));  //双柱间距
 chart1.setBarItemSpace(DensityUtil.dip2px(this, 20));  //柱间距
-chart1.setDebug(false);
 chart1.setBarNum(2);   //一组柱子数量
 chart1.setBarColor(new int[]{Color.parseColor("#5F93E7"),Color.parseColor("#F28D02")});
 //X轴
@@ -185,7 +182,6 @@ chart1.setData(dataList, strXList);
  BarHorizontalChart chart1 = (BarHorizontalChart)findViewById(R.id.chart1);
 chart1.setBarSpace(DensityUtil.dip2px(this, 1));  //双柱间距
 chart1.setBarItemSpace(DensityUtil.dip2px(this, 20));  //柱间距
-chart1.setDebug(false);
 chart1.setBarNum(3);
 chart1.setBarColor(new int[]{Color.parseColor("#5F93E7"),Color.parseColor("#F28D02")});
 //X轴

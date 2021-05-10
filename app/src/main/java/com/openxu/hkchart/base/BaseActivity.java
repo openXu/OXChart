@@ -55,7 +55,7 @@ public abstract class BaseActivity<V extends ViewDataBinding>
             FBarUtils.setNavBarVisibility(this, true);
             FBarUtils.setNavBarColor(this, Color.parseColor("#dddddd"));
         }
-        titleLayout = findViewById(R.id.titleLayout);
+//        titleLayout = findViewById(R.id.titleLayout);
         if (null != titleLayout) {
             StatusBarUtil.setPaddingSmart(this, titleLayout);
             titleLayout.setOnMenuClickListener((menu, view) -> {

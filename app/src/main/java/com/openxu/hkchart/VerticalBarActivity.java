@@ -26,7 +26,6 @@ public class VerticalBarActivity extends AppCompatActivity {
 
         chart1 = (BarVerticalChart)findViewById(R.id.chart1);
         chart1.setLoading(true);
-        chart1.setDebug(false);
         chart1.setBarNum(1);
         chart1.setBarColor(new int[]{Color.parseColor("#5F93E7")});
         //X轴
@@ -47,7 +46,6 @@ public class VerticalBarActivity extends AppCompatActivity {
         chart2 = (BarVerticalChart)findViewById(R.id.chart2);
         chart2.setBarSpace(DensityUtil.dip2px(this, 1));  //双柱间距
         chart2.setBarItemSpace(DensityUtil.dip2px(this, 20));  //柱间距
-        chart2.setDebug(false);
         chart2.setBarNum(2);   //一组柱子数量
         chart2.setBarColor(new int[]{Color.parseColor("#5F93E7"),Color.parseColor("#F28D02")});
         strXList.clear();
@@ -67,7 +65,6 @@ public class VerticalBarActivity extends AppCompatActivity {
         chart3.setBarSpace(DensityUtil.dip2px(this, 1));  //双柱间距
         chart3.setBarItemSpace(DensityUtil.dip2px(this, 20));  //柱间距
         chart3.setShowEnd(true);      //内容超过时，初始显示是否是最后的数据
-        chart3.setDebug(false);
         chart3.setBarNum(4);
         chart3.setBarColor(new int[]{Color.parseColor("#5F93E7"),Color.parseColor("#F28D02"),
                 Color.parseColor("#157EFB"),Color.parseColor("#FED032")});
@@ -90,7 +87,6 @@ public class VerticalBarActivity extends AppCompatActivity {
         chart4 = (BarVerticalChart)findViewById(R.id.chart4);
         chart4.setBarSpace(DensityUtil.dip2px(this, 1));  //双柱间距
         chart4.setBarItemSpace(DensityUtil.dip2px(this, 20));  //柱间距
-        chart4.setDebug(false);
         chart4.setBarNum(2);
         chart4.setBarColor(new int[]{Color.parseColor("#5F93E7"),Color.parseColor("#F28D02")});
         strXList.clear();

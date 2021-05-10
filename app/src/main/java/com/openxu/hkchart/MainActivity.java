@@ -9,6 +9,7 @@ import android.view.View;
 import com.openxu.cview.TitleLayout;
 import com.openxu.hkchart.adapter.CommandRecyclerAdapter;
 import com.openxu.hkchart.adapter.ViewHolder;
+import com.openxu.hkchart.bean.MainItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private RecyclerView recyclerView;
-    private List<String> datas;
+    private List<MainItem> datas;
 
     Handler handler = new Handler(){
         @Override
@@ -34,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TitleLayout titleLayout = findViewById(R.id.recyclerView);
+        TitleLayout titleLayout = findViewById(R.id.title_layout);
         titleLayout.setOnMenuClickListener(new TitleLayout.OnMenuClickListener() {
             @Override
             public void onClick(TitleLayout.MENU_NAME menu, View view) {
@@ -47,59 +48,25 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         datas = new ArrayList<>();
-        datas.add("法之运");
-        datas.add("南丁格尔玫瑰图");
-        datas.add("饼状图");
-        datas.add("进度环形图");
-        datas.add("纵向柱状图");
-        datas.add("横向柱状图");
-        datas.add("折线图");
-        datas.add("股票信息");
-        datas.add("股票信息20201031");
-        datas.add("Base64TBitmap");
-        datas.add("大图加载");
-        recyclerView.setAdapter(new CommandRecyclerAdapter<String>(this, R.layout.list_item, datas) {
+        datas.add(new MainItem("南丁格尔玫瑰图", RoseActivity.class));
+        datas.add(new MainItem("饼状图", PieActivity.class));
+        datas.add(new MainItem("进度环形图", ProgressPieActivity.class));
+        datas.add(new MainItem("纵向柱状图", VerticalBarActivity.class));
+        datas.add(new MainItem("横向柱状图", HorizontalBarActivity.class));
+        datas.add(new MainItem("折线图", XmStockChartActivity.class));
+        datas.add(new MainItem("股票信息", XmStockChartActivity191205.class));
+        datas.add(new MainItem("股票信息20201031", XmStockChartActivity20201030.class));
+        datas.add(new MainItem("Base64TBitmap", Base64ToBitmapActivity.class));
+        datas.add(new MainItem("大图加载", BigBitmapActivity.class));
+        datas.add(new MainItem("法之运", FpcActivity.class));
+        recyclerView.setAdapter(new CommandRecyclerAdapter<MainItem>(this, R.layout.list_item, datas) {
             @Override
-            public void convert(ViewHolder holder, String str) {
-                holder.setText(R.id.tv_name, str);
+            public void convert(ViewHolder holder, MainItem item) {
+                holder.setText(R.id.tv_name, item.getName());
             }
             @Override
-            public void onItemClick(String str, int position) {
-                switch (position){
-                    case 0:
-                        startActivity(new Intent(MainActivity.this, RoseActivity.class));
-                        break;
-                    case 1:
-                        startActivity(new Intent(MainActivity.this, PieActivity.class));
-                        break;
-                    case 2:
-                        startActivity(new Intent(MainActivity.this, ProgressPieActivity.class));
-                        break;
-                    case 3:
-                        startActivity(new Intent(MainActivity.this, VerticalBarActivity.class));
-                        break;
-                    case 4:
-                        startActivity(new Intent(MainActivity.this, HorizontalBarActivity.class));
-                        break;
-                    case 5:
-                        startActivity(new Intent(MainActivity.this, XmStockChartActivity.class));
-                        break;
-                    case 6:
-                        startActivity(new Intent(MainActivity.this, XmStockChartActivity191205.class));
-                        break;
-                    case 7:
-                        startActivity(new Intent(MainActivity.this, XmStockChartActivity20201030.class));
-                        break;
-                    case 8:
-                        startActivity(new Intent(MainActivity.this, Base64ToBitmapActivity.class));
-                        break;
-                    case 9:
-                        startActivity(new Intent(MainActivity.this, BigBitmapActivity.class));
-                        break;
-                    case 10:
-                        startActivity(new Intent(MainActivity.this, FpcActivity.class));
-                        break;
-                }
+            public void onItemClick(MainItem item, int position) {
+                startActivity(new Intent(MainActivity.this, item.getGotoClass()));
             }
 
         });

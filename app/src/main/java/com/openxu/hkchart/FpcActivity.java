@@ -248,19 +248,24 @@ public class FpcActivity extends AppCompatActivity {
 
                 multipartBarChart.setDatas(datas);
                 datas = new ArrayList<>();
-                for(int i = 1; i<=10; i++){
+                for(int i = 1; i<=50; i++){
                     List<Float> valueys = new ArrayList<>();
                     valueys.add(10f*i);
                     valueys.add(10f*i + 5);
                     datas.add(new MultipartBarData(valueys, "2010-"+i));
                 }
-                for(int i = 11; i>0; i--){
+                for(int i = 50; i>0; i--){
                     List<Float> valueys = new ArrayList<>();
                     valueys.add(10f*i + 5);
                     valueys.add(10f*i+10);
                     datas.add(new MultipartBarData(valueys, "2010-"+i));
                 }
-
+                for(int i = 1; i<=50; i++){
+                    List<Float> valueys = new ArrayList<>();
+                    valueys.add(10f*i);
+                    valueys.add(10f*i + 5);
+                    datas.add(new MultipartBarData(valueys, "2010-"+i));
+                }
                 multipartBarChart1.setDatas(datas);
                 multipartBarChart2.setDatas(datas);
                 multipartBarChart3.setDatas(datas);

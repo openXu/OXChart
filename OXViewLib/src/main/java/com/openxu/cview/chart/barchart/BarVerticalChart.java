@@ -116,16 +116,12 @@ public class BarVerticalChart extends BaseChart {
     }
 
     /***********************************设置属性set方法over**********************************/
+
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int widthMode = View.MeasureSpec.getMode(widthMeasureSpec);
-        int widthSize = View.MeasureSpec.getSize(widthMeasureSpec);
-        int heightMode = View.MeasureSpec.getMode(heightMeasureSpec);
-        int heightSize = View.MeasureSpec.getSize(heightMeasureSpec);
-        setMeasuredDimension(widthSize, heightSize);
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
         evaluatorByData();
-        invalidate();
+        postInvalidate();
     }
 
     /**
@@ -533,7 +529,7 @@ public class BarVerticalChart extends BaseChart {
             this.dataList.addAll(dataList);
         if (strXList != null)
             this.strList.addAll(strXList);
-        if (getMeasuredWidth() > 0) {
+        if (rectChart!=null) {
             evaluatorByData();
             startDraw = false;
             invalidate();

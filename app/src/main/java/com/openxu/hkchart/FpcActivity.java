@@ -174,42 +174,7 @@ public class FpcActivity extends AppCompatActivity {
                 config.setXAxisMark(xAxisMark);
                 config.setYAxisMark(yAxisMark);
                 config.setShowAnim(true);
-                multipartBarChart.setChartConfig(config);
-                config = new MultipartBarConfig(FpcActivity.this);
-                config.setDisplayScheme(DisplayScheme.SHOW_ALL);
-                config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 20));
-                config.setSpacingRatio(1.5f);
-                config.setXAxisMark(xAxisMark);
-                config.setYAxisMark(yAxisMark);
-                config.setShowAnim(true);
-                multipartBarChart1.setChartConfig(config);
-                config = new MultipartBarConfig(FpcActivity.this);
-                config.setDisplayScheme(DisplayScheme.SHOW_BEGIN);
-                config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 15));
-                config.setSpacingRatio(0.5f);
-                config.setXAxisMark(xAxisMark);
-                config.setYAxisMark(yAxisMark);
-                config.setShowAnim(true);
-                multipartBarChart2.setChartConfig(config);
-                config = new MultipartBarConfig(FpcActivity.this);
-                config.setDisplayScheme(DisplayScheme.SHOW_END);
-                config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 15));
-                config.setSpacingRatio(0.5f);
-                config.setXAxisMark(xAxisMark);
-                config.setYAxisMark(yAxisMark);
-                config.setShowAnim(true);
-                multipartBarChart3.setChartConfig(config);
-
-
-                List<MultipartBarData> datas = new ArrayList<>();
-                for(int i = 1; i<=3; i++){
-                    List<Float> valueys = new ArrayList<>();
-                    valueys.add(10f*i);
-                    valueys.add(10f*i + 5);
-                    valueys.add(10f*i+10);
-                    datas.add(new MultipartBarData(valueys, "2010-"+i));
-                }
-                multipartBarChart.setFocusPanelText(new FocusPanelText[]{
+                config.setFocusPanelText(new FocusPanelText[]{
                         new FocusPanelText(true,
                                 DensityUtil.sp2px(FpcActivity.this, 12),
                                 Color.parseColor("#000000"),
@@ -227,20 +192,8 @@ public class FpcActivity extends AppCompatActivity {
                                 Color.parseColor("#333333"),
                                 "C值值：")
                 });
-                multipartBarChart.setDatas(datas);
-                datas = new ArrayList<>();
-                for(int i = 1; i<=10; i++){
-                    List<Float> valueys = new ArrayList<>();
-                    valueys.add(10f*i);
-                    valueys.add(10f*i + 5);
-                    datas.add(new MultipartBarData(valueys, "2010-"+i));
-                }
-                for(int i = 11; i>0; i--){
-                    List<Float> valueys = new ArrayList<>();
-                    valueys.add(10f*i + 5);
-                    valueys.add(10f*i+10);
-                    datas.add(new MultipartBarData(valueys, "2010-"+i));
-                }
+                multipartBarChart.setChartConfig(config);
+
                 FocusPanelText[] fp = new FocusPanelText[]{
                         new FocusPanelText(true,
                                 DensityUtil.sp2px(FpcActivity.this, 12),
@@ -255,9 +208,59 @@ public class FpcActivity extends AppCompatActivity {
                                 Color.parseColor("#333333"),
                                 "BBB值：")
                 };
-                multipartBarChart1.setFocusPanelText(fp);
-                multipartBarChart2.setFocusPanelText(fp);
-                multipartBarChart3.setFocusPanelText(fp);
+                config = new MultipartBarConfig(FpcActivity.this);
+                config.setDisplayScheme(DisplayScheme.SHOW_ALL);
+                config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 20));
+                config.setSpacingRatio(1.5f);
+                config.setXAxisMark(xAxisMark);
+                config.setYAxisMark(yAxisMark);
+                config.setShowAnim(true);
+                config.setFocusPanelText(fp);
+                multipartBarChart1.setChartConfig(config);
+                config = new MultipartBarConfig(FpcActivity.this);
+                config.setDisplayScheme(DisplayScheme.SHOW_BEGIN);
+                config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 15));
+                config.setSpacingRatio(0.5f);
+                config.setXAxisMark(xAxisMark);
+                config.setYAxisMark(yAxisMark);
+                config.setShowAnim(true);
+                config.setFocusPanelText(fp);
+                multipartBarChart2.setChartConfig(config);
+                config = new MultipartBarConfig(FpcActivity.this);
+                config.setDisplayScheme(DisplayScheme.SHOW_END);
+                config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 15));
+                config.setSpacingRatio(0.5f);
+                config.setXAxisMark(xAxisMark);
+                config.setYAxisMark(yAxisMark);
+                config.setShowAnim(true);
+                config.setFocusPanelText(fp);
+                multipartBarChart3.setChartConfig(config);
+
+
+                List<MultipartBarData> datas = new ArrayList<>();
+                for(int i = 1; i<=3; i++){
+                    List<Float> valueys = new ArrayList<>();
+                    valueys.add(10f*i);
+                    valueys.add(10f*i + 5);
+                    valueys.add(10f*i+10);
+                    datas.add(new MultipartBarData(valueys, "2010-"+i));
+                }
+
+                multipartBarChart.setDatas(datas);
+                datas = new ArrayList<>();
+                for(int i = 1; i<=10; i++){
+                    List<Float> valueys = new ArrayList<>();
+                    valueys.add(10f*i);
+                    valueys.add(10f*i + 5);
+                    datas.add(new MultipartBarData(valueys, "2010-"+i));
+                }
+                for(int i = 11; i>0; i--){
+                    List<Float> valueys = new ArrayList<>();
+                    valueys.add(10f*i + 5);
+                    valueys.add(10f*i+10);
+                    datas.add(new MultipartBarData(valueys, "2010-"+i));
+                }
+
                 multipartBarChart1.setDatas(datas);
                 multipartBarChart2.setDatas(datas);
                 multipartBarChart3.setDatas(datas);

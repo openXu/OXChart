@@ -2,6 +2,7 @@ package com.openxu.hkchart.config
 
 import android.content.Context
 import android.graphics.Color
+import com.openxu.hkchart.data.FocusPanelText
 import com.openxu.utils.DensityUtil
 
 /**
@@ -25,6 +26,9 @@ class MultipartBarConfig(context: Context) : ChartConfigBase(){
             Color.parseColor("#f46763"),
             Color.parseColor("#3cd595"),
             Color.parseColor("#4d7bff"))
+
+    /**设置焦点面板显示内容*/
+    var focusPanelText: Array<FocusPanelText>? = null
 }
 /**
  * Author: openXu

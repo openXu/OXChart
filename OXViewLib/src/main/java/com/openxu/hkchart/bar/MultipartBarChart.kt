@@ -7,7 +7,6 @@ import android.util.AttributeSet
 import android.view.ScaleGestureDetector
 import com.openxu.hkchart.BaseChart
 import com.openxu.hkchart.config.*
-import com.openxu.hkchart.data.FocusPanelText
 import com.openxu.hkchart.data.FocusData
 import com.openxu.utils.DensityUtil
 import com.openxu.utils.FontUtil
@@ -34,8 +33,6 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
     constructor(context: Context, attrs: AttributeSet?, defStyle: Int):super(context, attrs, defStyle){
     }
     /***************************1. API👇👇👇***************************/
-    /**设置焦点面板显示内容*/
-    var focusPanelText: Array<FocusPanelText>? = null
     /**设置数据*/
     private var _datas = mutableListOf<MultipartBarData>()
     var datas: MutableList<MultipartBarData>
@@ -140,7 +137,7 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         }
         LogUtil.v(TAG, "单个柱子+间距 $oneDataWidth  所有数据宽度 $allDataWidth")
 
-        focusPanelText?.let {
+        config.focusPanelText?.let {
             //计算焦点面板
             //2020-10-16 06：00
             //零序电流:15.2KW
@@ -330,7 +327,7 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         var top: Float = rect.top + foucsRectSpace
         val currentPoint = PointF()
         val radius = DensityUtil.dip2px(context, 2.5f).toFloat()
-        focusPanelText?.let {
+        config.focusPanelText?.let {
             for (i in it.indices) {
                 if (it[i].show) {
                     paintText.textSize = it[i].textSize.toFloat()

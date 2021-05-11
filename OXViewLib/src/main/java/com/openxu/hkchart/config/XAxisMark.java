@@ -1,4 +1,4 @@
-package com.openxu.hkchart.element;
+package com.openxu.hkchart.config;
 
 import android.content.Context;
 import android.graphics.Color;

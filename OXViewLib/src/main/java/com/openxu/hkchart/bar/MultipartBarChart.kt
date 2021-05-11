@@ -4,26 +4,15 @@ import android.content.Context
 import android.graphics.*
 import android.text.TextUtils
 import android.util.AttributeSet
-import android.util.Log
-import android.view.GestureDetector
-import android.view.GestureDetector.SimpleOnGestureListener
-import android.view.MotionEvent
 import android.view.ScaleGestureDetector
-import android.view.ScaleGestureDetector.OnScaleGestureListener
-import android.view.View
-import android.widget.Scroller
 import com.openxu.hkchart.BaseChart
-import com.openxu.hkchart.config.DisplayScheme
-import com.openxu.hkchart.config.MultipartBarConfig
-import com.openxu.hkchart.element.FocusPanelText
-import com.openxu.hkchart.element.MarkType
-import com.openxu.hkchart.element.XAxisMark
-import com.openxu.hkchart.element.YAxisMark
+import com.openxu.hkchart.config.*
+import com.openxu.hkchart.data.FocusPanelText
+import com.openxu.hkchart.data.FocusData
 import com.openxu.utils.DensityUtil
 import com.openxu.utils.FontUtil
 import com.openxu.utils.LogUtil
 import java.util.regex.Pattern
-import kotlin.math.abs
 
 /**
  * Author: openXu
@@ -38,57 +27,61 @@ import kotlin.math.abs
  *
  */
 
-class MultipartBarChart : BaseChart, View.OnTouchListener {
+class MultipartBarChart : BaseChart<MultipartBarData>{
 
     constructor(context: Context) :this(context, null)
     constructor(context: Context, attrs: AttributeSet?) :this(context, attrs, 0)
     constructor(context: Context, attrs: AttributeSet?, defStyle: Int):super(context, attrs, defStyle){
-        mGestureDetector = GestureDetector(getContext(), MyOnGestureListener())
-        mScaleGestureDetector = ScaleGestureDetector(context, MyOnScaleGestureListener())
-        mScroller = Scroller(context)
-        setOnTouchListener(this)
     }
-
-    lateinit var displayConfig : MultipartBarConfig
-    lateinit var yAxisMark: YAxisMark
-    lateinit var xAxisMark: XAxisMark
-    private val barColor = intArrayOf(
-            Color.parseColor("#f46763"),
-            Color.parseColor("#3cd595"),
-            Color.parseColor("#4d7bff")) //柱颜色
-
-
+    /***************************1. API👇👇👇***************************/
+    /**设置焦点面板显示内容*/
+    var focusPanelText: Array<FocusPanelText>? = null
+    /**设置数据*/
     private var _datas = mutableListOf<MultipartBarData>()
-    var dataTotalCount : Int = -1
+    var datas: MutableList<MultipartBarData>
+        get() {return _datas}
+        set(value) {
+            if(!this::config.isInitialized) throw RuntimeException("---------请设置初始显示方案")
+            _datas.clear()
+            _datas.addAll(value)
+            if(config.dataTotalCount<0)
+                config.dataTotalCount = value.size
+            initial()
+            if (config.showAnim)
+                chartAnimStarted = false
+            loading = false
+        }
 
-    fun setFocusPanelText(focusPanelText : Array<FocusPanelText>){
-        this.focusPanelText = focusPanelText
-    }
-    fun setDatas(datas : List<MultipartBarData>){
-        _datas.clear()
-        _datas.addAll(datas)
-        if(dataTotalCount<0)
-            dataTotalCount = datas.size
-        initial()
-        if (showAnim) chartAnimStarted = false
-        setLoading(false)
+    /***************************1. API👆👆👆***************************/
+    /***************************2. 子类重写👇👇👇***************************/
+    /**配置*/
+    private lateinit var yAxisMark : YAxisMark
+    private lateinit var xAxisMark : XAxisMark
+    private lateinit var barColor : IntArray
+    private lateinit var config : MultipartBarConfig
+    override fun chartConfiged(displayConfig: ChartConfigBase) {
+        this.config = displayConfig as MultipartBarConfig
+        if(null==config.xAxisMark)
+            throw RuntimeException("---------请设置x坐标")
+        if(null==config.yAxisMark)
+            throw RuntimeException("---------请设置y坐标")
+        xAxisMark = config.xAxisMark!!
+        yAxisMark = config.yAxisMark!!
+        barColor = config.barColor
+
     }
 
-    /**
-     * 初步计算，当设置数据 & size发生变化时调用
-     */
+    /**初步计算*/
     private var barWidth : Float = 0f  //柱宽度
     private var barSpace : Float = 0f  //柱间的间距
-    private var oneDataWidth : Float = 0f
-    private var allDataWidth : Float = 0f
-    private fun initial(){
-        if(_datas.isNullOrEmpty() || rectChart==null)
-            return
-        if(!this::displayConfig.isInitialized)
-            throw RuntimeException("---------请设置初始显示方案")
-        if(!this::xAxisMark.isInitialized || !this::yAxisMark.isInitialized)
-            throw RuntimeException("---------请设置x or y坐标")
-        /**计算表体矩形rectChart*/
+    private var oneDataWidth : Float = 0f  //单个柱子+间距 的宽度  ...(  | |)
+    private var allDataWidth : Float = 0f  //所有柱子+间距 的宽度  (  | |  | |...| | )
+    private var foucsRectWidth = 0f           //焦点面板矩形宽高
+    private var foucsRectHeight = 0f
+    override fun initial():Boolean{
+        if(super.initial()) return true
+        if(!this::config.isInitialized || _datas.isNullOrEmpty()) return true
+        /**重新确定表体矩形rectChart*/
         paintText.textSize = xAxisMark.textSize.toFloat()
         xAxisMark.textHeight = FontUtil.getFontHeight(paintText)
         xAxisMark.textLead = FontUtil.getFontLeading(paintText)
@@ -110,15 +103,15 @@ class MultipartBarChart : BaseChart, View.OnTouchListener {
         /**重新计算柱子宽度 和 间距*/
         LogUtil.e(TAG, "--------------根据显示配置和数据，计算柱子宽度和间距")
         //根据设置的柱子宽度和间距，计算所有数据宽度
-        allDataWidth = dataTotalCount * displayConfig.barWidth + (dataTotalCount+1) * displayConfig.barSpace
-        barWidth = displayConfig.barWidth
-        barSpace = displayConfig.barSpace
-        when(displayConfig.displayScheme){
+        allDataWidth = config.dataTotalCount * config!!.barWidth + (config.dataTotalCount+1) * config.barSpace
+        barWidth = config.barWidth
+        barSpace = config.barSpace
+        when(config.displayScheme){
             DisplayScheme.SHOW_ALL->{  //全部显示
                 if(allDataWidth > rectChart.width()){  //超出时，重新计算barWidth
-//                    barWidth * dataTotalCount + barWidth*displayConfig.spacingRatio*(dataTotalCount+1) = rectChart.width()
-                    barWidth = rectChart.width()/(dataTotalCount + displayConfig.spacingRatio*(dataTotalCount+1))
-                    barSpace = barWidth * displayConfig.spacingRatio
+//                    barWidth * dataTotalCount + barWidth*config.spacingRatio*(dataTotalCount+1) = rectChart.width()
+                    barWidth = rectChart.width()/(config.dataTotalCount + config.spacingRatio*(config.dataTotalCount+1))
+                    barSpace = barWidth * config.spacingRatio
                     LogUtil.w(TAG, "全部展示时宽度超过，重新计算柱子宽度$barWidth  间距 $barSpace")
                 }
             }
@@ -128,7 +121,7 @@ class MultipartBarChart : BaseChart, View.OnTouchListener {
         LogUtil.v(TAG, "确定柱子宽度 $barWidth  间距 $barSpace")
         /**确定第一条数据的绘制x坐标   计算滚动最大值*/
         oneDataWidth = barWidth + barSpace
-        allDataWidth = dataTotalCount * barWidth + (dataTotalCount+1) * barSpace
+        allDataWidth = config.dataTotalCount * barWidth + (config.dataTotalCount+1) * barSpace
 
         scrollx = 0f
         scrollXMax = 0f
@@ -136,7 +129,7 @@ class MultipartBarChart : BaseChart, View.OnTouchListener {
         if(allDataWidth>rectChart.width()){
             scrollXMax = rectChart.width() -allDataWidth //最大滚动距离，是一个负值
         }
-        when(displayConfig.displayScheme){
+        when(config.displayScheme){
             DisplayScheme.SHOW_ALL->{ }//全部显示
             DisplayScheme.SHOW_BEGIN->{
                 scrollx = 0f
@@ -171,15 +164,269 @@ class MultipartBarChart : BaseChart, View.OnTouchListener {
                     } else {
                         text = it[i].text + maxLable
                         foucsRectWidth = Math.max(foucsRectWidth, FontUtil.getFontlength(paintText, text))
-                        Log.w(TAG, "计算面板：$text    $foucsRectWidth")
+                        LogUtil.w(TAG, "计算面板：$text    $foucsRectWidth")
                         foucsRectHeight += foucsRectTextSpace + FontUtil.getFontHeight(paintText)
                     }
                 }
             }
             foucsRectWidth += foucsRectSpace * 4.toFloat()
         }
+        return true
     }
 
+
+    override fun drawChart(canvas: Canvas?) {
+        LogUtil.e(TAG, "-----------开始绘制，当前缩放系数$scalex  偏移量$scrollx")
+        if(_datas.isNullOrEmpty())
+            return
+        //预算需要绘制的组的开始和结尾index，避免不必要的计算浪费性能
+//        caculateIndex()
+        //计算Y轴刻度值
+        calculateYMark(false)
+        //计算x轴刻度值
+        caculateXMark()
+
+        val yMarkSpace = (rectChart.bottom - rectChart.top) / (yAxisMark.lableNum - 1)
+        paintEffect.style = Paint.Style.STROKE
+        paintEffect.strokeWidth = yAxisMark.lineWidth.toFloat()
+        paintEffect.color = yAxisMark.lineColor
+        paintText.textSize = yAxisMark.textSize.toFloat()
+        paintText.color = yAxisMark.textColor
+        val effects: PathEffect = DashPathEffect(floatArrayOf(15f, 6f, 15f, 6f), 0f)
+        paintEffect.pathEffect = effects
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = yAxisMark.lineWidth.toFloat()
+        paint.color = yAxisMark.lineColor
+        for (i in 0..yAxisMark.lableNum) {
+            /**绘制横向线 */
+            canvas!!.drawLine(rectChart.left, rectChart.bottom - yMarkSpace * i,
+                    rectChart.right, rectChart.bottom - yMarkSpace * i, paint)
+            /**绘制y刻度 */
+            val text = yAxisMark.getMarkText(yAxisMark.cal_mark_min + i * yAxisMark.cal_mark)
+            canvas!!.drawText(text,
+                    rectChart.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, text),
+                    rectChart.bottom - yMarkSpace * i - yAxisMark.textHeight / 2 + yAxisMark.textLead, paintText)
+        }
+        //绘制Y轴单位
+        if (!TextUtils.isEmpty(yAxisMark.unit)) {
+            canvas!!.drawText(yAxisMark.unit,
+                    rectChart.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, yAxisMark.unit),
+                    //y = 图表顶部 - 单位文字距离 - 单位文字高度 + 最上方y刻度高度/2
+                    rectChart.top - yAxisMark.textSpace - yAxisMark.textHeight * 3 / 2 + yAxisMark.textLead, paintText)
+        }
+
+        val rect = RectF()
+        paint.style = Paint.Style.FILL
+
+        for(index:Int in startIndex..endIndex){
+            //计算柱体x,y坐标
+            if(allDataWidth*scalex<=rectChart.width()){
+                rect.left = rectChart.left + (rectChart.width() - allDataWidth*scalex)/2 +
+                        index * oneDataWidth*scalex + barSpace*scalex
+//                LogUtil.v(TAG, "数据不够填充表，居中显示，当前数据x坐标 ${rect.left}")
+            }else{
+                rect.left = scrollx + rectChart.left + index * oneDataWidth*scalex + barSpace*scalex
+//                LogUtil.v(TAG, "数据超过表，当前数据x坐标 ${rect.left}")
+            }
+            rect.right = rect.left + barWidth*scalex
+            rect.bottom = rectChart.bottom
+            rect.top = rectChart.bottom
+
+            //★★★顺便为焦点数据设置x坐标，方便下一步绘制焦点
+            focusData?.let {
+                if(focusIndex == index)
+                    it.point.x = rect.left + barWidth*scalex/2
+            }
+
+//            LogUtil.d(TAG, "$i 绘制："+_datas[i].valuey)
+            /**绘制柱状 */
+            //过滤掉绘制区域外的柱
+            var barLayer:Int? = null
+            if(index == startIndex || index == endIndex){
+                /**
+                 * Canvas有两种坐标系：
+                 * 1. Canvas自己的坐标系：(0,0,canvas.width,canvas.height)，它是固定不变的
+                 * 2. 绘图坐标系：用于绘制，通过Matrix让Canvas平移translate，旋转rotate，缩放scale 等时实际上操作的是绘图坐标系
+                 * 由于绘图坐标系中Matrix的改变是不可逆的，所以产生了状态栈和Layer栈，它们分别运用于save方法和saveLayer方法，使得绘图坐标系恢复到保存时的状态
+                 * 1. 状态栈：save()、restore()保存和还原变换操作Matrix以及Clip剪裁，也可以restoretoCount()直接还原到对应栈的保存状态
+                 * 2. Layer栈:saveLayer()时会新建一个透明图层（离屏Bitmap-离屏缓冲），并且将saveLayer之前的一些Canvas操作延续过来，
+                 *            后续的绘图操作都在新建的layer上面进行，当调用restore或者restoreToCount时更新到对应的图层和画布上
+                 *
+                 * 需要注意的是saveLayer会造成过渡绘制，可以考虑用 canvas?.save() canvas?.clipRect(rectChart)组合代替
+                 */
+                /*        barLayer = canvas?.saveLayer(rectChart.left, rectChart.top, rectChart.right,
+                                rectChart.bottom*//* + xAxisMark.textSpace + xAxisMark.textHeight*//*
+                        , paint, Canvas.ALL_SAVE_FLAG)*/
+                //裁剪画布，避免x刻度超出
+                barLayer = canvas?.save()
+                canvas?.clipRect(rectChart)
+            }
+            for(vindex : Int in _datas[index].valuey.indices){
+                paint.color = barColor[vindex]
+                if (_datas[index].valuey[vindex] != null) {
+                    val vh = rectChart.height() / (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) *
+                            (_datas[index].valuey[vindex] - yAxisMark.cal_mark_min) * chartAnimValue
+                    rect.top -= vh
+                    canvas?.drawRect(rect, paint)
+                    rect.bottom = rect.top
+                }
+            }
+            if(barLayer!=null)
+                canvas?.restoreToCount(barLayer)//还原画布，将柱子更新到画布上
+            /**绘制x坐标 */
+            //测试：绘制索引
+//            canvas?.drawText("$i", rect.left + (barWidth*scalex) / 2 - FontUtil.getFontlength(paintText, "$i") / 2, xAxisMark.drawPointY, paintText)
+            //从第一条数据开始每隔xIndexSpace绘制一个x刻度
+            if((index - startIndex) % xIndexSpace == 0){
+                val x = rect.left + (barWidth*scalex) / 2 - FontUtil.getFontlength(paintText, _datas[index].valuex) / 2
+                //过滤掉超出图表范围的x值绘制，通常是第一条和最后一条
+                if(x < paddingLeft || x+FontUtil.getFontlength(paintText, _datas[index].valuex) > measuredWidth - paddingRight)
+                    continue
+                canvas?.drawText(_datas[index].valuex, x,xAxisMark.drawPointY, paintText)
+            }
+        }
+
+        drawFocus(canvas)
+    }
+
+    /**绘制焦点 */
+    private val focusLineColor = Color.parseColor("#319A5A")
+    private val focusLineSize = DensityUtil.dip2px(context, 1f)
+    private val foucsRectTextSpace = DensityUtil.dip2px(context, 3f)
+    private val foucsRectSpace = DensityUtil.dip2px(context, 6f)
+    private fun drawFocus(canvas: Canvas?) {
+        if (null == focusData || null==canvas) return
+        if(focusData!!.point.x<rectChart.left ||focusData!!.point.x>rectChart.right)   //上次获取的焦点因为滑出矩形，不显示
+            return
+        //绘制竖直虚线
+        val effects: PathEffect = DashPathEffect(floatArrayOf(8f, 5f, 8f, 5f), 0f)
+        paintEffect.style = Paint.Style.STROKE
+        paintEffect.strokeWidth = focusLineSize.toFloat()
+        paintEffect.color = focusLineColor
+        paintEffect.pathEffect = effects
+        val path = Path()
+        path.moveTo(focusData!!.point.x, rectChart.bottom)
+        path.lineTo(focusData!!.point.x, rectChart.top)
+        canvas.drawPath(path, paintEffect)
+        //面板
+        val showLeft: Boolean = focusData!!.point.x - rectChart.left > (rectChart.right - rectChart.left) / 2
+        val rect = RectF(
+                if (showLeft) focusData!!.point.x - foucsRectWidth - 30 else focusData!!.point.x + 30,
+                rectChart.top /*+ (rectChart.bottom - rectChart.top)/2 - foucsRectHeight/2*/,
+                if (showLeft) focusData!!.point.x - 30 else focusData!!.point.x + foucsRectWidth + 30,
+                rectChart.top + foucsRectHeight /*+ (rectChart.bottom - rectChart.top)/2 + foucsRectHeight/2*/
+        )
+        paint.style = Paint.Style.FILL
+        paint.color = Color.WHITE
+        paint.alpha = 230
+        canvas.drawRect(rect, paint)
+        //面板中的文字
+        //2020-10-16 06：00
+        //零序电流:15.2KW
+        //A相电流:15.2KW
+        //A相电流:15.2KW
+        //A相电流:15.2KW
+        var text = ""
+        var top: Float = rect.top + foucsRectSpace
+        val currentPoint = PointF()
+        val radius = DensityUtil.dip2px(context, 2.5f).toFloat()
+        focusPanelText?.let {
+            for (i in it.indices) {
+                if (it[i].show) {
+                    paintText.textSize = it[i].textSize.toFloat()
+                    paintText.color = it[i].textColor
+                    if (i == 0) {  //x轴数据
+                        text = focusData!!.data.valuex
+                    } else {
+                        top += foucsRectTextSpace.toFloat()
+                        text = (it[i].text +
+                                (if (focusData!!.data.valuey[i - 1] == null) ""
+                                else YAxisMark.formattedDecimal(focusData!!.data.valuey[i - 1].toDouble(), 2))
+                                + yAxisMark.unit)
+                    }
+                    canvas.drawText(text,
+                            rect.left + foucsRectSpace,
+                            top + FontUtil.getFontLeading(paintText), paintText)
+                    top += FontUtil.getFontHeight(paintText)
+                }
+            }
+        }
+    }
+
+    /***************************事件👇👇👇***************************/
+    override fun onScaleBegin(detector: ScaleGestureDetector) {
+        val width = -scrollx + (detector.focusX - rectChart.left)
+        val zs = (width / (oneDataWidth*scalex)).toInt()
+        val ys = width % (oneDataWidth*scalex)
+        focusIndex = zs + if(ys>(barWidth/2+barSpace)*scalex)1 else 0
+        LogUtil.i(TAG, "缩放开始了，焦点索引为$focusIndex") // 缩放因子
+    }
+
+    override fun onScale(detector: ScaleGestureDetector, beginScrollx: Float) {
+        scalex *= detector.scaleFactor
+        LogUtil.e(TAG, "--------------------当前缩放值$scalex  缩放${detector.scaleFactor}   缩放之后${scalex*detector.scaleFactor}")
+        //缩放范围约束
+        scalex = scalex.coerceAtMost(2f)
+        scalex = scalex.coerceAtLeast(1f)
+        LogUtil.e(TAG, "--------------------最终值$scalex ")
+        //重新计算最大偏移量
+        if(allDataWidth * scalex > rectChart.width()){
+            scrollXMax = rectChart.width() - allDataWidth * scalex
+            //为了保证焦点对应的点位置不变，是使用公式： beginScrollx + rectChart.left + focusIndex*beginPointWidth = scrollx + rectChart.left + focusIndex*pointWidth
+            scrollx = beginScrollx + focusIndex * (oneDataWidth - oneDataWidth*scalex)
+            scrollx = Math.min(scrollx, 0f)
+            scrollx = Math.max(scrollXMax, scrollx)
+            LogUtil.i(TAG, "缩放后偏移："+scrollx);
+        }else{
+            scrollXMax = 0f  //数据不能填充时，居中展示
+            scrollx = 0f
+        }
+    }
+
+    override fun onFocusTouch(point: PointF?) {
+        try {
+            focusData = null
+            point?.let {
+                if (!_datas.isNullOrEmpty()) {
+                    val scaleOneWidth = oneDataWidth*scalex
+                    val allWidth = allDataWidth*scalex
+                    //避免滑出
+                    var left = rectChart.left
+                    var right = rectChart.right
+                    if(allWidth<rectChart.width()){
+                        left = rectChart.left + (rectChart.width()-allWidth)/2
+                        right = rectChart.left + allWidth
+                    }
+                    LogUtil.e(TAG, "========焦点位置${point.x}")
+                    point.x = Math.max(point.x, left)
+                    point.x = Math.min(point.x, right)
+                    LogUtil.e(TAG, "========左右范围：${left}*${right}   焦点纠正后$point.x")
+                    val width = if(allWidth<rectChart.width()){
+                        point.x - left
+                    }else{
+                        -scrollx + (point.x - left)
+                    }
+                    //获取焦点对应的数据的索引
+                    focusIndex = (width / scaleOneWidth).toInt() - 1  //计算的是索引（从0开始），所以-1
+                    LogUtil.e(TAG, "========单个宽度$scaleOneWidth  宽度$width   整数索引$focusIndex")
+                    if(width % scaleOneWidth > barSpace*scalex/2) {
+                        focusIndex += 1
+                        LogUtil.e(TAG, "========焦点在下一个点范围了：$focusIndex")
+                    }
+                    focusIndex = Math.max(0, Math.min(focusIndex, _datas.size - 1))
+                    LogUtil.e(TAG, "========焦点索引：$focusIndex")
+                    focusData = FocusData(_datas[focusIndex], it)
+                }
+            }
+//            postInvalidate()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    /***************************事件👆👆👆***************************/
+    /***************************2. 子类重写👆👆👆***************************/
+
+    /***************************3. 特殊👇👇👇***************************/
     private var startIndex = 0
     private var endIndex = 0
     /**计算当前缩放、移动状态下，需要绘制的数据的起始和结束索引*/
@@ -288,7 +535,7 @@ class MultipartBarChart : BaseChart, View.OnTouchListener {
 
     /**根据startIndex~endIndex计算x标签间隔数量*/
     //从当前绘制的第一条数据开始，每隔多少展示一个x标签
-    private var xindexSpace: Int = 0
+    private var xIndexSpace: Int = 0
     private fun caculateXMark() {
         caculateIndex()
         paintText.textSize = xAxisMark.textSize.toFloat()
@@ -302,410 +549,28 @@ class MultipartBarChart : BaseChart, View.OnTouchListener {
         LogUtil.e(TAG, "绘制的数据条数${endIndex-startIndex+1}  X轴文字最长长度$xTextMaxLength   理论最多可显示$xNumber 个")
         xNumber = Math.min(xNumber, xAxisMark.lableNum)
         when(xNumber){
-            1->xindexSpace = endIndex - startIndex + 10   //只显示第一个
-            2->xindexSpace = endIndex - startIndex   //显示第一个和最后一个
+            1->xIndexSpace = endIndex - startIndex + 10   //只显示第一个
+            2->xIndexSpace = endIndex - startIndex   //显示第一个和最后一个
             3->{   //取中点
                 when(dataNumber % 2){
-                    0->xindexSpace = (dataNumber-1)/2   //数据条数为偶数 变为奇数取中点
-                    1->xindexSpace = dataNumber/2   //数据条数为奇数取中点
+                    0->xIndexSpace = (dataNumber-1)/2   //数据条数为偶数 变为奇数取中点
+                    1->xIndexSpace = dataNumber/2   //数据条数为奇数取中点
                 }
             }
             else->{
-                xindexSpace = when(dataNumber%xNumber){
+                xIndexSpace = when(dataNumber%xNumber){
                     0-> dataNumber/xNumber        //数据条数 整除 lable数 时，取除数
                     else-> dataNumber/xNumber + 1 //不能整除时 +1
                 }
             }
         }
     }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-    }
-
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        initial()
-    }
+    /***************************3. 特殊👆👆👆***************************/
 
 
-    override fun drawChart(canvas: Canvas?) {
-        LogUtil.e(TAG, "-----------开始绘制，当前缩放系数$scalex  偏移量$scrollx")
-        if(_datas.isNullOrEmpty())
-            return
-        //预算需要绘制的组的开始和结尾index，避免不必要的计算浪费性能
-//        caculateIndex()
-        //计算Y轴刻度值
-        calculateYMark(false)
-        //计算x轴刻度值
-        caculateXMark()
-
-        val yMarkSpace = (rectChart.bottom - rectChart.top) / (yAxisMark.lableNum - 1)
-        paintEffect.style = Paint.Style.STROKE
-        paintEffect.strokeWidth = yAxisMark.lineWidth.toFloat()
-        paintEffect.color = yAxisMark.lineColor
-        paintText.textSize = yAxisMark.textSize.toFloat()
-        paintText.color = yAxisMark.textColor
-        val effects: PathEffect = DashPathEffect(floatArrayOf(15f, 6f, 15f, 6f), 0f)
-        paintEffect.pathEffect = effects
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = yAxisMark.lineWidth.toFloat()
-        paint.color = yAxisMark.lineColor
-        for (i in 0..yAxisMark.lableNum) {
-            /**绘制横向线 */
-            canvas!!.drawLine(rectChart.left, rectChart.bottom - yMarkSpace * i,
-                    rectChart.right, rectChart.bottom - yMarkSpace * i, paint)
-            /**绘制y刻度 */
-            val text = yAxisMark.getMarkText(yAxisMark.cal_mark_min + i * yAxisMark.cal_mark)
-            canvas!!.drawText(text,
-                    rectChart.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, text),
-                    rectChart.bottom - yMarkSpace * i - yAxisMark.textHeight / 2 + yAxisMark.textLead, paintText)
-        }
-        //绘制Y轴单位
-        if (!TextUtils.isEmpty(yAxisMark.unit)) {
-            canvas!!.drawText(yAxisMark.unit,
-                    rectChart.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, yAxisMark.unit),
-                    //y = 图表顶部 - 单位文字距离 - 单位文字高度 + 最上方y刻度高度/2
-                    rectChart.top - yAxisMark.textSpace - yAxisMark.textHeight * 3 / 2 + yAxisMark.textLead, paintText)
-        }
-
-        val rect = RectF()
-        paint.style = Paint.Style.FILL
-
-        for(index:Int in startIndex..endIndex){
-            //计算柱体x,y坐标
-            if(allDataWidth*scalex<=rectChart.width()){
-                rect.left = rectChart.left + (rectChart.width() - allDataWidth*scalex)/2 +
-                        index * oneDataWidth*scalex + barSpace*scalex
-//                LogUtil.v(TAG, "数据不够填充表，居中显示，当前数据x坐标 ${rect.left}")
-            }else{
-                rect.left = scrollx + rectChart.left + index * oneDataWidth*scalex + barSpace*scalex
-//                LogUtil.v(TAG, "数据超过表，当前数据x坐标 ${rect.left}")
-            }
-            rect.right = rect.left + barWidth*scalex
-            rect.bottom = rectChart.bottom
-            rect.top = rectChart.bottom
-
-            //★★★顺便为焦点数据设置x坐标，方便下一步绘制焦点
-            focusData?.let {
-                if(focusIndex == index)
-                    it.point.x = rect.left + barWidth*scalex/2
-            }
-
-//            LogUtil.d(TAG, "$i 绘制："+_datas[i].valuey)
-            /**绘制柱状 */
-            //过滤掉绘制区域外的柱
-            var barLayer:Int? = null
-            if(index == startIndex || index == endIndex){
-                /**
-                 * Canvas有两种坐标系：
-                 * 1. Canvas自己的坐标系：(0,0,canvas.width,canvas.height)，它是固定不变的
-                 * 2. 绘图坐标系：用于绘制，通过Matrix让Canvas平移translate，旋转rotate，缩放scale 等时实际上操作的是绘图坐标系
-                 * 由于绘图坐标系中Matrix的改变是不可逆的，所以产生了状态栈和Layer栈，它们分别运用于save方法和saveLayer方法，使得绘图坐标系恢复到保存时的状态
-                 * 1. 状态栈：save()、restore()保存和还原变换操作Matrix以及Clip剪裁，也可以restoretoCount()直接还原到对应栈的保存状态
-                 * 2. Layer栈:saveLayer()时会新建一个透明图层（离屏Bitmap-离屏缓冲），并且将saveLayer之前的一些Canvas操作延续过来，
-                 *            后续的绘图操作都在新建的layer上面进行，当调用restore或者restoreToCount时更新到对应的图层和画布上
-                 *
-                 * 需要注意的是saveLayer会造成过渡绘制，可以考虑用 canvas?.save() canvas?.clipRect(rectChart)组合代替
-                 */
-        /*        barLayer = canvas?.saveLayer(rectChart.left, rectChart.top, rectChart.right,
-                        rectChart.bottom*//* + xAxisMark.textSpace + xAxisMark.textHeight*//*
-                        , paint, Canvas.ALL_SAVE_FLAG)*/
-                //裁剪画布，避免x刻度超出
-                barLayer = canvas?.save()
-                canvas?.clipRect(rectChart)
-            }
-            for(vindex : Int in _datas[index].valuey.indices){
-                paint.color = barColor[vindex]
-                if (_datas[index].valuey[vindex] != null) {
-                    val vh = rectChart.height() / (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) *
-                            (_datas[index].valuey[vindex] - yAxisMark.cal_mark_min) * chartAnimValue
-                    rect.top -= vh
-                    canvas?.drawRect(rect, paint)
-                    rect.bottom = rect.top
-                }
-            }
-            if(barLayer!=null)
-                canvas?.restoreToCount(barLayer)//还原画布，将柱子更新到画布上
-            /**绘制x坐标 */
-            //测试：绘制索引
-//            canvas?.drawText("$i", rect.left + (barWidth*scalex) / 2 - FontUtil.getFontlength(paintText, "$i") / 2, xAxisMark.drawPointY, paintText)
-            //从第一条数据开始每隔xindexSpace绘制一个x刻度
-            if((index - startIndex) % xindexSpace == 0){
-                val x = rect.left + (barWidth*scalex) / 2 - FontUtil.getFontlength(paintText, _datas[index].valuex) / 2
-                //过滤掉超出图表范围的x值绘制，通常是第一条和最后一条
-                if(x < paddingLeft || x+FontUtil.getFontlength(paintText, _datas[index].valuex) > measuredWidth - paddingRight)
-                    continue
-                canvas?.drawText(_datas[index].valuex, x,xAxisMark.drawPointY, paintText)
-            }
-        }
-
-        drawFocus(canvas)
-    }
-
-    /**绘制焦点 */
-    private fun drawFocus(canvas: Canvas?) {
-        if (null == focusData || null==canvas) return
-        if(focusData!!.point.x<rectChart.left ||focusData!!.point.x>rectChart.right)   //上次获取的焦点因为滑出矩形，不显示
-            return
-        //绘制竖直虚线
-        val effects: PathEffect = DashPathEffect(floatArrayOf(8f, 5f, 8f, 5f), 0f)
-        paintEffect.style = Paint.Style.STROKE
-        paintEffect.strokeWidth = focusLineSize.toFloat()
-        paintEffect.color = focusLineColor
-        paintEffect.pathEffect = effects
-        val path = Path()
-        path.moveTo(focusData!!.point.x, rectChart.bottom)
-        path.lineTo(focusData!!.point.x, rectChart.top)
-        canvas.drawPath(path, paintEffect)
-        //面板
-        val showLeft: Boolean = focusData!!.point.x - rectChart.left > (rectChart.right - rectChart.left) / 2
-        val rect = RectF(
-                if (showLeft) focusData!!.point.x - foucsRectWidth - 30 else focusData!!.point.x + 30,
-                rectChart.top /*+ (rectChart.bottom - rectChart.top)/2 - foucsRectHeight/2*/,
-                if (showLeft) focusData!!.point.x - 30 else focusData!!.point.x + foucsRectWidth + 30,
-                rectChart.top + foucsRectHeight /*+ (rectChart.bottom - rectChart.top)/2 + foucsRectHeight/2*/
-        )
-        paint.style = Paint.Style.FILL
-        paint.color = Color.WHITE
-        paint.alpha = 230
-        canvas.drawRect(rect, paint)
-        //面板中的文字
-        //2020-10-16 06：00
-        //零序电流:15.2KW
-        //A相电流:15.2KW
-        //A相电流:15.2KW
-        //A相电流:15.2KW
-        var text = ""
-        var top: Float = rect.top + foucsRectSpace
-        val currentPoint = PointF()
-        val radius = DensityUtil.dip2px(context, 2.5f).toFloat()
-        focusPanelText?.let {
-            for (i in it.indices) {
-                if (it[i].show) {
-                    paintText.textSize = it[i].textSize.toFloat()
-                    paintText.color = it[i].textColor
-                    if (i == 0) {  //x轴数据
-                        text = focusData!!.data.valuex
-                    } else {
-                        top += foucsRectTextSpace.toFloat()
-                        text = (it[i].text +
-                                (if (focusData!!.data.valuey[i - 1] == null) ""
-                                else YAxisMark.formattedDecimal(focusData!!.data.valuey[i - 1].toDouble(), 2))
-                                + yAxisMark.unit)
-                    }
-                    canvas.drawText(text,
-                            rect.left + foucsRectSpace,
-                            top + FontUtil.getFontLeading(paintText), paintText)
-                    top += FontUtil.getFontHeight(paintText)
-                }
-            }
-        }
-    }
-
-    /**********************************3. 测量和绘制👆 */
 
 
-    /**************************4. 事件👇******************************/
-    private var mDownX = 0f
-    private var mDownY = 0f
-    private var mGestureDetector : GestureDetector
-    private var mScroller : Scroller
-    private var scrollXMax = 0f //最大滚动距离，是一个负值
-    private var scrollx = 0f    //当前滚动距离，默认从第一条数据绘制（scrollx==0），如果从最后一条数据绘制（scrollx==scrollXMax）
-    private var mScaleGestureDetector : ScaleGestureDetector
-    private var scalex = 1f    //x方向缩放系数
 
-    /**
-     * 重写dispatchTouchEvent，并调用requestDisallowInterceptTouchEvent申请父控件不要拦截事件，将事件处理权交给图表
-     *
-     * 这对图表来说是非常重要的，比如图表放在ScrollerView里面时，如果不调用requestDisallowInterceptTouchEvent(true)，
-     * 图表接受的事件将由ScrollerView决定，一旦ScrollerView发现竖直滚动则会拦截事件，导致图表不能再接受到事件
-     *
-     * 此处首先申请父控件不要拦截事件，所有事件都将传到图表中，由图表决定自己是否处理事件，如果不需要处理（竖直方向滑动距离大于水平方向）则让父控件处理
-     * 需要注意的是一旦放弃处理，剩下的事件将不会被收到
-     */
-    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                mDownX = event.x
-                mDownY = event.y
-                parent.requestDisallowInterceptTouchEvent(true) //ACTION_DOWN的时候，赶紧把事件hold住
-            }
-            //不处于缩放状态，竖直滑动的距离大于阈值，将事件还给父控件
-            MotionEvent.ACTION_MOVE -> if (!scaleing && abs(event.y - mDownY) > abs(event.x - mDownX) * 1.5) {
-                parent.requestDisallowInterceptTouchEvent(false)
-            }
-        }
-        return super.dispatchTouchEvent(event)
-    }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        return super.onTouchEvent(event)
-    }
-    var focusPoint = PointF()
-    override fun onTouch(v: View?, event: MotionEvent): Boolean {
-        mScaleGestureDetector.onTouchEvent(event)
-        mGestureDetector.onTouchEvent(event)
-        if (focusPanelText != null) {
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    focusPoint.x = event.x
-                    focusPoint.y = event.y
-                    onFocusTouch(focusPoint)
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    focusPoint.x = event.x
-                    focusPoint.y = event.y
-                    onFocusTouch(focusPoint)
-                }
-                MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> onFocusTouch(null)
-            }
-        }
-        return true
-    }
-
-    inner class MyOnGestureListener : SimpleOnGestureListener() {
-        override fun onDown(e: MotionEvent): Boolean {
-            if (!mScroller.isFinished) mScroller.forceFinished(true)
-            return true //事件被消费，下次才能继续收到事件
-        }
-        override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-            if (!scaleing) {
-                scrollx -= distanceX //distanceX左正右负
-                scrollx = Math.min(scrollx, 0f)
-                scrollx = Math.max(scrollXMax, scrollx)
-                Log.d(TAG, "---------滚动："+distanceX+"   "+scrollx);
-                postInvalidate()
-            }
-            return false
-        }
-
-        override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-            //          LogUtil.e(TAG,"onFling------------>velocityX="+velocityX+"    velocityY="+velocityY);
-            /**
-             * 从当前位置scrollx开始滚动，
-             * 最小值为scrollXMax -- 滚动到最后
-             * 最大值为0 -- 滚动到开始
-             */
-            mScroller.fling(scrollx.toInt(), 0,
-                    velocityX.toInt(), 0,
-                    scrollXMax.toInt(), 0,
-                    0, 0
-            )
-            return false
-        }
-    }
-
-    override fun computeScroll() {
-        super.computeScroll()
-        if (mScroller.isFinished) return
-        if (mScroller.computeScrollOffset()) {
-//            Log.d(TAG, "滚动后计算："+mScroller.getCurrX());
-            scrollx = mScroller.currX.toFloat()
-            invalidate()
-        }
-    }
-    var scaleing = false
-    inner class MyOnScaleGestureListener : OnScaleGestureListener {
-        private var beginScrollx = 0f
-        private var focusIndex = 0
-        override fun onScale(detector: ScaleGestureDetector): Boolean {
-            scalex *= detector.scaleFactor
-            LogUtil.e(TAG, "--------------------当前缩放值$scalex  缩放${detector.scaleFactor}   缩放之后${scalex*detector.scaleFactor}")
-            //缩放范围约束
-            scalex = scalex.coerceAtMost(2f)
-            scalex = scalex.coerceAtLeast(1f)
-            LogUtil.e(TAG, "--------------------最终值$scalex ")
-            //重新计算最大偏移量
-            if(allDataWidth * scalex > rectChart.width()){
-                scrollXMax = rectChart.width() - allDataWidth * scalex
-                //为了保证焦点对应的点位置不变，是使用公式： beginScrollx + rectChart.left + focusIndex*beginPointWidth = scrollx + rectChart.left + focusIndex*pointWidth
-                scrollx = beginScrollx + focusIndex * (oneDataWidth - oneDataWidth*scalex)
-                scrollx = Math.min(scrollx, 0f)
-                scrollx = Math.max(scrollXMax, scrollx)
-                Log.i(TAG, "缩放后偏移："+scrollx);
-            }else{
-                scrollXMax = 0f  //数据不能填充时，居中展示
-                scrollx = 0f
-            }
-            postInvalidate()
-            return true
-        }
-
-        override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
-            val width = -scrollx + (detector.focusX - rectChart.left)
-            val zs = (width / (oneDataWidth*scalex)).toInt()
-            val ys = width % (oneDataWidth*scalex)
-            focusIndex = zs + if(ys>(barWidth/2+barSpace)*scalex)1 else 0
-            beginScrollx = scrollx
-            Log.i(TAG, "缩放开始了，焦点索引为$focusIndex") // 缩放因子
-            scaleing = true
-            return true
-        }
-
-        override fun onScaleEnd(detector: ScaleGestureDetector) {
-            scaleing = false
-        }
-    }
-
-    /**************************4. 事件👆******************************/
-
-    /*****************************焦点*******************************/
-    //设置焦点线颜色 及 粗细
-    private var focusPanelText: Array<FocusPanelText>? = null
-    private val focusLineColor = Color.parseColor("#319A5A")
-    private val focusLineSize = DensityUtil.dip2px(context, 1f)
-    private val foucsRectTextSpace = DensityUtil.dip2px(context, 3f)
-    private val foucsRectSpace = DensityUtil.dip2px(context, 6f)
-    //焦点面板矩形宽高
-    private var foucsRectWidth = 0f
-    private var foucsRectHeight = 0f
-
-    private var focusData: FocusData? = null
-    private var focusIndex = 0
-    private fun onFocusTouch(point: PointF?) {
-        try {
-            focusData = null
-            point?.let {
-                if (!_datas.isNullOrEmpty()) {
-                    val scaleOneWidth = oneDataWidth*scalex
-                    val allWidth = allDataWidth*scalex
-                    //避免滑出
-                    var left = rectChart.left
-                    var right = rectChart.right
-                    if(allWidth<rectChart.width()){
-                        left = rectChart.left + (rectChart.width()-allWidth)/2
-                        right = rectChart.left + allWidth
-                    }
-                    LogUtil.e(TAG, "========焦点位置${point.x}")
-                    point.x = Math.max(point.x, left)
-                    point.x = Math.min(point.x, right)
-                    LogUtil.e(TAG, "========左右范围：${left}*${right}   焦点纠正后$point.x")
-                    val width = if(allWidth<rectChart.width()){
-                        point.x - left
-                    }else{
-                        -scrollx + (point.x - left)
-                    }
-                    //获取焦点对应的数据的索引
-                    focusIndex = (width / scaleOneWidth).toInt() - 1  //计算的是索引（从0开始），所以-1
-                    LogUtil.e(TAG, "========单个宽度$scaleOneWidth  宽度$width   整数索引$focusIndex")
-                    if(width % scaleOneWidth > barSpace*scalex/2) {
-                        focusIndex += 1
-                        LogUtil.e(TAG, "========焦点在下一个点范围了：$focusIndex")
-                    }
-                    focusIndex = Math.max(0, Math.min(focusIndex, _datas.size - 1))
-                    LogUtil.e(TAG, "========焦点索引：$focusIndex")
-                    focusData = FocusData(_datas[focusIndex], it)
-                }
-            }
-            postInvalidate()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    /**焦点数据 */
-    class FocusData(val data: MultipartBarData, val point: PointF )
 }
 

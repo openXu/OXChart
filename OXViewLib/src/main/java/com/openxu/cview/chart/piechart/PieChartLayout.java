@@ -29,7 +29,8 @@ public class PieChartLayout extends LinearLayout {
     private String TAG = "PieChartLayout";
 
     protected boolean isLoading = true;
-    protected boolean debug = SharedData.getInstance().getData(SharedData.KEY_DEBUG, Boolean.class);
+    protected boolean debug = SharedData.getInstance().getSp().getBoolean(SharedData.KEY_DEBUG, false);
+
     protected List<PieChartBean> dataList;
     protected List<ChartLable> lableList;
 

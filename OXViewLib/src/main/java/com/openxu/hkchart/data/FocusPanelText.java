@@ -1,11 +1,11 @@
-package com.openxu.hkchart.element;
+package com.openxu.hkchart.data;
 
 
 /**
  * Author: openXu
  * Time: 2020/11/11 15:56
  * class: FocusPanelText
- * Description:
+ * Description: (共用)焦点文字设置
  */
 public class FocusPanelText {
     public boolean show;

@@ -1,5 +1,6 @@
 package com.openxu.hkchart;
 
+import android.content.SharedPreferences;
 import android.widget.CompoundButton;
 
 import com.openxu.hkchart.base.BaseActivity;
@@ -17,8 +18,12 @@ public class SettingActivity extends BaseActivity<ActivitySettingBinding> {
 
     @Override
     public void initView() {
-        binding.debugOnOff.checkbox.setChecked(spUtil.getData(spUtil.KEY_DEBUG, Boolean.class));
-        binding.debugOnOff.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> spUtil.saveData(spUtil.KEY_DEBUG, isChecked));
+        binding.debugOnOff.checkbox.setChecked(spUtil.getSp().getBoolean(spUtil.KEY_DEBUG, false));
+        binding.debugOnOff.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = spUtil.getSp().edit();
+            editor.putBoolean(spUtil.KEY_DEBUG, isChecked);
+            editor.commit();
+        });
     }
 
     @Override

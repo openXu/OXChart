@@ -1,9 +1,10 @@
-package com.openxu.hkchart.element;
+package com.openxu.hkchart.config;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Typeface;
+
 import com.openxu.utils.DensityUtil;
 
 import java.math.RoundingMode;

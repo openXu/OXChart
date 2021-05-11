@@ -1,5 +1,7 @@
-package com.openxu.hkchart.line;
-
+package com.openxu.hkchart.data;
+/**
+ * LineChart 的数据
+ */
 public class LinePoint {
 
     private float valuey ;        //y轴值

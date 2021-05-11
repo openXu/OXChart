@@ -46,7 +46,8 @@ public abstract class BaseChart extends View {
     protected Paint paint;
     protected Paint paintEffect;
     protected Paint paintLabel;
-    protected boolean debug = SharedData.getInstance().getData(SharedData.KEY_DEBUG, Boolean.class);
+    protected boolean debug = SharedData.getInstance().getSp().getBoolean(SharedData.KEY_DEBUG, false);
+
 
     /**可设置属性*/
     protected int backColor = Color.WHITE;

@@ -62,7 +62,7 @@ public abstract class BaseChart extends View {
     protected boolean isLoading = true;
     protected boolean drawLine = true;
     protected boolean drawBottomLine = true;
-    protected boolean debug = SharedData.getInstance().getData(SharedData.KEY_DEBUG, Boolean.class);
+    protected boolean debug = SharedData.getInstance().getSp().getBoolean(SharedData.KEY_DEBUG, false);
 
 
     /**手指抬起后，动画*/

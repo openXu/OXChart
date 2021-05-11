@@ -16,7 +16,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
-import com.openxu.hkchart.element.YAxisMark;
+import com.openxu.hkchart.config.YAxisMark;
 import com.openxu.cview.R;
 import com.openxu.cview.chart.anim.AngleEvaluator;
 import com.openxu.cview.xmstock.BaseChart;

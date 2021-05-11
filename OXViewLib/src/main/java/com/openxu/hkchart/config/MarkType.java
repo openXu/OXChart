@@ -1,4 +1,4 @@
-package com.openxu.hkchart.element;
+package com.openxu.hkchart.config;
 
 /**
  * Author: openXu

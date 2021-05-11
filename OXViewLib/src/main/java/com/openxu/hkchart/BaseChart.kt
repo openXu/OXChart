@@ -98,8 +98,7 @@ open abstract class BaseChart<T> : View, View.OnTouchListener {
         centerPoint = Point(measuredWidth / 2, measuredHeight / 2)
         rectDrawBounds = RectF(paddingLeft.toFloat(), paddingTop.toFloat(), (measuredWidth - paddingRight).toFloat(),
                 (measuredHeight - paddingBottom).toFloat())
-        rectChart = RectF(paddingLeft.toFloat(), paddingTop.toFloat(), (measuredWidth - paddingRight).toFloat(),
-                (measuredHeight - paddingBottom).toFloat())
+        rectChart = RectF(rectDrawBounds.left, rectDrawBounds.top, rectDrawBounds.right,rectDrawBounds.bottom)
         loadingIndicator.setBounds(rectDrawBounds.left.toInt(), rectDrawBounds.top.toInt(),
                 rectDrawBounds.right.toInt(), rectDrawBounds.bottom.toInt())
         initial()

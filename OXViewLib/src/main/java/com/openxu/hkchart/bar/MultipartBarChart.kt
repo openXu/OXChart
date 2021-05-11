@@ -194,7 +194,7 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = yAxisMark.lineWidth.toFloat()
         paint.color = yAxisMark.lineColor
-        for (i in 0..yAxisMark.lableNum) {
+        for (i in 0 until yAxisMark.lableNum) {
             /**绘制横向线 */
             canvas!!.drawLine(rectChart.left, rectChart.bottom - yMarkSpace * i,
                     rectChart.right, rectChart.bottom - yMarkSpace * i, paint)

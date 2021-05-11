@@ -8,6 +8,7 @@ import android.view.ScaleGestureDetector
 import com.openxu.hkchart.BaseChart
 import com.openxu.hkchart.config.*
 import com.openxu.hkchart.data.FocusData
+import com.openxu.hkchart.data.FocusPanelText
 import com.openxu.utils.DensityUtil
 import com.openxu.utils.FontUtil
 import com.openxu.utils.LogUtil
@@ -38,14 +39,12 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
     var datas: MutableList<MultipartBarData>
         get() {return _datas}
         set(value) {
-            if(!this::config.isInitialized) throw RuntimeException("---------请设置初始显示方案")
             _datas.clear()
             _datas.addAll(value)
-            if(config.dataTotalCount<0)
-                config.dataTotalCount = value.size
             initial()
-            if (config.showAnim)
-                chartAnimStarted = false
+            chartConfig?.let {
+                if (it.showAnim) chartAnimStarted = false
+            }
             loading = false
         }
 
@@ -55,9 +54,23 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
     private lateinit var yAxisMark : YAxisMark
     private lateinit var xAxisMark : XAxisMark
     private lateinit var barColor : IntArray
-    private lateinit var config : MultipartBarConfig
-    override fun chartConfiged(displayConfig: ChartConfigBase) {
-        this.config = displayConfig as MultipartBarConfig
+    private var focusPanelText: Array<FocusPanelText>? = null  //焦点面板显示内容
+    private var dataTotalCount : Int = -1
+    /**初步计算*/
+    private var barWidth : Float = 0f  //柱宽度
+    private var spacingRatio = 1f
+    private var barSpace : Float = 0f  //柱间的间距
+    private var oneDataWidth : Float = 0f  //单个柱子+间距 的宽度  ...(  | |)
+    private var allDataWidth : Float = 0f  //所有柱子+间距 的宽度  (  | |  | |...| | )
+    private var foucsRectWidth = 0f           //焦点面板矩形宽高
+    private var foucsRectHeight = 0f
+
+    override fun initial():Boolean{
+        if(super.initial()) return true
+        if(_datas.isNullOrEmpty()) return true
+        if(chartConfig==null)
+            throw RuntimeException("---------请配置图表")
+        var config = chartConfig as MultipartBarConfig
         if(null==config.xAxisMark)
             throw RuntimeException("---------请设置x坐标")
         if(null==config.yAxisMark)
@@ -65,19 +78,15 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         xAxisMark = config.xAxisMark!!
         yAxisMark = config.yAxisMark!!
         barColor = config.barColor
+        barWidth = config.barWidth
+        spacingRatio = config.spacingRatio
+        barSpace = barWidth * spacingRatio
 
-    }
+        dataTotalCount = config.dataTotalCount
+        if(dataTotalCount<0)
+            dataTotalCount = datas.size
+        focusPanelText = config.focusPanelText
 
-    /**初步计算*/
-    private var barWidth : Float = 0f  //柱宽度
-    private var barSpace : Float = 0f  //柱间的间距
-    private var oneDataWidth : Float = 0f  //单个柱子+间距 的宽度  ...(  | |)
-    private var allDataWidth : Float = 0f  //所有柱子+间距 的宽度  (  | |  | |...| | )
-    private var foucsRectWidth = 0f           //焦点面板矩形宽高
-    private var foucsRectHeight = 0f
-    override fun initial():Boolean{
-        if(super.initial()) return true
-        if(!this::config.isInitialized || _datas.isNullOrEmpty()) return true
         /**重新确定表体矩形rectChart*/
         paintText.textSize = xAxisMark.textSize.toFloat()
         xAxisMark.textHeight = FontUtil.getFontHeight(paintText)
@@ -101,15 +110,13 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         /**重新计算柱子宽度 和 间距*/
         LogUtil.e(TAG, "--------------根据显示配置和数据，计算柱子宽度和间距")
         //根据设置的柱子宽度和间距，计算所有数据宽度
-        allDataWidth = config.dataTotalCount * config!!.barWidth + (config.dataTotalCount+1) * config.barSpace
-        barWidth = config.barWidth
-        barSpace = config.barSpace
+        allDataWidth = dataTotalCount * barWidth + (dataTotalCount+1) * barSpace
         when(config.displayScheme){
             DisplayScheme.SHOW_ALL->{  //全部显示
                 if(allDataWidth > rectChart.width()){  //超出时，重新计算barWidth
 //                    barWidth * dataTotalCount + barWidth*config.spacingRatio*(dataTotalCount+1) = rectChart.width()
-                    barWidth = rectChart.width()/(config.dataTotalCount + config.spacingRatio*(config.dataTotalCount+1))
-                    barSpace = barWidth * config.spacingRatio
+                    barWidth = rectChart.width()/(dataTotalCount + spacingRatio*(dataTotalCount+1))
+                    barSpace = barWidth * spacingRatio
                     LogUtil.w(TAG, "全部展示时宽度超过，重新计算柱子宽度$barWidth  间距 $barSpace")
                 }
             }
@@ -119,7 +126,7 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         LogUtil.v(TAG, "确定柱子宽度 $barWidth  间距 $barSpace")
         /**确定第一条数据的绘制x坐标   计算滚动最大值*/
         oneDataWidth = barWidth + barSpace
-        allDataWidth = config.dataTotalCount * barWidth + (config.dataTotalCount+1) * barSpace
+        allDataWidth = dataTotalCount * barWidth + (dataTotalCount+1) * barSpace
 
         scrollx = 0f
         scrollXMax = 0f
@@ -138,7 +145,7 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         }
         LogUtil.v(TAG, "单个柱子+间距 $oneDataWidth  所有数据宽度 $allDataWidth")
 
-        config.focusPanelText?.let {
+        focusPanelText?.let {
             //计算焦点面板
             //2020-10-16 06：00
             //零序电流:15.2KW
@@ -328,7 +335,7 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         var top: Float = rect.top + foucsRectSpace
         val currentPoint = PointF()
         val radius = DensityUtil.dip2px(context, 2.5f).toFloat()
-        config.focusPanelText?.let {
+        focusPanelText?.let {
             for (i in it.indices) {
                 if (it[i].show) {
                     paintText.textSize = it[i].textSize.toFloat()

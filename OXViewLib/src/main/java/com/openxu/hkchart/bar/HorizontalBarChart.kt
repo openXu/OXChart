@@ -18,10 +18,6 @@ import com.openxu.utils.LogUtil
  * Description:
  */
 class HorizontalBarChart  : BaseChart<HBar> {
-    /**设置 */
-    private val barData = mutableListOf<HBar>()
-    private lateinit var yAxisMark: YAxisMark
-    private lateinit var xAxisMark: XAxisMark
 
     /**计算 */
     private val chartRect = RectF() //图表矩形
@@ -31,22 +27,37 @@ class HorizontalBarChart  : BaseChart<HBar> {
     constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle) {
     }
 
-    private lateinit var config : HorizontalBarConfig
-    override fun chartConfiged(displayConfig: ChartConfigBase) {
-        this.config = displayConfig as HorizontalBarConfig
+    /**设置 */
+    private val barData = mutableListOf<HBar>()
+    private lateinit var yAxisMark: YAxisMark
+    private lateinit var xAxisMark: XAxisMark
+    private var barWidth = DensityUtil.dip2px(context, 26f)
+    private var barSpace = DensityUtil.dip2px(context, 10f)
+    private var barColor = intArrayOf(
+            Color.parseColor("#F46863"),
+            Color.parseColor("#2DD08A"),
+            Color.parseColor("#567CF6"),
+            Color.parseColor("#F5B802"),
+            Color.parseColor("#CC71F7"))
+    fun setData(barData: List<HBar>?) {
+        if(chartConfig==null)
+            throw RuntimeException("---------请配置图表")
+        LogUtil.w(TAG, "设置数据：$barData")
+        this.barData.clear()
+        barData?.let {
+            this.barData.addAll(barData)
+        }
+        var config = chartConfig as HorizontalBarConfig
         if(null==config.xAxisMark)
             throw RuntimeException("---------请设置x坐标")
         if(null==config.yAxisMark)
             throw RuntimeException("---------请设置y坐标")
         xAxisMark = config.xAxisMark!!
         yAxisMark = config.yAxisMark!!
-    }
-    fun setData(barData: List<HBar>?) {
-        LogUtil.w(TAG, "设置数据：$barData")
-        this.barData.clear()
-        barData?.let {
-            this.barData.addAll(barData)
-        }
+        barWidth = config.barWidth
+        barSpace = config.barSpace
+        barColor = config.barColor
+
         if (config.showAnim) chartAnimStarted = false
         calculateYMark()
         loading = false
@@ -78,7 +89,7 @@ class HorizontalBarChart  : BaseChart<HBar> {
                     yAxisMark.textLead = FontUtil.getFontLeading(paintText)
                     height += yAxisMark.textSpace
                     height += yAxisMark.textHeight.toInt()
-                    height += (config.barWidth + config.barSpace) * barData.size
+                    height += (barWidth + barSpace) * barData.size
                     //
                     /*  if(height>heightSize){
 
@@ -97,9 +108,8 @@ class HorizontalBarChart  : BaseChart<HBar> {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        if (xAxisMark == null || yAxisMark == null || barData.isNullOrEmpty()) {
+        if (barData.isNullOrEmpty())
             return
-        }
         paintText.textSize = xAxisMark.textSize.toFloat()
         paintText.typeface = Typeface.DEFAULT
         xAxisMark.textHeight = FontUtil.getFontHeight(paintText)
@@ -123,7 +133,7 @@ class HorizontalBarChart  : BaseChart<HBar> {
         if (barData.isNullOrEmpty()) return
         var axis0x = 0f //y轴0刻度的x坐标
 
-        var top: Float = chartRect.top + config.barSpace / 2 //绘制柱状开始的最上方位置
+        var top: Float = chartRect.top + barSpace / 2 //绘制柱状开始的最上方位置
 
         paintText.textSize = xAxisMark.textSize.toFloat()
         paintText.color = xAxisMark.textColor
@@ -139,15 +149,15 @@ class HorizontalBarChart  : BaseChart<HBar> {
             val textWidth = FontUtil.getFontlength(paintText, lable)
             canvas!!.drawText(lable,
                     chartRect.left - xAxisMark.textSpace - textWidth,
-                    top + config.barWidth / 2 - xAxisMark.textHeight / 2 + xAxisMark.textLead, paintText)
+                    top + barWidth / 2 - xAxisMark.textHeight / 2 + xAxisMark.textLead, paintText)
             //绘制底色
             paint.color = Color.parseColor("#f0f0f0")
             rect.left = chartRect.left
             rect.top = top
             rect.right = chartRect.right
-            rect.bottom = top + config.barWidth
+            rect.bottom = top + barWidth
             canvas!!.drawRect(rect, paint)
-            top += config.barWidth + config.barSpace
+            top += barWidth + barSpace
         }
 
         paint.style = Paint.Style.STROKE
@@ -195,12 +205,12 @@ class HorizontalBarChart  : BaseChart<HBar> {
         //y值每一份对应的宽度
         //y值每一份对应的宽度
         val once = chartRect.width() / (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min)
-        top = chartRect.top + config.barSpace / 2
+        top = chartRect.top + barSpace / 2
         for (i in 0 until barData.size) {
             val bar = barData[i]
             //绘制颜色柱子
             rect.top = top
-            rect.bottom = top + config.barWidth
+            rect.bottom = top +barWidth
             if (bar.value >= 0) {
                 rect.left = axis0x
                 rect.right = rect.left + once * bar.value * chartAnimValue
@@ -208,7 +218,7 @@ class HorizontalBarChart  : BaseChart<HBar> {
                 rect.right = axis0x
                 rect.left = rect.right + once * bar.value * chartAnimValue
             }
-            paint.color = config.barColor.get(i % config.barColor.size)
+            paint.color = barColor.get(i % barColor.size)
             canvas!!.drawRect(rect, paint)
             //绘制文字
             val lable = yAxisMark.getMarkText(bar.value) + yAxisMark.unit
@@ -219,8 +229,8 @@ class HorizontalBarChart  : BaseChart<HBar> {
             paintText.typeface = yAxisMark.numberTypeface
             canvas!!.drawText(lable,
                     x,
-                    top + config.barWidth / 2 - xAxisMark.textHeight / 2 + xAxisMark.textLead, paintText)
-            top += config.barWidth + config.barSpace
+                    top + barWidth / 2 - xAxisMark.textHeight / 2 + xAxisMark.textLead, paintText)
+            top += barWidth + barSpace
         }
     }
 

@@ -61,7 +61,6 @@ open abstract class BaseChart<T> : View, View.OnTouchListener {
         }
 
     //动画
-    private var showAnim = true
     private lateinit var chartAnim: ValueAnimator
     protected var chartAnimValue = 1f //动画值
     protected var chartAnimStarted = false
@@ -113,12 +112,17 @@ open abstract class BaseChart<T> : View, View.OnTouchListener {
             canvas.restoreToCount(saveCount)
             return
         }
-        if (showAnim && !chartAnimStarted) {
-            chartAnimStarted = true
-            startChartAnimation()
-        } else {
+        if(chartConfig==null){
             drawChart(canvas)
+        }else{
+            if (chartConfig!!.showAnim && !chartAnimStarted) {
+                chartAnimStarted = true
+                startChartAnimation()
+            } else {
+                drawChart(canvas)
+            }
         }
+
     }
 
     private fun drawDebug(canvas: Canvas) {
@@ -138,19 +142,9 @@ open abstract class BaseChart<T> : View, View.OnTouchListener {
 
     /***************************1. API👇👇👇***************************/
     var chartConfig : ChartConfigBase? = null
-        set(value) {
-            if(null==value){
-                throw RuntimeException("---------配置不能为null")
-            }else{
-                field = value
-                chartConfiged(value)
-            }
-        }
     /***************************1. API👆👆👆***************************/
 
     /***************************2. 子类重写👇👇👇***************************/
-    /**配置*/
-    open abstract fun chartConfiged(displayConfig : ChartConfigBase)
     /**初步计算，当设置数据 & size发生变化时调用*/
     open fun initial() :Boolean{
         if(!this::rectDrawBounds.isInitialized)

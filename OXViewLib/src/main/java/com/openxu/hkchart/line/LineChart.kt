@@ -36,14 +36,13 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
     var datas: MutableList<MutableList<LinePoint>>
         get() {return _datas}
         set(value) {
-            if(!this::config.isInitialized) throw RuntimeException("---------请设置初始显示方案")
             _datas.clear()
             _datas.addAll(value)
-            if(config.dataTotalCount<0)
-                config.dataTotalCount = value.size
+
             initial()
-            if (config.showAnim)
-                chartAnimStarted = false
+            chartConfig?.let {
+                if (it.showAnim) chartAnimStarted = false
+            }
             loading = false
         }
 
@@ -53,19 +52,17 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
     /**配置*/
     private lateinit var yAxisMark : YAxisMark
     private lateinit var xAxisMark : XAxisMark
-    private lateinit var config : LineChartConfig
-    override fun chartConfiged(displayConfig: ChartConfigBase) {
-        this.config = displayConfig as LineChartConfig
-        xAxisMark = config.xAxisMark?:XAxisMark.Builder(context)
-                .lableNum(5)
-                .build()
-        yAxisMark = config.yAxisMark?:YAxisMark.Builder(context)
-                .lableNum(6)
-                .markType(MarkType.Integer)
-                .unit("")
-                .build()
-    }
-
+    private var lineType : LineType = LineType.BROKEN
+    private var lineWidth = DensityUtil.dip2px(context, 1f).toFloat()
+    private var lineColor = intArrayOf(
+            Color.parseColor("#f46763"),
+            Color.parseColor("#3cd595"),
+            Color.parseColor("#4d7bff"),
+            Color.parseColor("#4d7bff"))
+    private var pageShowNum  = 0 //第一次页面总数据量   没有设置展示数据量，则默认为全部展示
+    private var dataTotalCount : Int = -1
+    /**设置焦点面板显示内容*/
+    private var focusPanelText: Array<FocusPanelText>? = null
     /**初步计算*/
     private var maxPointNum = 0 //点最多的线的点数量
     private var maxPointIndex  = 0//点最多的线的索引
@@ -74,7 +71,27 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
     private var pointWidth = 0f //每个点占据的宽度
     override fun initial():Boolean{
         if(super.initial()) return true
-        if(!this::config.isInitialized || _datas.isNullOrEmpty()) return true
+        if(_datas.isNullOrEmpty()) return true
+        if(chartConfig==null)
+            throw RuntimeException("---------请配置图表")
+        var config = chartConfig as LineChartConfig
+        xAxisMark = config.xAxisMark?:XAxisMark.Builder(context)
+                .lableNum(5)
+                .build()
+        yAxisMark = config.yAxisMark?:YAxisMark.Builder(context)
+                .lableNum(6)
+                .markType(MarkType.Integer)
+                .unit("")
+                .build()
+        lineType = config.lineType
+        lineWidth = config.lineWidth
+        lineColor = config.lineColor
+        pageShowNum = config.pageShowNum
+        dataTotalCount = config.dataTotalCount
+        if(dataTotalCount<0)
+            dataTotalCount = datas.size
+        focusPanelText = config.focusPanelText
+
         maxPointNum = 0
         maxPointIndex = 0
         for (i in 0 until _datas.size) {
@@ -108,15 +125,13 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         rectChart.right = rectDrawBounds.right
 
         //没有设置展示数据量，则默认为全部展示
-
-        //没有设置展示数据量，则默认为全部展示
-        if (config.pageShowNum <= 0) config.pageShowNum = maxPointNum
-        if (maxPointNum < config.pageShowNum) //最多的点小于需要显示的点，则全部展示
-            config.pageShowNum = maxPointNum
-        Log.w(TAG, "计算config.pageShowNum=${config.pageShowNum}")
+        if (pageShowNum <= 0) pageShowNum = maxPointNum
+        if (maxPointNum < pageShowNum) //最多的点小于需要显示的点，则全部展示
+            pageShowNum = maxPointNum
+        Log.w(TAG, "pageShowNum=${pageShowNum}")
         pointWidthMin = rectChart.width() / (maxPointNum - 1) //缩小到全部显示
 
-        pointWidth = rectChart.width() / (config.pageShowNum - 1)
+        pointWidth = rectChart.width() / (pageShowNum - 1)
         pointWidthMax = rectChart.width() / 4 //最大只能放大到每个标签显示5个点
 
 //        pointWidthMax = rectChart.width() / (xAxisMark.lableNum-1) / 5;   //最大只能放大到每个标签显示5个点
@@ -124,12 +139,12 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         Log.w(TAG, "缩放最小最大宽度=$pointWidthMin     $pointWidthMax")
         //数据没有展示完，说明可以滚动
         scrollXMax = 0f
-        if (config.pageShowNum < maxPointNum) scrollXMax = -(pointWidth * (maxPointNum - 1) - rectChart.width()) //最大滚动距离，是一个负值
+        if (pageShowNum < maxPointNum) scrollXMax = -(pointWidth * (maxPointNum - 1) - rectChart.width()) //最大滚动距离，是一个负值
 
         scrollx = if (config.displayScheme==DisplayScheme.SHOW_BEGIN) 0f else scrollXMax
 
         caculateXMark()
-        config.focusPanelText?.let {
+        focusPanelText?.let {
             //计算焦点面板
             //2020-10-16 06：00
             //零序电流:15.2KW
@@ -225,7 +240,7 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         if (maxPointNum <= 0) return
         paintText.textSize = xAxisMark.textSize.toFloat()
         paintText.color = xAxisMark.textColor
-        paint.strokeWidth = config.lineWidth
+        paint.strokeWidth = lineWidth
         val radius = DensityUtil.dip2px(context, 3f).toFloat()
 
         val path = Path()
@@ -237,8 +252,8 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         endIndex = Math.min(endIndex, maxPointNum - 1)
 //        Log.w(TAG, "绘制索引："+startIndex+" 至  "+endIndex+"   scrollx="+scrollx);
         //        Log.w(TAG, "绘制索引："+startIndex+" 至  "+endIndex+"   scrollx="+scrollx);
-        val clipRect = RectF(rectChart.left - radius - config.lineWidth / 2, rectChart.top,
-                rectChart.right + radius + config.lineWidth / 2,
+        val clipRect = RectF(rectChart.left - radius - lineWidth / 2, rectChart.top,
+                rectChart.right + radius + lineWidth / 2,
                 rectChart.bottom + xAxisMark.textSpace + xAxisMark.textHeight)
         canvas!!.saveLayer(clipRect.left, clipRect.top, clipRect.right, clipRect.bottom, paint, Canvas.ALL_SAVE_FLAG)
         var drawXLable = false
@@ -253,7 +268,7 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
                 currentPoint.x = scrollx + rectChart.left + j * pointWidth
                 currentPoint.y = rectChart.bottom - (rectChart.bottom - rectChart.top) /
                         (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (linePoints[j].valuey - yAxisMark.cal_mark_min)
-                if (config.lineType == LineType.BROKEN) {
+                if (lineType == LineType.BROKEN) {
                     if (path.isEmpty) {
                         path.moveTo(currentPoint.x, currentPoint.y)
                     } else {
@@ -284,7 +299,7 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
                     drawXLable = if (xlables.size > 0 && xlables.contains(linePoints[j].valuex)) {
                         true
                     } else {
-                        if (config.displayScheme==DisplayScheme.SHOW_BEGIN) {
+                        if (chartConfig!!.displayScheme==DisplayScheme.SHOW_BEGIN) {
                             j % xindexSpace === 0
                         } else {
                             (j - (maxPointNum - 1)) % xindexSpace === 0
@@ -306,8 +321,8 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
                 }
             }
             paint.style = Paint.Style.STROKE
-            paint.strokeWidth = config.lineWidth
-            paint.color = config.lineColor[i]
+            paint.strokeWidth = lineWidth
+            paint.color = lineColor[i]
             /**
              * Xfermode 有三个实现类: AvoidXfermode,PixelXorXfermode,PorterDuffXfermode
              *
@@ -391,7 +406,7 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
             var top = rect.top + foucsRectSpace
             val currentPoint = PointF()
             val radius = DensityUtil.dip2px(context, 2.5f).toFloat()
-            config.focusPanelText?.let {
+            focusPanelText?.let {
                 for (i in it.indices) {
                     if (it[i].show) {
                         paintText.textSize = it[i].textSize.toFloat()
@@ -419,11 +434,11 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
                                 currentPoint.y = rectChart.bottom - (rectChart.bottom - rectChart.top) /
                                         (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (focusData!!.data[i - 1]!!.valuey - yAxisMark.cal_mark_min)
                                 paint.style = Paint.Style.STROKE
-                                paint.color = config.lineColor.get(i - 1)
+                                paint.color = lineColor.get(i - 1)
                                 canvas.drawCircle(currentPoint.x, currentPoint.y, radius, paint)
                                 paint.style = Paint.Style.FILL
                                 paint.color = Color.WHITE
-                                canvas.drawCircle(currentPoint.x, currentPoint.y, radius - config.lineWidth / 2, paint)
+                                canvas.drawCircle(currentPoint.x, currentPoint.y, radius - lineWidth / 2, paint)
                             }
                         }
                         canvas.drawText(text,
@@ -451,7 +466,7 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         pointWidth *= detector.scaleFactor
         //缩放范围约束
 //            pointWidthMin = rectChart.width() / (maxPointNum-1);   //缩小到全部显示
-//            pointWidth = rectChart.width() / (config.pageShowNum-1);
+//            pointWidth = rectChart.width() / (pageShowNum-1);
 //            pointWidthMax = rectChart.width() / 4;   //最大只能放大到每个标签显示5个点
         pointWidth = Math.min(pointWidth, pointWidthMax)
         pointWidth = Math.max(pointWidth, pointWidthMin)
@@ -470,7 +485,7 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
     override fun onFocusTouch(point: PointF?) {
         focusData = null
         point?.let {
-            if (!_datas.isNullOrEmpty() && config.focusPanelText!=null) {
+            if (!_datas.isNullOrEmpty() && focusPanelText!=null) {
                 //避免滑出
                 point.x = Math.max(point.x, rectChart.left);
                 point.x = Math.min(point.x, rectChart.right);

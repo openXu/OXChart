@@ -17,9 +17,7 @@ class MultipartBarConfig(context: Context) : ChartConfigBase(){
     var barWidth = DensityUtil.dip2px(context, 15f).toFloat()
     //默认柱间的间距占比，间距 = barWidth*spacingRatio
     var spacingRatio = 1f
-    //只读，根据柱体宽度 和 间距占比获取间距
-    val barSpace : Float
-        get() {return barWidth * spacingRatio }
+
 
     //柱颜色
     var barColor: IntArray = intArrayOf(

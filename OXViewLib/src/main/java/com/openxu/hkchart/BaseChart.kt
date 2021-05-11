@@ -43,7 +43,8 @@ open abstract class BaseChart<T> : View, View.OnTouchListener {
     //屏幕宽高
     protected var screenWidth = 0
     protected var screenHeight = 0
-    protected lateinit var rectChart : RectF    //图表矩形
+    protected lateinit var rectDrawBounds : RectF    //图表绘制矩形区域(每次刷新数据固定不变)
+    protected lateinit var rectChart : RectF         //图表主体绘制矩形（刷新数据时会重新计算）
     protected lateinit var centerPoint : Point  //chart中心点坐标
     //坐标轴辅助线宽度
     protected var axisLineWidth = DensityUtil.dip2px(context, 0.8f)
@@ -95,10 +96,12 @@ open abstract class BaseChart<T> : View, View.OnTouchListener {
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         centerPoint = Point(measuredWidth / 2, measuredHeight / 2)
+        rectDrawBounds = RectF(paddingLeft.toFloat(), paddingTop.toFloat(), (measuredWidth - paddingRight).toFloat(),
+                (measuredHeight - paddingBottom).toFloat())
         rectChart = RectF(paddingLeft.toFloat(), paddingTop.toFloat(), (measuredWidth - paddingRight).toFloat(),
                 (measuredHeight - paddingBottom).toFloat())
-        loadingIndicator.setBounds(rectChart.left.toInt(), rectChart.top.toInt(),
-                rectChart.right.toInt(), rectChart.bottom.toInt())
+        loadingIndicator.setBounds(rectDrawBounds.left.toInt(), rectDrawBounds.top.toInt(),
+                rectDrawBounds.right.toInt(), rectDrawBounds.bottom.toInt())
         initial()
     }
     override fun onDraw(canvas: Canvas) {
@@ -131,7 +134,7 @@ open abstract class BaseChart<T> : View, View.OnTouchListener {
         r = RectF(paddingLeft.toFloat(), paddingTop.toFloat(), (measuredWidth - paddingRight).toFloat(), (measuredHeight - paddingBottom).toFloat())
         canvas.drawRect(r, paint)
         paint.color = Color.GREEN
-        canvas.drawRect(rectChart, paint)
+        canvas.drawRect(rectDrawBounds, paint)
     }
 
     /***************************1. API👇👇👇***************************/
@@ -151,7 +154,7 @@ open abstract class BaseChart<T> : View, View.OnTouchListener {
     open abstract fun chartConfiged(displayConfig : ChartConfigBase)
     /**初步计算，当设置数据 & size发生变化时调用*/
     open fun initial() :Boolean{
-        if(!this::rectChart.isInitialized)
+        if(!this::rectDrawBounds.isInitialized)
             return true
         return false
     }

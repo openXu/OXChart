@@ -67,7 +67,6 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
     }
 
     /**初步计算*/
-    private val chartRect = RectF() //图表矩形
     private var maxPointNum = 0 //点最多的线的点数量
     private var maxPointIndex  = 0//点最多的线的索引
     private var pointWidthMin= 0f //最初的每个点占据的宽度，最小缩放值
@@ -91,9 +90,9 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         xAxisMark.textLead = FontUtil.getFontLeading(paintText)
         Log.w(TAG, "x轴字体高度：" + xAxisMark.textHeight.toString() + "   textLead：" + xAxisMark.textLead.toString() + "  xAxisMark.textSpace" + xAxisMark.textSpace)
         //确定图表最下放绘制位置
-        chartRect.bottom = rectChart.bottom - xAxisMark.textHeight - xAxisMark.textSpace
-        Log.w(TAG, "rectChart.bottom：" + rectChart.bottom + "    chartRect.bottom=" + chartRect.bottom)
-        xAxisMark.drawPointY = chartRect.bottom + xAxisMark.textSpace + xAxisMark.textLead
+        rectChart.bottom = rectDrawBounds.bottom - xAxisMark.textHeight - xAxisMark.textSpace
+        Log.w(TAG, "rectDrawBounds.bottom：" + rectDrawBounds.bottom + "    rectChart.bottom=" + rectChart.bottom)
+        xAxisMark.drawPointY = rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead
         calculateYMark()
         paintText.textSize = yAxisMark.textSize.toFloat()
         yAxisMark.textHeight = FontUtil.getFontHeight(paintText)
@@ -103,10 +102,10 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         LogUtil.w(TAG, "Y刻度最大字符串：$maxLable")
         if (!TextUtils.isEmpty(yAxisMark.unit)) maxLable = if (yAxisMark.unit.length > maxLable.length) yAxisMark.unit else maxLable
         LogUtil.w(TAG, "Y刻度最大字符串：$maxLable")
-        chartRect.left = paddingLeft + yAxisMark.textSpace + FontUtil.getFontlength(paintText, maxLable)
-        chartRect.top = rectChart.top + yAxisMark.textHeight / 2 +
+        rectChart.left = paddingLeft + yAxisMark.textSpace + FontUtil.getFontlength(paintText, maxLable)
+        rectChart.top = rectDrawBounds.top + yAxisMark.textHeight / 2 +
                 if (TextUtils.isEmpty(yAxisMark.unit)) 0f else yAxisMark.textHeight + yAxisMark.textSpace
-        chartRect.right = rectChart.right
+        rectChart.right = rectDrawBounds.right
 
         //没有设置展示数据量，则默认为全部展示
 
@@ -115,17 +114,17 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         if (maxPointNum < config.pageShowNum) //最多的点小于需要显示的点，则全部展示
             config.pageShowNum = maxPointNum
         Log.w(TAG, "计算config.pageShowNum=${config.pageShowNum}")
-        pointWidthMin = chartRect.width() / (maxPointNum - 1) //缩小到全部显示
+        pointWidthMin = rectChart.width() / (maxPointNum - 1) //缩小到全部显示
 
-        pointWidth = chartRect.width() / (config.pageShowNum - 1)
-        pointWidthMax = chartRect.width() / 4 //最大只能放大到每个标签显示5个点
+        pointWidth = rectChart.width() / (config.pageShowNum - 1)
+        pointWidthMax = rectChart.width() / 4 //最大只能放大到每个标签显示5个点
 
-//        pointWidthMax = chartRect.width() / (xAxisMark.lableNum-1) / 5;   //最大只能放大到每个标签显示5个点
-        //        pointWidthMax = chartRect.width() / (xAxisMark.lableNum-1) / 5;   //最大只能放大到每个标签显示5个点
+//        pointWidthMax = rectChart.width() / (xAxisMark.lableNum-1) / 5;   //最大只能放大到每个标签显示5个点
+        //        pointWidthMax = rectChart.width() / (xAxisMark.lableNum-1) / 5;   //最大只能放大到每个标签显示5个点
         Log.w(TAG, "缩放最小最大宽度=$pointWidthMin     $pointWidthMax")
         //数据没有展示完，说明可以滚动
         scrollXMax = 0f
-        if (config.pageShowNum < maxPointNum) scrollXMax = -(pointWidth * (maxPointNum - 1) - chartRect.width()) //最大滚动距离，是一个负值
+        if (config.pageShowNum < maxPointNum) scrollXMax = -(pointWidth * (maxPointNum - 1) - rectChart.width()) //最大滚动距离，是一个负值
 
         scrollx = if (config.displayScheme==DisplayScheme.SHOW_BEGIN) 0f else scrollXMax
 
@@ -167,8 +166,8 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
                 if (linePoints.get(j).getValuey() == null)
                     continue;
                 linePoints.get(j).setPoint(new PointF(
-                        chartRect.left + j * pointWidth,
-                        chartRect.bottom - (chartRect.bottom - chartRect.top) /
+                        rectChart.left + j * pointWidth,
+                        rectChart.bottom - (rectChart.bottom - rectChart.top) /
                                 (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (linePoints.get(j).getValuey() - yAxisMark.cal_mark_min)
                 ));
             }
@@ -183,14 +182,14 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         if(_datas.isNullOrEmpty())
             return
         val startTime = System.currentTimeMillis()
-        val yMarkSpace = (chartRect.bottom - chartRect.top) / (yAxisMark.lableNum - 1)
+        val yMarkSpace = (rectChart.bottom - rectChart.top) / (yAxisMark.lableNum - 1)
         paintEffect.style = Paint.Style.STROKE
         paintEffect.strokeWidth = yAxisMark.lineWidth.toFloat()
         paintEffect.color = yAxisMark.lineColor
         paintText.textSize = yAxisMark.textSize.toFloat()
         paintText.color = yAxisMark.textColor
-//        canvas.drawLine(chartRect.left, chartRect.top, chartRect.left, chartRect.bottom, paint);
-        //        canvas.drawLine(chartRect.left, chartRect.top, chartRect.left, chartRect.bottom, paint);
+//        canvas.drawLine(rectChart.left, rectChart.top, rectChart.left, rectChart.bottom, paint);
+        //        canvas.drawLine(rectChart.left, rectChart.top, rectChart.left, rectChart.bottom, paint);
         val effects: PathEffect = DashPathEffect(floatArrayOf(15f, 6f, 15f, 6f), 0f)
         paintEffect.pathEffect = effects
 
@@ -199,19 +198,19 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         for (i in 0 until yAxisMark.lableNum) {
             /**绘制横向线 */
             paint.strokeWidth = if (i == 0) yAxisMark.lineWidth * 2.5f else yAxisMark.lineWidth.toFloat()
-            canvas!!.drawLine(chartRect.left, chartRect.bottom - yMarkSpace * i,
-                    chartRect.right, chartRect.bottom - yMarkSpace * i, paint)
+            canvas!!.drawLine(rectChart.left, rectChart.bottom - yMarkSpace * i,
+                    rectChart.right, rectChart.bottom - yMarkSpace * i, paint)
             /**绘制y刻度 */
             val text = yAxisMark.getMarkText(yAxisMark.cal_mark_min + i * yAxisMark.cal_mark)
             canvas!!.drawText(text,
-                    chartRect.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, text),
-                    chartRect.bottom - yMarkSpace * i - yAxisMark.textHeight / 2 + yAxisMark.textLead, paintText)
+                    rectChart.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, text),
+                    rectChart.bottom - yMarkSpace * i - yAxisMark.textHeight / 2 + yAxisMark.textLead, paintText)
         }
         //绘制Y轴单位
         if (!TextUtils.isEmpty(yAxisMark.unit)) {
             canvas!!.drawText(yAxisMark.unit,
-                    chartRect.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, yAxisMark.unit),
-                    chartRect.top - yAxisMark.textSpace - yAxisMark.textHeight * 3 / 2 + yAxisMark.textLead, paintText)
+                    rectChart.left - yAxisMark.textSpace - FontUtil.getFontlength(paintText, yAxisMark.unit),
+                    rectChart.top - yAxisMark.textSpace - yAxisMark.textHeight * 3 / 2 + yAxisMark.textLead, paintText)
         }
 
         /**绘制x轴刻度 */
@@ -233,14 +232,14 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         val lastPoint = PointF()
         val currentPoint = PointF()
         var startIndex = (-scrollx / pointWidth).toInt()
-        var endIndex = ((-scrollx + chartRect.width()) / pointWidth + 1).toInt()
+        var endIndex = ((-scrollx + rectChart.width()) / pointWidth + 1).toInt()
         startIndex = Math.max(startIndex, 0)
         endIndex = Math.min(endIndex, maxPointNum - 1)
 //        Log.w(TAG, "绘制索引："+startIndex+" 至  "+endIndex+"   scrollx="+scrollx);
         //        Log.w(TAG, "绘制索引："+startIndex+" 至  "+endIndex+"   scrollx="+scrollx);
-        val clipRect = RectF(chartRect.left - radius - config.lineWidth / 2, chartRect.top,
-                chartRect.right + radius + config.lineWidth / 2,
-                chartRect.bottom + xAxisMark.textSpace + xAxisMark.textHeight)
+        val clipRect = RectF(rectChart.left - radius - config.lineWidth / 2, rectChart.top,
+                rectChart.right + radius + config.lineWidth / 2,
+                rectChart.bottom + xAxisMark.textSpace + xAxisMark.textHeight)
         canvas!!.saveLayer(clipRect.left, clipRect.top, clipRect.right, clipRect.bottom, paint, Canvas.ALL_SAVE_FLAG)
         var drawXLable = false
         for (i in _datas.indices) {
@@ -251,8 +250,8 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
                 if (j > startIndex + (endIndex - startIndex) * chartAnimValue) break
                 //每条线的点数量可能不一样
                 if (j >= linePoints.size /* || linePoints.get(j).getValuey() == null*/) continue
-                currentPoint.x = scrollx + chartRect.left + j * pointWidth
-                currentPoint.y = chartRect.bottom - (chartRect.bottom - chartRect.top) /
+                currentPoint.x = scrollx + rectChart.left + j * pointWidth
+                currentPoint.y = rectChart.bottom - (rectChart.bottom - rectChart.top) /
                         (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (linePoints[j].valuey - yAxisMark.cal_mark_min)
                 if (config.lineType == LineType.BROKEN) {
                     if (path.isEmpty) {
@@ -302,7 +301,7 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
                             currentPoint.x - FontUtil.getFontlength(paintText, linePoints[j].valuex) / 2
                         }
                         canvas!!.drawText(linePoints[j].valuex, x,
-                                chartRect.bottom + xAxisMark.textSpace + xAxisMark.textLead, paintText)
+                                rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead, paintText)
                     }
                 }
             }
@@ -366,17 +365,17 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
             paintEffect.color = focusLineColor
             paintEffect.pathEffect = effects
             val path = Path()
-            path.moveTo(focusData!!.point.x, chartRect.bottom)
-            path.lineTo(focusData!!.point.x, chartRect.top)
+            path.moveTo(focusData!!.point.x, rectChart.bottom)
+            path.lineTo(focusData!!.point.x, rectChart.top)
             canvas.drawPath(path, paintEffect)
 
             //面板
-            val showLeft: Boolean = focusData!!.point.x - chartRect.left > (chartRect.right - chartRect.left) / 2
+            val showLeft: Boolean = focusData!!.point.x - rectChart.left > (rectChart.right - rectChart.left) / 2
             val rect = RectF(
                     if (showLeft) focusData!!.point.x - foucsRectWidth - 30 else focusData!!.point.x + 30,
-                    chartRect.top /*+ (chartRect.bottom - chartRect.top)/2 - foucsRectHeight/2*/,
+                    rectChart.top /*+ (rectChart.bottom - rectChart.top)/2 - foucsRectHeight/2*/,
                     if (showLeft) focusData!!.point.x - 30 else focusData!!.point.x + foucsRectWidth + 30,
-                    chartRect.top + foucsRectHeight /*+ (chartRect.bottom - chartRect.top)/2 + foucsRectHeight/2*/
+                    rectChart.top + foucsRectHeight /*+ (rectChart.bottom - rectChart.top)/2 + foucsRectHeight/2*/
             )
             paint.style = Paint.Style.FILL
             paint.color = Color.WHITE
@@ -417,7 +416,7 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
                             //绘制焦点圆圈
                             if (focusData!!.data[i - 1] != null) {
                                 currentPoint.x = focusData!!.point.x
-                                currentPoint.y = chartRect.bottom - (chartRect.bottom - chartRect.top) /
+                                currentPoint.y = rectChart.bottom - (rectChart.bottom - rectChart.top) /
                                         (yAxisMark.cal_mark_max - yAxisMark.cal_mark_min) * (focusData!!.data[i - 1]!!.valuey - yAxisMark.cal_mark_min)
                                 paint.style = Paint.Style.STROKE
                                 paint.color = config.lineColor.get(i - 1)
@@ -451,16 +450,16 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
     override fun onScale(detector: ScaleGestureDetector, beginScrollx: Float) {
         pointWidth *= detector.scaleFactor
         //缩放范围约束
-//            pointWidthMin = chartRect.width() / (maxPointNum-1);   //缩小到全部显示
-//            pointWidth = chartRect.width() / (config.pageShowNum-1);
-//            pointWidthMax = chartRect.width() / 4;   //最大只能放大到每个标签显示5个点
+//            pointWidthMin = rectChart.width() / (maxPointNum-1);   //缩小到全部显示
+//            pointWidth = rectChart.width() / (config.pageShowNum-1);
+//            pointWidthMax = rectChart.width() / 4;   //最大只能放大到每个标签显示5个点
         pointWidth = Math.min(pointWidth, pointWidthMax)
         pointWidth = Math.max(pointWidth, pointWidthMin)
         //重新计算最大偏移量
-        scrollXMax = -(pointWidth * (maxPointNum - 1) - chartRect.width()) //最大滚动距离，是一个负值
+        scrollXMax = -(pointWidth * (maxPointNum - 1) - rectChart.width()) //最大滚动距离，是一个负值
         //计算当前偏移量
         Log.i(TAG, "=============================当前偏移：$scrollx    两点宽度 = $pointWidth")
-        //为了保证焦点对应的点位置不变，是使用公式： beginScrollx + chartRect.left + focusIndex*beginPointWidth = scrollx + chartRect.left + focusIndex*pointWidth
+        //为了保证焦点对应的点位置不变，是使用公式： beginScrollx + rectChart.left + focusIndex*beginPointWidth = scrollx + rectChart.left + focusIndex*pointWidth
         scrollx = beginScrollx + focusIndex * (beginPointWidth - pointWidth)
         scrollx = Math.min(scrollx, 0f)
         scrollx = Math.max(scrollXMax, scrollx)
@@ -473,17 +472,17 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
         point?.let {
             if (!_datas.isNullOrEmpty() && config.focusPanelText!=null) {
                 //避免滑出
-                point.x = Math.max(point.x, chartRect.left);
-                point.x = Math.min(point.x, chartRect.right);
+                point.x = Math.max(point.x, rectChart.left);
+                point.x = Math.min(point.x, rectChart.right);
                 //获取焦点对应的数据的索引
-                focusIndex =((-scrollx + (point.x - chartRect.left)) / pointWidth).toInt()
-                if ((-scrollx + (point.x - chartRect.left)) - focusIndex * pointWidth > pointWidth / 2) {
+                focusIndex =((-scrollx + (point.x - rectChart.left)) / pointWidth).toInt()
+                if ((-scrollx + (point.x - rectChart.left)) - focusIndex * pointWidth > pointWidth / 2) {
                     LogUtil.e(TAG, "========焦点在下一个点范围了：" + focusIndex);
                     focusIndex += 1;
                 }
                 LogUtil.e(TAG, "========焦点索引：" + focusIndex);
                 focusIndex = Math.max(0, Math.min(focusIndex, maxPointNum - 1));
-                point.x = chartRect.left + (focusIndex * pointWidth + scrollx);
+                point.x = rectChart.left + (focusIndex * pointWidth + scrollx);
                 val datas = mutableListOf<LinePoint?>()
                 for (line in _datas) {
                     if (focusIndex < line.size) datas.add(line[focusIndex])
@@ -508,7 +507,7 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
             xlables.addAll(Arrays.asList(*xAxisMark.lables))
             return
         }
-        val markSpace = chartRect.width() / (xAxisMark.lableNum - 1)
+        val markSpace = rectChart.width() / (xAxisMark.lableNum - 1)
         //每隔多少展示一个标签
         xindexSpace = (markSpace / pointWidth).toInt()
         xindexSpace = Math.max(xindexSpace, 1)
@@ -600,24 +599,24 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
 
     /**绘制 XAxisMark.lables 设置的固定x刻度， */
     private fun drawFixedXLable(canvas: Canvas) {
-        val oneWidth = (-scrollXMax + chartRect.width()) / (xAxisMark.lables.size - 1)
-        Log.w(TAG, "最大滚动：" + scrollXMax + "  图表宽度" + chartRect.width() + "  lable数量" + xAxisMark.lables.size + "   单个跨度：" + oneWidth)
+        val oneWidth = (-scrollXMax + rectChart.width()) / (xAxisMark.lables.size - 1)
+        Log.w(TAG, "最大滚动：" + scrollXMax + "  图表宽度" + rectChart.width() + "  lable数量" + xAxisMark.lables.size + "   单个跨度：" + oneWidth)
         paintText.textSize = xAxisMark.textSize.toFloat()
         paintText.color = xAxisMark.textColor
         var x: Float
         val restoreCount = canvas.save()
-        canvas.clipRect(RectF(chartRect.left, chartRect.bottom, chartRect.right, chartRect.bottom + xAxisMark.textSpace + xAxisMark.textHeight))
+        canvas.clipRect(RectF(rectChart.left, rectChart.bottom, rectChart.right, rectChart.bottom + xAxisMark.textSpace + xAxisMark.textHeight))
         for (i in xAxisMark.lables.indices) {
             val text = xAxisMark.lables[i]
             x = if (i == 0) {
-                scrollx + chartRect.left + i * oneWidth
+                scrollx + rectChart.left + i * oneWidth
             } else if (i == xAxisMark.lables.size - 1) {
-                scrollx + chartRect.left + i * oneWidth - FontUtil.getFontlength(paintText, text)
+                scrollx + rectChart.left + i * oneWidth - FontUtil.getFontlength(paintText, text)
             } else {
-                scrollx + chartRect.left + i * oneWidth - FontUtil.getFontlength(paintText, text) / 2
+                scrollx + rectChart.left + i * oneWidth - FontUtil.getFontlength(paintText, text) / 2
             }
             canvas.drawText(text, x,
-                    chartRect.bottom + xAxisMark.textSpace + xAxisMark.textLead, paintText)
+                    rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead, paintText)
         }
         canvas.restoreToCount(restoreCount)
     }

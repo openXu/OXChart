@@ -83,8 +83,8 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         xAxisMark.textHeight = FontUtil.getFontHeight(paintText)
         xAxisMark.textLead = FontUtil.getFontLeading(paintText)
         //确定图表最下放绘制位置
-        rectChart.bottom -= (xAxisMark.textHeight + xAxisMark.textSpace)
-        xAxisMark.drawPointY = rectChart.bottom + xAxisMark.textSpace + xAxisMark.textLead
+        rectChart.bottom = rectDrawBounds.bottom - (xAxisMark.textHeight + xAxisMark.textSpace)
+        xAxisMark.drawPointY = rectDrawBounds.bottom + xAxisMark.textSpace + xAxisMark.textLead
         LogUtil.e(TAG, "--------------设置数据后第一次计算所有数据y轴刻度，以确定图标左侧位置")
         calculateYMark(true)
         paintText.textSize = yAxisMark.textSize.toFloat()
@@ -93,9 +93,9 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         var maxLable: String = yAxisMark.getMarkText(yAxisMark.cal_mark_max)
         val minLable: String = yAxisMark.getMarkText(yAxisMark.cal_mark_min)
         val maxYWidth = FontUtil.getFontlength(paintText, if(maxLable.length>minLable.length) maxLable else minLable)
-        rectChart.left = rectChart.left + yAxisMark.textSpace + maxYWidth
+        rectChart.left = rectDrawBounds.left + yAxisMark.textSpace + maxYWidth
         LogUtil.w(TAG, "原始顶部：${rectChart.top}  单位高度${if (TextUtils.isEmpty(yAxisMark.unit)) 0f else (yAxisMark.textHeight + yAxisMark.textSpace)}   y一半：${yAxisMark.textHeight / 2}")
-        rectChart.top = rectChart.top + yAxisMark.textHeight / 2 + (if (TextUtils.isEmpty(yAxisMark.unit)) 0f else (yAxisMark.textHeight + yAxisMark.textSpace))
+        rectChart.top = rectDrawBounds.top + yAxisMark.textHeight / 2 + (if (TextUtils.isEmpty(yAxisMark.unit)) 0f else (yAxisMark.textHeight + yAxisMark.textSpace))
         LogUtil.v(TAG, "确定表格矩形 $rectChart  宽度 ${rectChart.width()}  高度${rectChart.height()}")
         /**重新计算柱子宽度 和 间距*/
         LogUtil.e(TAG, "--------------根据显示配置和数据，计算柱子宽度和间距")

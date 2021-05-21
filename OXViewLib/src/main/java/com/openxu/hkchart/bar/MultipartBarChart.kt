@@ -408,7 +408,7 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
                     var right = rectChart.right
                     if(allWidth<rectChart.width()){
                         left = rectChart.left + (rectChart.width()-allWidth)/2
-                        right = rectChart.left + allWidth
+                        right = left + allWidth
                     }
                     LogUtil.e(TAG, "========焦点位置${point.x}")
                     point.x = Math.max(point.x, left)

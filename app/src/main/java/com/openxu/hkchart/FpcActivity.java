@@ -170,7 +170,7 @@ public class FpcActivity extends AppCompatActivity {
                 MultipartBarConfig config = new MultipartBarConfig(FpcActivity.this);
                 config.setDisplayScheme(DisplayScheme.SHOW_ALL);
                 config.setBarWidth(DensityUtil.dip2px(FpcActivity.this, 20));
-                config.setSpacingRatio(1.5f);
+                config.setSpacingRatio(0.8f);
                 config.setXAxisMark(xAxisMark);
                 config.setYAxisMark(yAxisMark);
                 config.setShowAnim(true);
@@ -243,7 +243,7 @@ public class FpcActivity extends AppCompatActivity {
                     valueys.add(10f*i);
                     valueys.add(10f*i + 5);
                     valueys.add(10f*i+10);
-                    datas.add(new MultipartBarData(valueys, "2010-"+i));
+                    datas.add(new MultipartBarData(valueys, "2010-02-0"+i));
                 }
 
                 multipartBarChart.setDatas(datas);

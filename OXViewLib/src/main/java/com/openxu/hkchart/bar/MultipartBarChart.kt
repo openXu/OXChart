@@ -549,7 +549,8 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
         for(index in startIndex..endIndex){
             xTextMaxLength = xTextMaxLength.coerceAtLeast(FontUtil.getFontlength(paintText, _datas[index].valuex))
         }
-        var xNumber = (rectChart.width() / xTextMaxLength).toInt()
+        //当前绘制宽度 / x刻度最长
+        var xNumber = ((allDataWidth * scalex).coerceAtMost(rectChart.width()) / xTextMaxLength).toInt()
         val dataNumber = endIndex - startIndex + 1
         LogUtil.e(TAG, "绘制的数据条数${endIndex-startIndex+1}  X轴文字最长长度$xTextMaxLength   理论最多可显示$xNumber 个")
         xNumber = Math.min(xNumber, xAxisMark.lableNum)

@@ -455,10 +455,8 @@ class LineChart  : BaseChart<MutableList<LinePoint?>> {
     }
 
     /***************************事件👇👇👇***************************/
-    private var beginScrollx = 0f
     private var beginPointWidth = 0f
     override fun onScaleBegin(detector: ScaleGestureDetector) {
-        beginScrollx = scrollx
         beginPointWidth = pointWidth
     }
 

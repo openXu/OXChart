@@ -123,7 +123,9 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
             DisplayScheme.SHOW_BEGIN->{}//从第一条数据开始展示，柱子宽度就是设置的宽度
             DisplayScheme.SHOW_END->{}  //从最后一条数据开始展示，柱子宽度就是设置的宽度
         }
-        LogUtil.v(TAG, "确定柱子宽度 $barWidth  间距 $barSpace")
+        //最大放大倍数 = 设置的柱子宽度的3倍 / 当前柱子宽度
+        scaleXMax = config.barWidth * 3f / barWidth
+        LogUtil.v(TAG, "确定柱子宽度 $barWidth  间距 $barSpace  最大放大倍数$scaleXMax")
         /**确定第一条数据的绘制x坐标   计算滚动最大值*/
         oneDataWidth = barWidth + barSpace
         allDataWidth = dataTotalCount * barWidth + (dataTotalCount+1) * barSpace
@@ -359,26 +361,32 @@ class MultipartBarChart : BaseChart<MultipartBarData>{
     }
 
     /***************************事件👇👇👇***************************/
+    private var oldScalex = 0f
     override fun onScaleBegin(detector: ScaleGestureDetector) {
-        val width = -scrollx + (detector.focusX - rectChart.left)
-        val zs = (width / (oneDataWidth*scalex)).toInt()
-        val ys = width % (oneDataWidth*scalex)
-        focusIndex = zs + if(ys>(barWidth/2+barSpace)*scalex)1 else 0
+//        val width = -scrollx + (detector.focusX - rectChart.left)
+//        val zs = (width / (oneDataWidth*scalex)).toInt()
+//        val ys = width % (oneDataWidth*scalex)
+//        focusIndex = zs + if(ys>(barWidth/2+barSpace)*scalex)1 else 0
+        oldScalex = scalex
+        //设置焦点为两个手指中间
+        focusPoint.x = detector.focusX
+        focusPoint.y = detector.focusY
+        onFocusTouch(focusPoint)
         LogUtil.i(TAG, "缩放开始了，焦点索引为$focusIndex") // 缩放因子
     }
-
+    private var scaleXMax = 3f   //X轴方向最大放大倍数，需要根据柱子是否能填充图表计算
     override fun onScale(detector: ScaleGestureDetector, beginScrollx: Float) {
         scalex *= detector.scaleFactor
         LogUtil.e(TAG, "--------------------当前缩放值$scalex  缩放${detector.scaleFactor}   缩放之后${scalex*detector.scaleFactor}")
         //缩放范围约束
-        scalex = scalex.coerceAtMost(2f)
+        scalex = scalex.coerceAtMost(scaleXMax)
         scalex = scalex.coerceAtLeast(1f)
         LogUtil.e(TAG, "--------------------最终值$scalex ")
         //重新计算最大偏移量
         if(allDataWidth * scalex > rectChart.width()){
             scrollXMax = rectChart.width() - allDataWidth * scalex
             //为了保证焦点对应的点位置不变，是使用公式： beginScrollx + rectChart.left + focusIndex*beginPointWidth = scrollx + rectChart.left + focusIndex*pointWidth
-            scrollx = beginScrollx + focusIndex * (oneDataWidth - oneDataWidth*scalex)
+            scrollx = beginScrollx + focusIndex * (oneDataWidth * oldScalex - oneDataWidth*scalex)
             scrollx = Math.min(scrollx, 0f)
             scrollx = Math.max(scrollXMax, scrollx)
             LogUtil.i(TAG, "缩放后偏移："+scrollx);

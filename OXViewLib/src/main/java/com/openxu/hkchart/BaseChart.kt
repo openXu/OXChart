@@ -205,7 +205,7 @@ open abstract class BaseChart<T> : View, View.OnTouchListener {
         return super.onTouchEvent(event)
     }
 
-    private var focusPoint = PointF()                //焦点坐标
+    protected val focusPoint = PointF()                //焦点坐标
     override fun onTouch(v: View?, event: MotionEvent): Boolean {
         mScaleGestureDetector.onTouchEvent(event)
         mGestureDetector.onTouchEvent(event)
